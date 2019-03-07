@@ -16,7 +16,7 @@ public class ThrowEventNode extends AbstractEventNode implements ISendMessageNod
 				errors.add(ValidationError.createLocalizedError(this, "catchEventNode.notErrorType"));
 	        }
 		}
-		// TODO Auto-generated method stub
+
 		super.validate(errors, definitionFile);
 	}
 }
