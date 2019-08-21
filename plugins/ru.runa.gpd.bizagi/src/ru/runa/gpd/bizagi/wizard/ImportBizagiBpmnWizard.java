@@ -6,9 +6,9 @@ import org.eclipse.ui.IImportWizard;
 import org.eclipse.ui.IWorkbench;
 import ru.runa.gpd.Localization;
 
-public class ImportBpmnWizard extends Wizard implements IImportWizard {
+public class ImportBizagiBpmnWizard extends Wizard implements IImportWizard {
 
-    private ImportBpmnWizardPage mainPage;
+    private ImportBizagiBpmnWizardPage mainPage;
 
     @Override
     public boolean performFinish() {
@@ -18,7 +18,7 @@ public class ImportBpmnWizard extends Wizard implements IImportWizard {
     @Override
     public void init(IWorkbench workbench, IStructuredSelection selection) {
         setWindowTitle(Localization.getString("ImportParWizard.wizard.title"));
-        mainPage = new ImportBpmnWizardPage(Localization.getString("ImportParWizard.wizard.title"), selection);
+        mainPage = new ImportBizagiBpmnWizardPage(Localization.getString("ImportParWizard.wizard.title"), selection);
     }
 
     @Override

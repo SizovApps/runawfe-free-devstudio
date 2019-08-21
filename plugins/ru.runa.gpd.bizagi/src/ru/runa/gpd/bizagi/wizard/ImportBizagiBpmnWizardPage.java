@@ -15,17 +15,17 @@ import org.eclipse.swt.widgets.Group;
 import ru.runa.gpd.PluginLogger;
 import ru.runa.gpd.SharedImages;
 import ru.runa.gpd.bizagi.Activator;
-import ru.runa.gpd.bizagi.converter.BpmnImporter;
+import ru.runa.gpd.bizagi.converter.BizagiBpmnImporter;
 import ru.runa.gpd.bizagi.resource.Messages;
 import ru.runa.gpd.ui.wizard.ImportWizardPage;
 import ru.runa.gpd.util.WorkspaceOperations;
 
-public class ImportBpmnWizardPage extends ImportWizardPage {
+public class ImportBizagiBpmnWizardPage extends ImportWizardPage {
 
     private Composite fileSelectionArea;
     private FileFieldEditor editor;
 
-    public ImportBpmnWizardPage(String pageName, IStructuredSelection selection) {
+    public ImportBizagiBpmnWizardPage(String pageName, IStructuredSelection selection) {
         super(pageName, selection);
         setTitle(Messages.getString("ImportBpmnWizardPage.page.title"));
         setImageDescriptor(SharedImages.getImageDescriptor(Activator.getDefault().getBundle(), "icons/process.png", false));
@@ -65,7 +65,7 @@ public class ImportBpmnWizardPage extends ImportWizardPage {
             if (bpmnFileName == null || !new File(bpmnFileName).exists()) {
                 throw new Exception(Messages.getString("ImportBpmnWizardPage.error.selectFile"));
             }
-            BpmnImporter.go(container, bpmnFileName);
+            BizagiBpmnImporter.go(container, bpmnFileName);
             WorkspaceOperations.refreshResources(Arrays.asList(container));
             return true;
         } catch (Exception e) {

@@ -4,7 +4,7 @@
    <extension
          point="org.eclipse.ui.importWizards">
       <wizard
-            class="ru.runa.gpd.bizagi.wizard.ImportBpmnWizard"
+            class="ru.runa.gpd.bizagi.wizard.ImportBizagiBpmnWizard"
             icon="icons/import.png"
             id="ru.runa.gpd.bizagi.wizard.import"
             name="%wizard.import.name">
@@ -17,7 +17,7 @@
             label="bizagi"
             visible="true">
          <action
-               class="ru.runa.gpd.bizagi.action.ImportBpmnAction"
+               class="ru.runa.gpd.bizagi.action.ImportBizagiBpmnAction"
                icon="icons/import.png"
                id="ru.runa.gpd.bizagi.action.import"
                label="%action.import.label"
