@@ -10,6 +10,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import ru.runa.gpd.PluginLogger;
@@ -23,7 +24,10 @@ import ru.runa.gpd.util.WorkspaceOperations;
 public class ImportBizagiBpmnWizardPage extends ImportWizardPage {
 
     private Composite fileSelectionArea;
-    private FileFieldEditor editor;
+    private FileFieldEditor selectFileEditor;
+    private BooleanFieldEditor showSwimlanesEditor;
+    private BooleanFieldEditor optimizeElementsSizeEditor;
+    private BooleanFieldEditor ignoreBendPointsEditor;
 
     public ImportBizagiBpmnWizardPage(String pageName, IStructuredSelection selection) {
         super(pageName, selection);
@@ -41,7 +45,7 @@ public class ImportBizagiBpmnWizardPage extends ImportWizardPage {
         createProjectsGroup(sashForm);
         ((GridData) projectViewer.getControl().getLayoutData()).heightHint = 200;
         Group importGroup = new Group(sashForm, SWT.NONE);
-        sashForm.setWeights(new int[] { 8, 2 });
+        sashForm.setWeights(new int[] { 13, 20 });
         importGroup.setLayout(new GridLayout(1, false));
         importGroup.setLayoutData(new GridData(GridData.FILL_BOTH));
         fileSelectionArea = new Composite(importGroup, SWT.NONE);
@@ -53,19 +57,26 @@ public class ImportBizagiBpmnWizardPage extends ImportWizardPage {
         fileSelectionLayout.marginWidth = 0;
         fileSelectionLayout.marginHeight = 0;
         fileSelectionArea.setLayout(fileSelectionLayout);
-        editor = new FileFieldEditor("fileSelect", Messages.getString("ImportBpmnWizardPage.page.title"), fileSelectionArea);
-        editor.setFileExtensions(new String[] { "*.bpmn" });
+        selectFileEditor = new FileFieldEditor("selectFile", Messages.getString("ImportBpmnWizardPage.page.title"), fileSelectionArea);
+        selectFileEditor.setFileExtensions(new String[] { "*.bpmn" });
+        showSwimlanesEditor = new BooleanFieldEditor("showSwimlanes", Messages.getString("ImportBpmnWizardPage.show_swimlanes"), fileSelectionArea);
+        showSwimlanesEditor.getChangeControl(fileSelectionArea).setSelection(true);
+        optimizeElementsSizeEditor = new BooleanFieldEditor("optimizeElementsSize", Messages.getString("ImportBpmnWizardPage.optimize_elements_size"),
+                fileSelectionArea);
+        ignoreBendPointsEditor = new BooleanFieldEditor("ignoreBendPoints", Messages.getString("ImportBpmnWizardPage.ignore_bend_points"),
+                fileSelectionArea);
         setControl(pageControl);
     }
 
     public boolean performFinish() {
         try {
             IContainer container = getSelectedContainer();
-            String bpmnFileName = editor.getStringValue();
+            String bpmnFileName = selectFileEditor.getStringValue();
             if (bpmnFileName == null || !new File(bpmnFileName).exists()) {
                 throw new Exception(Messages.getString("ImportBpmnWizardPage.error.selectFile"));
             }
-            BizagiBpmnImporter.go(container, bpmnFileName);
+            BizagiBpmnImporter.go(container, bpmnFileName, showSwimlanesEditor.getBooleanValue(), optimizeElementsSizeEditor.getBooleanValue(),
+                    ignoreBendPointsEditor.getBooleanValue());
             WorkspaceOperations.refreshResources(Arrays.asList(container));
             return true;
         } catch (Exception e) {
@@ -77,6 +88,29 @@ public class ImportBizagiBpmnWizardPage extends ImportWizardPage {
             PluginLogger.logErrorWithoutDialog("import from bpmn", e);
             return false;
         }
+    }
+
+    private class BooleanFieldEditor extends org.eclipse.jface.preference.BooleanFieldEditor {
+
+        private Button changeControl;
+
+        public BooleanFieldEditor(String name, String labelText, Composite parent) {
+            super(name, labelText, parent);
+        }
+
+        @Override
+        public Button getChangeControl(Composite parent) {
+            if (changeControl == null) {
+                changeControl = super.getChangeControl(parent);
+            }
+            return changeControl;
+        }
+
+        @Override
+        public int getNumberOfControls() {
+            return 3;
+        }
+
     }
 
 }
