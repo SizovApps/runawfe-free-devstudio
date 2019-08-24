@@ -26,7 +26,6 @@ public class ImportBizagiBpmnWizardPage extends ImportWizardPage {
     private Composite fileSelectionArea;
     private FileFieldEditor selectFileEditor;
     private BooleanFieldEditor showSwimlanesEditor;
-    private BooleanFieldEditor optimizeElementsSizeEditor;
     private BooleanFieldEditor ignoreBendPointsEditor;
 
     public ImportBizagiBpmnWizardPage(String pageName, IStructuredSelection selection) {
@@ -45,7 +44,7 @@ public class ImportBizagiBpmnWizardPage extends ImportWizardPage {
         createProjectsGroup(sashForm);
         ((GridData) projectViewer.getControl().getLayoutData()).heightHint = 200;
         Group importGroup = new Group(sashForm, SWT.NONE);
-        sashForm.setWeights(new int[] { 13, 20 });
+        sashForm.setWeights(new int[] { 20, 20 });
         importGroup.setLayout(new GridLayout(1, false));
         importGroup.setLayoutData(new GridData(GridData.FILL_BOTH));
         fileSelectionArea = new Composite(importGroup, SWT.NONE);
@@ -60,11 +59,9 @@ public class ImportBizagiBpmnWizardPage extends ImportWizardPage {
         selectFileEditor = new FileFieldEditor("selectFile", Messages.getString("ImportBpmnWizardPage.page.title"), fileSelectionArea);
         selectFileEditor.setFileExtensions(new String[] { "*.bpmn" });
         showSwimlanesEditor = new BooleanFieldEditor("showSwimlanes", Messages.getString("ImportBpmnWizardPage.show_swimlanes"), fileSelectionArea);
-        showSwimlanesEditor.getChangeControl(fileSelectionArea).setSelection(true);
-        optimizeElementsSizeEditor = new BooleanFieldEditor("optimizeElementsSize", Messages.getString("ImportBpmnWizardPage.optimize_elements_size"),
-                fileSelectionArea);
         ignoreBendPointsEditor = new BooleanFieldEditor("ignoreBendPoints", Messages.getString("ImportBpmnWizardPage.ignore_bend_points"),
                 fileSelectionArea);
+        ignoreBendPointsEditor.getChangeControl(fileSelectionArea).setSelection(true);
         setControl(pageControl);
     }
 
@@ -75,8 +72,7 @@ public class ImportBizagiBpmnWizardPage extends ImportWizardPage {
             if (bpmnFileName == null || !new File(bpmnFileName).exists()) {
                 throw new Exception(Messages.getString("ImportBpmnWizardPage.error.selectFile"));
             }
-            BizagiBpmnImporter.go(container, bpmnFileName, showSwimlanesEditor.getBooleanValue(), optimizeElementsSizeEditor.getBooleanValue(),
-                    ignoreBendPointsEditor.getBooleanValue());
+            BizagiBpmnImporter.go(container, bpmnFileName, showSwimlanesEditor.getBooleanValue(), ignoreBendPointsEditor.getBooleanValue());
             WorkspaceOperations.refreshResources(Arrays.asList(container));
             return true;
         } catch (Exception e) {
