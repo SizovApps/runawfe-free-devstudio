@@ -9,12 +9,12 @@ import org.eclipse.graphiti.internal.datatypes.impl.DimensionImpl;
 import org.eclipse.graphiti.mm.algorithms.styles.Font;
 import org.eclipse.graphiti.mm.pictograms.PictogramElement;
 import org.eclipse.graphiti.ui.services.GraphitiUi;
-
 import ru.runa.gpd.editor.graphiti.DiagramFeatureProvider;
 import ru.runa.gpd.editor.graphiti.StyleUtil;
 import ru.runa.gpd.lang.BpmnSerializer;
 import ru.runa.gpd.lang.Language;
 import ru.runa.gpd.lang.NodeRegistry;
+import ru.runa.gpd.lang.model.Node;
 import ru.runa.gpd.lang.model.StartState;
 import ru.runa.gpd.lang.model.bpmn.StartTextDecoration;
 import ru.runa.gpd.util.SwimlaneDisplayMode;
@@ -63,5 +63,10 @@ public class AddStartNodeFeature extends AddNodeWithImageFeature {
         textDefinition.add(myAddContext);
 
         return containerShape;
+    }
+
+    @Override
+    protected String getIcon(Node node) {
+        return ((StartState) node).isStartByTimer() ? "startByTimer.png" : super.getIcon(node);
     }
 }

@@ -116,6 +116,8 @@ public class BpmnSerializer extends ProcessSerializer {
     public static final String END_TEXT_DECORATION = "endTextDecoration";
     private static final String ACTION_HANDLER = "actionHandler";
     private static final String EVENT_TYPE = "eventType";
+    private static final String TIME_DATE = "timeDate";
+    private static final String TIME_CYCLE = "timeCycle";
 
     @Override
     public boolean isSupported(Document document) {
@@ -184,7 +186,11 @@ public class BpmnSerializer extends ProcessSerializer {
         }
         StartState startState = definition.getFirstChild(StartState.class);
         if (startState != null) {
-            writeTaskState(processElement, startState);
+            Element startEventElement = writeTaskState(processElement, startState);
+            if (startState.isStartByTimer()) {
+                startEventElement.addElement(TIMER_EVENT_DEFINITION).addElement(timeElement(startState))
+                        .addText(startState.getTimerEventDefinition());
+            }
             writeTransitions(processElement, startState);
         }
         List<ExclusiveGateway> exclusiveGateways = definition.getChildren(ExclusiveGateway.class);
@@ -706,6 +712,10 @@ public class BpmnSerializer extends ProcessSerializer {
             String swimlaneName = parseExtensionProperties(startStateElement).get(LANE);
             Swimlane swimlane = definition.getSwimlaneByName(swimlaneName);
             startState.setSwimlane(swimlane);
+            Element timerEventDefinitionElement = startStateElement.element(TIMER_EVENT_DEFINITION);
+            if (timerEventDefinitionElement != null) {
+                startState.setTimerEventDefinition(((Element) timerEventDefinitionElement.elements().get(0)).getTextTrim());
+            }
         }
         List<Element> taskStateElements = new ArrayList<Element>(processElement.elements(USER_TASK));
         taskStateElements.addAll(processElement.elements(MULTI_TASK));
@@ -906,6 +916,17 @@ public class BpmnSerializer extends ProcessSerializer {
             }
             eventNode.setVariableMappings(parseVariableMappings(eventElement));
             return eventNode;
+        }
+    }
+
+    private String timeElement(StartState startState) {
+        String timerEventDefinition = startState.getTimerEventDefinition();
+        if (timerEventDefinition.startsWith("R")) {
+            return TIME_CYCLE;
+        } else if (timerEventDefinition.indexOf("P") >= 0) {
+            return TIME_DURATION;
+        } else {
+            return TIME_DATE;
         }
     }
 }
