@@ -61,7 +61,7 @@ public class ImportBizagiBpmnWizardPage extends ImportWizardPage {
         showSwimlanesEditor = new BooleanFieldEditor("showSwimlanes", Messages.getString("ImportBpmnWizardPage.show_swimlanes"), fileSelectionArea);
         ignoreBendPointsEditor = new BooleanFieldEditor("ignoreBendPoints", Messages.getString("ImportBpmnWizardPage.ignore_bend_points"),
                 fileSelectionArea);
-        ignoreBendPointsEditor.getChangeControl(fileSelectionArea).setSelection(true);
+        showSwimlanesEditor.getChangeControl(fileSelectionArea).setSelection(true);
         setControl(pageControl);
     }
 
