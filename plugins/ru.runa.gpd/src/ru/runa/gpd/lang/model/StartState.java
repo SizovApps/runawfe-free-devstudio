@@ -55,6 +55,10 @@ public class StartState extends FormNode implements HasTextDecorator {
         if (isSwimlaneDisabled() && getSwimlane() != null) {
             errors.add(ValidationError.createLocalizedError(this, "startState.swimlaneIsNotUsableInEmbeddedSubprocess"));
         }
+        if (!Strings.isNullOrEmpty(getTimerEventDefinition()) && hasFormValidation()
+                && getValidation(getProcessDefinition().getFile()).getRequiredVariableNames().size() > 0) {
+            errors.add(ValidationError.createLocalizedError(this, "startState.startNodeHasBothTimerDefinitionAndRequiredVariables"));
+        }
     }
 
     @Override
