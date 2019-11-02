@@ -390,7 +390,7 @@ public class BizagiBpmnImporter {
                     PluginLogger.logErrorWithoutDialog(e.getMessage(), e);
                 }
             }
-            WorkspaceOperations.saveProcessDefinition(definitionFile, definition);
+            WorkspaceOperations.saveProcessDefinition(definition);
             ProcessCache.newProcessDefinitionWasCreated(definitionFile);
             WorkspaceOperations.openProcessDefinition(definitionFile);
             createEmbeddedSubprocesses();
