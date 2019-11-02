@@ -1,9 +1,8 @@
 package ru.runa.gpd.lang.model;
 
+import com.google.common.base.Strings;
 import java.util.List;
-
 import org.eclipse.core.resources.IFile;
-
 import ru.runa.gpd.editor.graphiti.HasTextDecorator;
 import ru.runa.gpd.editor.graphiti.TextDecoratorEmulation;
 import ru.runa.gpd.lang.ValidationError;
@@ -12,6 +11,7 @@ import ru.runa.wfe.definition.ProcessDefinitionAccessType;
 public class StartState extends FormNode implements HasTextDecorator {
 
     protected TextDecoratorEmulation decoratorEmulation;
+    protected String timerEventDefinition;
 
     public StartState() {
         decoratorEmulation = new TextDecoratorEmulation(this);
@@ -55,6 +55,10 @@ public class StartState extends FormNode implements HasTextDecorator {
         if (isSwimlaneDisabled() && getSwimlane() != null) {
             errors.add(ValidationError.createLocalizedError(this, "startState.swimlaneIsNotUsableInEmbeddedSubprocess"));
         }
+        if (!Strings.isNullOrEmpty(getTimerEventDefinition()) && hasFormValidation()
+                && getValidation(getProcessDefinition().getFile()).getRequiredVariableNames().size() > 0) {
+            errors.add(ValidationError.createLocalizedError(this, "startState.startNodeHasBothTimerDefinitionAndRequiredVariables"));
+        }
     }
 
     @Override
@@ -62,4 +66,19 @@ public class StartState extends FormNode implements HasTextDecorator {
         return decoratorEmulation;
     }
 
+    public String getTimerEventDefinition() {
+        return timerEventDefinition;
+    }
+
+    public void setTimerEventDefinition(String timerEventDefinition) {
+        if (timerEventDefinition != this.timerEventDefinition) {
+            String oldTimerEventDefinition = this.timerEventDefinition;
+            this.timerEventDefinition = timerEventDefinition;
+            firePropertyChange(PROPERTY_TIMER_EVENT_DEFINITION, oldTimerEventDefinition, this.timerEventDefinition);
+        }
+    }
+
+    public boolean isStartByTimer() {
+        return !Strings.isNullOrEmpty(timerEventDefinition);
+    }
 }
