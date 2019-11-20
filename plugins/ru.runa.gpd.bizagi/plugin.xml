@@ -13,7 +13,7 @@
    <extension
          point="org.eclipse.ui.actionSets">
       <actionSet
-            id="ru.runa.gpd.bizagi.actionSet"
+            id="ru.runa.gpd.form.ftl.actionSet3"
             label="bizagi"
             visible="true">
          <action
