@@ -34,6 +34,8 @@ import ru.runa.gpd.lang.NodeTypeDefinition;
 import ru.runa.gpd.lang.ProcessSerializer;
 import ru.runa.gpd.lang.model.EndTokenState;
 import ru.runa.gpd.lang.model.GraphElement;
+import ru.runa.gpd.lang.model.MultiSubprocess;
+import ru.runa.gpd.lang.model.NamedGraphElement;
 import ru.runa.gpd.lang.model.Node;
 import ru.runa.gpd.lang.model.ProcessDefinition;
 import ru.runa.gpd.lang.model.StartState;
@@ -41,8 +43,10 @@ import ru.runa.gpd.lang.model.Subprocess;
 import ru.runa.gpd.lang.model.Swimlane;
 import ru.runa.gpd.lang.model.SwimlanedNode;
 import ru.runa.gpd.lang.model.TaskState;
+import ru.runa.gpd.lang.model.Timer;
 import ru.runa.gpd.lang.model.Transition;
 import ru.runa.gpd.lang.model.bpmn.CatchEventNode;
+import ru.runa.gpd.lang.model.bpmn.EventNodeType;
 import ru.runa.gpd.lang.model.bpmn.ExclusiveGateway;
 import ru.runa.gpd.lang.model.bpmn.ParallelGateway;
 import ru.runa.gpd.lang.model.bpmn.ScriptTask;
@@ -87,6 +91,10 @@ public class BizagiBpmnImporter {
     private static final String BPMN_ELEMENT = "bpmnElement";
     private static final String BPMN_PLANE = "BPMNPlane";
     private static final String BPMN_DIAGRAM = "BPMNDiagram";
+    private static final String MESSAGE_EVENT_DEFINITION = "messageEventDefinition";
+    private static final String ERROR_EVENT_DEFINITION = "errorEventDefinition";
+    private static final String TIMER_EVENT_DEFINITION = "timerEventDefinition";
+    private static final String MULTI_INSTANCE_LOOP_CHARACTERISTICS = "multiInstanceLoopCharacteristics";
     private static final String BIZAGI_NAMESPACE = "http://www.bizagi.com/bpmn20";
     private static final String BIZAGI_PROPERTY = "BizagiProperty";
     private static final String BIZAGI_PROPERTIES = "BizagiProperties";
@@ -243,7 +251,12 @@ public class BizagiBpmnImporter {
                         break;
                     }
                     case "subProcess": { // Embedded subprocess
-                        Subprocess sp = new Subprocess();
+                        Subprocess sp = null;
+                        if (element.element(MULTI_INSTANCE_LOOP_CHARACTERISTICS) != null) {
+                            sp = new MultiSubprocess();
+                        } else {
+                            sp = new Subprocess();
+                        }
                         sp.setEmbedded(true);
                         sp.setName(name);
                         sp.setSubProcessName(name);
@@ -286,12 +299,17 @@ public class BizagiBpmnImporter {
                         break;
                     }
                     case "intermediateCatchEvent": {
-                        CatchEventNode event = new CatchEventNode();
-                        event.setName(name);
-                        event.setDescription(documentation);
-                        setConstraint(event, id);
-                        definition.addChild(event);
-                        geMap.put(id, event);
+                        NamedGraphElement nge = null;
+                        if (element.element(TIMER_EVENT_DEFINITION) != null) {
+                            nge = new Timer();
+                        } else {
+                            nge = new CatchEventNode();
+                        }
+                        nge.setName(name);
+                        nge.setDescription(documentation);
+                        setConstraint(nge, id);
+                        definition.addChild(nge);
+                        geMap.put(id, nge);
                         break;
                     }
                     case "intermediateThrowEvent": {
@@ -313,6 +331,11 @@ public class BizagiBpmnImporter {
                         parent.addChild(event);
                         event.setParent(parent);
                         event.setParentContainer(parent);
+                        if (element.element(ERROR_EVENT_DEFINITION) != null) {
+                            event.setEventNodeType(EventNodeType.error);
+                        } else if (element.element(MESSAGE_EVENT_DEFINITION) != null) {
+                            event.setEventNodeType(EventNodeType.message);
+                        }
                         geMap.put(id, event);
                         break;
                     }
@@ -370,7 +393,10 @@ public class BizagiBpmnImporter {
                         Transition transition = transitionDefinition.createElement(source, false);
                         transition.setName(Strings.isNullOrEmpty(name) ? source.getNextTransitionName(transitionDefinition) : name);
                         transition.setTarget((Node) target);
-                        transition.setDefaultFlow(defaultIds.contains(id));
+                        if (defaultIds.contains(id)) {
+                            transition.setDefaultFlow(true);
+                            source.setDelegationConfiguration("return \"" + transition.getName() + "\";");
+                        }
                         source.addLeavingTransition(transition);
                         if (!ignoreBendPoints) {
                             Rectangle sourceBounds = source.getConstraint().getCopy();
