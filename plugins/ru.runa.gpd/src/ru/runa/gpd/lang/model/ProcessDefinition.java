@@ -25,6 +25,7 @@ import ru.runa.gpd.extension.VariableFormatRegistry;
 import ru.runa.gpd.extension.regulations.RegulationsRegistry;
 import ru.runa.gpd.lang.Language;
 import ru.runa.gpd.lang.ValidationError;
+import ru.runa.gpd.lang.model.bpmn.EventNodeType;
 import ru.runa.gpd.lang.par.ParContentProvider;
 import ru.runa.gpd.property.DurationPropertyDescriptor;
 import ru.runa.gpd.property.StartImagePropertyDescriptor;
@@ -268,9 +269,6 @@ public class ProcessDefinition extends NamedGraphElement implements Describable 
         List<StartState> startStates = getChildren(StartState.class);
         if (startStates.size() == 0) {
             errors.add(ValidationError.createLocalizedError(this, "startState.doesNotExist"));
-        }
-        if (startStates.size() > 1) {
-            errors.add(ValidationError.createLocalizedError(this, "multipleStartStatesNotAllowed"));
         }
         boolean invalid = false;
         for (ValidationError validationError : errors) {
@@ -597,6 +595,31 @@ public class ProcessDefinition extends NamedGraphElement implements Describable 
                 return swimlanes;
             }
             return getGlobalSwimlanes(parent, swimlanes);
+        }
+    }
+
+    public StartState getDefaultStartNode() {
+        for (StartState startNode : getChildren(StartState.class)) {
+            if (startNode.getEventTrigger().getEventType() == null) { // w/o event
+                return startNode;
+            }
+        }
+        return null;
+    }
+
+    public void setDefaultStartNode(StartState theStartNode) {
+        EventNodeType oldEventType = EventNodeType.message;
+        List<StartState> startNodes = getChildren(StartState.class);
+        for (StartState startNode : startNodes) {
+            if (startNode == theStartNode) {
+                oldEventType = startNode.getEventTrigger().getEventType();
+                startNode.getEventTrigger().setEventType(null);
+            }
+        }
+        for (StartState startNode : startNodes) {
+            if (startNode != theStartNode && startNode.getEventTrigger().getEventType() == null) {
+                startNode.getEventTrigger().setEventType(oldEventType);
+            }
         }
     }
 

@@ -12,7 +12,6 @@ import org.dom4j.Element;
 import org.dom4j.QName;
 import org.eclipse.core.resources.IFile;
 import ru.runa.gpd.Application;
-import ru.runa.gpd.Localization;
 import ru.runa.gpd.PluginLogger;
 import ru.runa.gpd.PropertyNames;
 import ru.runa.gpd.editor.graphiti.TransitionUtil;
@@ -22,6 +21,7 @@ import ru.runa.gpd.lang.model.Describable;
 import ru.runa.gpd.lang.model.EndState;
 import ru.runa.gpd.lang.model.EndTokenState;
 import ru.runa.gpd.lang.model.EndTokenSubprocessDefinitionBehavior;
+import ru.runa.gpd.lang.model.EventTrigger;
 import ru.runa.gpd.lang.model.GraphElement;
 import ru.runa.gpd.lang.model.ISendMessageNode;
 import ru.runa.gpd.lang.model.ITimed;
@@ -52,7 +52,6 @@ import ru.runa.gpd.lang.model.bpmn.ParallelGateway;
 import ru.runa.gpd.lang.model.bpmn.ScriptTask;
 import ru.runa.gpd.lang.model.bpmn.TextAnnotation;
 import ru.runa.gpd.lang.model.bpmn.ThrowEventNode;
-import ru.runa.gpd.ui.custom.Dialogs;
 import ru.runa.gpd.util.Duration;
 import ru.runa.gpd.util.MultiinstanceParameters;
 import ru.runa.gpd.util.SwimlaneDisplayMode;
@@ -182,10 +181,19 @@ public class BpmnSerializer extends ProcessSerializer {
                 }
             }
         }
-        StartState startState = definition.getFirstChild(StartState.class);
-        if (startState != null) {
-            writeTaskState(processElement, startState);
+        for (StartState startState : definition.getChildren(StartState.class)) {
+            Element element = writeTaskState(processElement, startState);
             writeTransitions(processElement, startState);
+            EventTrigger eventTrigger = startState.getEventTrigger();
+            if (eventTrigger.getEventType() != null) {
+                element.addAttribute(RUNA_PREFIX + ":" + TYPE, eventTrigger.getEventType().name());
+                List<VariableMapping> variableMappings = eventTrigger.getVariableMappings();
+                Map<String, Object> properties = Maps.newLinkedHashMap();
+                if (variableMappings != null && variableMappings.size() > 0) {
+                    properties.put(VARIABLES, variableMappings);
+                }
+                writeExtensionElements(element, properties);
+            }
         }
         List<ExclusiveGateway> exclusiveGateways = definition.getChildren(ExclusiveGateway.class);
         for (ExclusiveGateway gateway : exclusiveGateways) {
@@ -252,14 +260,22 @@ public class BpmnSerializer extends ProcessSerializer {
         List<EndTokenState> endTokenStates = definition.getChildren(EndTokenState.class);
         for (EndTokenState endTokenState : endTokenStates) {
             Element element = writeNode(processElement, endTokenState);
-            Map<String, String> properties = Maps.newLinkedHashMap();
+            Map<String, Object> properties = Maps.newLinkedHashMap();
             properties.put(TOKEN, "true");
+            EventTrigger eventTrigger = endTokenState.getEventTrigger();
+            if (eventTrigger.getEventType() != null) {
+                element.addAttribute(RUNA_PREFIX + ":" + TYPE, eventTrigger.getEventType().name());
+                element.addAttribute(RUNA_PREFIX + ":" + TIME_DURATION, eventTrigger.getTtlDuration().getDuration());
+                List<VariableMapping> variableMappings = eventTrigger.getVariableMappings();
+                if (variableMappings != null && variableMappings.size() > 0) {
+                    properties.put(VARIABLES, variableMappings);
+                }
+            }
             if (definition instanceof SubprocessDefinition) {
                 properties.put(BEHAVIOR, endTokenState.getSubprocessDefinitionBehavior().name());
             }
             writeExtensionElements(element, properties);
         }
-
         List<EndState> endStates = definition.getChildren(EndState.class);
         for (EndState endState : endStates) {
             writeNode(processElement, endState);
@@ -696,13 +712,13 @@ public class BpmnSerializer extends ProcessSerializer {
                 }
             }
         }
-        List<Element> startStates = processElement.elements(START_EVENT);
-        if (startStates.size() > 0) {
-            if (startStates.size() > 1) {
-                Dialogs.error(Localization.getString("model.validation.multipleStartStatesNotAllowed"));
-            }
-            Element startStateElement = startStates.get(0);
+        for (Element startStateElement : (List<Element>) processElement.elements(START_EVENT)) {
             StartState startState = create(startStateElement, definition);
+            if (startStateElement.attributeValue(TYPE) != null) {
+                EventTrigger eventTrigger = startState.getEventTrigger();
+                eventTrigger.setEventType(EventNodeType.valueOf(startStateElement.attributeValue(TYPE)));
+                eventTrigger.setVariableMappings(parseVariableMappings(startStateElement));
+            }
             String swimlaneName = parseExtensionProperties(startStateElement).get(LANE);
             Swimlane swimlane = definition.getSwimlaneByName(swimlaneName);
             startState.setSwimlane(swimlane);
@@ -837,8 +853,15 @@ public class BpmnSerializer extends ProcessSerializer {
             Node endNode = create(element, definition);
             if (endNode instanceof EndTokenState) {
                 Map<String, String> properties = parseExtensionProperties(element);
+                EndTokenState endTokenNode = (EndTokenState) endNode;
                 if (properties.containsKey(BEHAVIOR)) {
-                    ((EndTokenState) endNode).setSubprocessDefinitionBehavior(EndTokenSubprocessDefinitionBehavior.valueOf(properties.get(BEHAVIOR)));
+                    endTokenNode.setSubprocessDefinitionBehavior(EndTokenSubprocessDefinitionBehavior.valueOf(properties.get(BEHAVIOR)));
+                }
+                if (element.attributeValue(TYPE) != null) {
+                    EventTrigger eventTrigger = endTokenNode.getEventTrigger();
+                    eventTrigger.setEventType(EventNodeType.valueOf(element.attributeValue(TYPE)));
+                    eventTrigger.setTtlDuration(new Duration(element.attributeValue(TIME_DURATION, "1 days")));
+                    eventTrigger.setVariableMappings(parseVariableMappings(element));
                 }
             }
         }

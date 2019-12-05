@@ -9,7 +9,6 @@ import org.eclipse.graphiti.internal.datatypes.impl.DimensionImpl;
 import org.eclipse.graphiti.mm.algorithms.styles.Font;
 import org.eclipse.graphiti.mm.pictograms.PictogramElement;
 import org.eclipse.graphiti.ui.services.GraphitiUi;
-
 import ru.runa.gpd.editor.graphiti.DiagramFeatureProvider;
 import ru.runa.gpd.editor.graphiti.StyleUtil;
 import ru.runa.gpd.lang.BpmnSerializer;
@@ -62,6 +61,9 @@ public class AddStartNodeFeature extends AddNodeWithImageFeature {
         textDefinition.setFeatureProvider((DiagramFeatureProvider) getFeatureProvider());
         textDefinition.add(myAddContext);
 
+        updatePictogramElement(containerShape);
+
         return containerShape;
     }
+
 }

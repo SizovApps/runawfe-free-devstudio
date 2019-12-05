@@ -8,22 +8,21 @@ import org.eclipse.graphiti.mm.algorithms.Image;
 import org.eclipse.graphiti.mm.pictograms.ContainerShape;
 import org.eclipse.graphiti.mm.pictograms.PictogramElement;
 import org.eclipse.graphiti.services.Graphiti;
-import ru.runa.gpd.lang.model.StartState;
+import ru.runa.gpd.editor.graphiti.GaProperty;
+import ru.runa.gpd.editor.graphiti.PropertyUtil;
+import ru.runa.gpd.lang.model.EndTokenState;
 import ru.runa.gpd.lang.model.bpmn.EventNodeType;
-import ru.runa.gpd.lang.model.bpmn.StartTextDecoration.StartDefinitionUI;
 
-public class UpdateStartNodeFeature extends UpdateFeatureWithTextDecorator {
+public class UpdateEndTokenNodeFeature extends UpdateFeatureWithTextDecorator {
+
     @Override
     public IReason updateNeeded(IUpdateContext context) {
         // retrieve name from pictogram element
         PictogramElement pe = context.getPictogramElement();
         // retrieve name from business model
-        StartState bo = (StartState) getBusinessObjectForPictogramElement(pe);
-        StartDefinitionUI definition = (StartDefinitionUI) bo.getTextDecoratorEmulation().getDefinition().getUiContainer();
-        if (!Objects.equal(definition.getSwimlaneName(), bo.getSwimlaneLabel())) {
-            return Reason.createTrueReason();
-        }
-        if (!Objects.equal(definition.getName(), bo.getName())) {
+        EndTokenState bo = (EndTokenState) getBusinessObjectForPictogramElement(pe);
+        String name = PropertyUtil.findTextValueRecursive(pe, GaProperty.NAME);
+        if (!Objects.equal(name, bo.getName())) {
             return Reason.createTrueReason();
         }
         if (!Objects.equal(((Image) pe.getGraphicsAlgorithm()).getId(), getImageId(bo))) {
@@ -36,8 +35,8 @@ public class UpdateStartNodeFeature extends UpdateFeatureWithTextDecorator {
     public boolean update(IUpdateContext context) {
         super.update(context);
         ContainerShape containerShape = (ContainerShape) context.getPictogramElement();
-        StartState startNode = (StartState) getBusinessObjectForPictogramElement(containerShape);
-        String imageId = getImageId(startNode);
+        EndTokenState endNode = (EndTokenState) getBusinessObjectForPictogramElement(containerShape);
+        String imageId = getImageId(endNode);
         if (!Objects.equal(((Image) containerShape.getGraphicsAlgorithm()).getId(), imageId)) {
             Image oldImage = (Image) containerShape.getGraphicsAlgorithm();
             Image newImage = Graphiti.getGaService().createImage(containerShape, imageId);
@@ -46,9 +45,9 @@ public class UpdateStartNodeFeature extends UpdateFeatureWithTextDecorator {
         return true;
     }
 
-    private String getImageId(StartState startNode) {
-        EventNodeType eventType = startNode.getEventTrigger().getEventType();
-        return "graph/" + (eventType == null ? "start.png" : eventType.getImageName("start", true, false));
+    private String getImageId(EndTokenState endNode) {
+        EventNodeType eventType = endNode.getEventTrigger().getEventType();
+        return "graph/" + (eventType == null ? "endtoken.png" : eventType.getImageName("end", false, false));
     }
 
 }
