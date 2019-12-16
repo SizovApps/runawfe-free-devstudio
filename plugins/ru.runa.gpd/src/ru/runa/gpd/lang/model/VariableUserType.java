@@ -1,24 +1,33 @@
 package ru.runa.gpd.lang.model;
 
+import java.util.List;
+
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import java.util.List;
+
 import ru.runa.gpd.PropertyNames;
 import ru.runa.gpd.util.EventSupport;
 
 public class VariableUserType extends EventSupport implements VariableContainer, PropertyNames, Comparable<VariableUserType> {
     public static final String PREFIX = "usertype:";
     public static final String DELIM = ".";
+
     private String name;
     private final List<Variable> attributes = Lists.newArrayList();
     private ProcessDefinition processDefinition;
+    private boolean isStoreInExternalStorage = false;
 
     public VariableUserType() {
     }
 
     public VariableUserType(String name) {
         setName(name);
+    }
+
+    public VariableUserType(String name, boolean isStoreInExternalStorage) {
+        setName(name);
+        setStoreInExternalStorage(isStoreInExternalStorage);
     }
 
     public ProcessDefinition getProcessDefinition() {
@@ -104,9 +113,20 @@ public class VariableUserType extends EventSupport implements VariableContainer,
         return getAttributes();
     }
 
+    public boolean isStoreInExternalStorage() {
+        return isStoreInExternalStorage;
+    }
+
+    public void setStoreInExternalStorage(boolean isStoreInExternalStorage) {
+        final boolean old = isStoreInExternalStorage;
+        this.isStoreInExternalStorage = isStoreInExternalStorage;
+        firePropertyChange(PROPERTY_STORE_IN_EXTERNAL_STORAGE, old, isStoreInExternalStorage);
+    }
+
     public VariableUserType getCopy() {
         VariableUserType type = new VariableUserType();
         type.name = name;
+        type.isStoreInExternalStorage = isStoreInExternalStorage;
         type.attributes.addAll(getAttributes());
         return type;
     }
