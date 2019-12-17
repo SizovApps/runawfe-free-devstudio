@@ -150,7 +150,7 @@ public class DiagramToolBehaviorProvider extends DefaultToolBehaviorProvider {
                 }
             }
         }
-        if (element instanceof StartState || element instanceof EndTokenState) {
+        if (element instanceof StartState && (!((StartState) element).isStartByTimer()) || element instanceof EndTokenState) {
             boolean startNode = element instanceof StartState;
             ContextButtonEntry changeEventTypeButton = new ContextButtonEntry(null, null);
             changeEventTypeButton.setText(Localization.getString("event.type.label"));

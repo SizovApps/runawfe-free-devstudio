@@ -33,8 +33,8 @@ public class StartState extends FormNode implements HasTextDecorator, EventCatch
     }
 
     @Override
-    protected boolean isSwimlaneDisabled() {
-        return getProcessDefinition() instanceof SubprocessDefinition;
+    public boolean isSwimlaneDisabled() {
+        return getProcessDefinition() instanceof SubprocessDefinition || !isStartByTimer() && isStartByEvent();
     }
 
     @Override
@@ -60,8 +60,7 @@ public class StartState extends FormNode implements HasTextDecorator, EventCatch
         if (isSwimlaneDisabled() && getSwimlane() != null) {
             errors.add(ValidationError.createLocalizedError(this, "startState.swimlaneIsNotUsableInEmbeddedSubprocess"));
         }
-        if (!Strings.isNullOrEmpty(getTimerEventDefinition()) && hasFormValidation()
-                && getValidation(getProcessDefinition().getFile()).getRequiredVariableNames().size() > 0) {
+        if (isStartByTimer() && hasFormValidation() && getValidation(getProcessDefinition().getFile()).getRequiredVariableNames().size() > 0) {
             errors.add(ValidationError.createLocalizedError(this, "startState.startNodeHasBothTimerDefinitionAndRequiredVariables"));
         }
     }
@@ -81,8 +80,10 @@ public class StartState extends FormNode implements HasTextDecorator, EventCatch
     @Override
     protected void populateCustomPropertyDescriptors(List<IPropertyDescriptor> descriptors) {
         super.populateCustomPropertyDescriptors(descriptors);
-        descriptors.add(
-                new ComboBoxPropertyDescriptor(PROPERTY_EVENT_TYPE, Localization.getString("property.eventType"), EventTrigger.EVENT_TYPE_NAMES));
+        if (!isStartByTimer()) {
+            descriptors.add(
+                    new ComboBoxPropertyDescriptor(PROPERTY_EVENT_TYPE, Localization.getString("property.eventType"), EventTrigger.EVENT_TYPE_NAMES));
+        }
     }
 
     @Override
@@ -104,15 +105,20 @@ public class StartState extends FormNode implements HasTextDecorator, EventCatch
                 getProcessDefinition().setDefaultStartNode(this);
             }
             eventTrigger.setEventType(index > 0 ? EventNodeType.values()[index - 1] : null);
+            deleteFiles();
         } else {
             super.setPropertyValue(id, value);
         }
     }
 
+    public boolean isStartByEvent() {
+        return getEventTrigger().getEventType() != null;
+    }
+
     @Override
     public boolean testAttribute(Object target, String name, String value) {
         if ("isEventTypeDefined".equals(name)) {
-            return Objects.equal(value, String.valueOf(getEventTrigger().getEventType() != null));
+            return Objects.equal(value, String.valueOf(!isStartByTimer() && isStartByEvent()));
         }
         return super.testAttribute(target, name, value);
     }

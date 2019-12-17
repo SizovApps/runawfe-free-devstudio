@@ -187,18 +187,18 @@ public class BpmnSerializer extends ProcessSerializer {
             Element element = writeTaskState(processElement, startState);
             if (startState.isStartByTimer()) {
                 element.addElement(TIMER_EVENT_DEFINITION).addElement(timeElement(startState)).addText(startState.getTimerEventDefinition());
+            } else {
+                if (startState.isStartByEvent()) {
+                    element.addAttribute(RUNA_PREFIX + ":" + TYPE, startState.getEventTrigger().getEventType().name());
+                    List<VariableMapping> variableMappings = startState.getEventTrigger().getVariableMappings();
+                    Map<String, Object> properties = Maps.newLinkedHashMap();
+                    if (variableMappings != null && variableMappings.size() > 0) {
+                        properties.put(VARIABLES, variableMappings);
+                    }
+                    writeExtensionElements(element, properties);
+                }
             }
             writeTransitions(processElement, startState);
-            EventTrigger eventTrigger = startState.getEventTrigger();
-            if (eventTrigger.getEventType() != null) {
-                element.addAttribute(RUNA_PREFIX + ":" + TYPE, eventTrigger.getEventType().name());
-                List<VariableMapping> variableMappings = eventTrigger.getVariableMappings();
-                Map<String, Object> properties = Maps.newLinkedHashMap();
-                if (variableMappings != null && variableMappings.size() > 0) {
-                    properties.put(VARIABLES, variableMappings);
-                }
-                writeExtensionElements(element, properties);
-            }
         }
         List<ExclusiveGateway> exclusiveGateways = definition.getChildren(ExclusiveGateway.class);
         for (ExclusiveGateway gateway : exclusiveGateways) {
@@ -325,7 +325,7 @@ public class BpmnSerializer extends ProcessSerializer {
         Element nodeElement = writeElement(parent, swimlanedNode);
         Map<String, String> properties = Maps.newLinkedHashMap();
         String swimlaneName = swimlanedNode.getSwimlaneName();
-        if (((ProcessDefinition) swimlanedNode.getParent()).getSwimlaneByName(swimlaneName) != null) {
+        if (!swimlanedNode.isSwimlaneDisabled() && ((ProcessDefinition) swimlanedNode.getParent()).getSwimlaneByName(swimlaneName) != null) {
             properties.put(LANE, swimlaneName);
         }
         if (swimlanedNode instanceof TaskState) {

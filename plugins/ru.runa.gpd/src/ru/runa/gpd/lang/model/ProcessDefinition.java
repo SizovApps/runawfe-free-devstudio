@@ -600,7 +600,7 @@ public class ProcessDefinition extends NamedGraphElement implements Describable 
 
     public StartState getDefaultStartNode() {
         for (StartState startNode : getChildren(StartState.class)) {
-            if (startNode.getEventTrigger().getEventType() == null) { // w/o event
+            if (!startNode.isStartByEvent()) {
                 return startNode;
             }
         }
@@ -617,7 +617,7 @@ public class ProcessDefinition extends NamedGraphElement implements Describable 
             }
         }
         for (StartState startNode : startNodes) {
-            if (startNode != theStartNode && startNode.getEventTrigger().getEventType() == null) {
+            if (startNode != theStartNode && !startNode.isStartByEvent()) {
                 startNode.getEventTrigger().setEventType(oldEventType);
             }
         }

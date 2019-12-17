@@ -17,7 +17,7 @@ public class DoubleClickStartNodeFeature extends DoubleClickFormNodeFeature {
     public void execute(ICustomContext context) {
         StartState startNode = (StartState) fp.getBusinessObjectForPictogramElement(context.getInnerPictogramElement());
         EventTrigger eventTrigger = startNode.getEventTrigger();
-        if (eventTrigger.getEventType() != null) {
+        if (!startNode.isStartByTimer() && eventTrigger.getEventType() != null) {
             MessageNodeDialog dialog = new MessageNodeDialog(startNode.getProcessDefinition(), eventTrigger.getVariableMappings(), false,
                     startNode.getName());
             if (dialog.open() != Window.CANCEL) {

@@ -4,6 +4,7 @@ import org.eclipse.graphiti.features.IFeatureProvider;
 import org.eclipse.graphiti.features.context.ICustomContext;
 import org.eclipse.graphiti.features.custom.AbstractCustomFeature;
 import ru.runa.gpd.lang.model.EventHolder;
+import ru.runa.gpd.lang.model.FormNode;
 import ru.runa.gpd.lang.model.StartState;
 import ru.runa.gpd.lang.model.bpmn.EventNodeType;
 
@@ -29,6 +30,9 @@ public class ChangeEventTypeFeature extends AbstractCustomFeature {
             startNode.getProcessDefinition().setDefaultStartNode(startNode);
         } else {
             eventHolder.getEventTrigger().setEventType(newType);
+        }
+        if (eventHolder instanceof FormNode) {
+            ((FormNode) eventHolder).deleteFiles();
         }
     }
 
