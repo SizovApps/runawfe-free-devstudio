@@ -34,10 +34,9 @@ public class UpdateStartNodeFeature extends UpdateFeatureWithTextDecorator {
 
     @Override
     public boolean update(IUpdateContext context) {
-        super.update(context);
         ContainerShape containerShape = (ContainerShape) context.getPictogramElement();
-        StartState startNode = (StartState) getBusinessObjectForPictogramElement(containerShape);
-        String imageId = getImageId(startNode);
+        StartState startState = (StartState) getBusinessObjectForPictogramElement(containerShape);
+        String imageId = getImageId(startState);
         if (!Objects.equal(((Image) containerShape.getGraphicsAlgorithm()).getId(), imageId)) {
             Image oldImage = (Image) containerShape.getGraphicsAlgorithm();
             Image newImage = Graphiti.getGaService().createImage(containerShape, imageId);
@@ -46,9 +45,10 @@ public class UpdateStartNodeFeature extends UpdateFeatureWithTextDecorator {
         return true;
     }
 
-    private String getImageId(StartState startNode) {
-        EventNodeType eventType = startNode.getEventTrigger().getEventType();
-        return "graph/" + (eventType == null ? "start.png" : eventType.getImageName("start", true, false));
-    }
 
+    private String getImageId(StartState startState) {
+        EventNodeType eventType = startState.getEventTrigger().getEventType();
+        return "graph/" + (startState.isStartByTimer() ? "startByTimer.png"
+                : (eventType == null ? "start.png" : eventType.getImageName("start", true, false)));
+    }
 }

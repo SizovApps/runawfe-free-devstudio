@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.importWizards">
+      <wizard
+            class="ru.runa.gpd.bizagi.wizard.ImportBizagiBpmnWizard"
+            icon="icons/import.png"
+            id="ru.runa.gpd.bizagi.wizard.import"
+            name="%wizard.import.name">
+      </wizard>
+   </extension>
+   <extension
+         point="org.eclipse.ui.actionSets">
+      <actionSet
+            id="ru.runa.gpd.form.ftl.actionSet3"
+            label="bizagi"
+            visible="true">
+         <action
+               class="ru.runa.gpd.bizagi.action.ImportBizagiBpmnAction"
+               icon="icons/import.png"
+               id="ru.runa.gpd.bizagi.action.import"
+               label="%action.import.label"
+               menubarPath="file/export"
+               style="push"
+               toolbarPath="additions"
+               tooltip="%action.import.label"/>
+      </actionSet>
+   </extension>
+
+</plugin>

@@ -150,7 +150,7 @@ public class LanguageElementPreferencePage extends FieldEditorPreferencePage imp
         if (language == Language.BPMN) {
             switch (definition.getBpmnElementName()) {
             case "exclusiveGateway":
-                store.setDefault(getKey(P_BPMN_MARK_DEFAULT_TRANSITION), false);
+                store.setDefault(getKey(P_BPMN_MARK_DEFAULT_TRANSITION), true);
                 store.setDefault(getKey(P_BPMN_DEFAULT_TRANSITION_NAMES), "");
                 break;
             case StyleUtil.TEXT_ANNOTATION_BPMN_NAME:

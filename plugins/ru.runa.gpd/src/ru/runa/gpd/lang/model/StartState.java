@@ -1,6 +1,7 @@
 package ru.runa.gpd.lang.model;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Strings;
 import java.util.List;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.ui.views.properties.ComboBoxPropertyDescriptor;
@@ -15,6 +16,7 @@ import ru.runa.wfe.definition.ProcessDefinitionAccessType;
 public class StartState extends FormNode implements HasTextDecorator, EventCatcher {
 
     protected TextDecoratorEmulation decoratorEmulation;
+    protected String timerEventDefinition;
 
     public StartState() {
         decoratorEmulation = new TextDecoratorEmulation(this);
@@ -57,6 +59,10 @@ public class StartState extends FormNode implements HasTextDecorator, EventCatch
         }
         if (isSwimlaneDisabled() && getSwimlane() != null) {
             errors.add(ValidationError.createLocalizedError(this, "startState.swimlaneIsNotUsableInEmbeddedSubprocess"));
+        }
+        if (!Strings.isNullOrEmpty(getTimerEventDefinition()) && hasFormValidation()
+                && getValidation(getProcessDefinition().getFile()).getRequiredVariableNames().size() > 0) {
+            errors.add(ValidationError.createLocalizedError(this, "startState.startNodeHasBothTimerDefinitionAndRequiredVariables"));
         }
     }
 
@@ -111,4 +117,19 @@ public class StartState extends FormNode implements HasTextDecorator, EventCatch
         return super.testAttribute(target, name, value);
     }
 
+    public String getTimerEventDefinition() {
+        return timerEventDefinition;
+    }
+
+    public void setTimerEventDefinition(String timerEventDefinition) {
+        if (timerEventDefinition != this.timerEventDefinition) {
+            String oldTimerEventDefinition = this.timerEventDefinition;
+            this.timerEventDefinition = timerEventDefinition;
+            firePropertyChange(PROPERTY_TIMER_EVENT_DEFINITION, oldTimerEventDefinition, this.timerEventDefinition);
+        }
+    }
+
+    public boolean isStartByTimer() {
+        return !Strings.isNullOrEmpty(timerEventDefinition);
+    }
 }

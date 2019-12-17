@@ -3,18 +3,13 @@ package ru.runa.gpd.editor.graphiti.add;
 import org.eclipse.draw2d.geometry.Dimension;
 import org.eclipse.graphiti.features.context.IAddContext;
 import org.eclipse.graphiti.features.context.impl.LocationContext;
-import org.eclipse.graphiti.mm.algorithms.Ellipse;
 import org.eclipse.graphiti.mm.algorithms.Image;
 import org.eclipse.graphiti.mm.pictograms.ContainerShape;
 import org.eclipse.graphiti.mm.pictograms.PictogramElement;
-import org.eclipse.graphiti.mm.pictograms.Shape;
 import org.eclipse.graphiti.services.Graphiti;
 import org.eclipse.graphiti.services.IGaService;
 import org.eclipse.graphiti.services.IPeCreateService;
-
 import ru.runa.gpd.editor.GEFConstants;
-import ru.runa.gpd.editor.graphiti.GaProperty;
-import ru.runa.gpd.editor.graphiti.StyleUtil;
 import ru.runa.gpd.lang.model.ITimed;
 import ru.runa.gpd.lang.model.Node;
 import ru.runa.gpd.lang.model.Timer;
@@ -34,7 +29,7 @@ public class AddTimerFeature extends AddNodeWithImageFeature implements GEFConst
         Object parent = getBusinessObjectForPictogramElement(context.getTargetContainer());
         if (parent instanceof ITimed) {
             Timer timer = (Timer) context.getNewObject();
-            String imageName = "boundary_" + timer.getTypeDefinition().getIcon();
+            String imageName = "boundary_" + getIcon(timer);
             Dimension bounds = getBounds(context);
             ((LocationContext) context).setX(1);
             ((LocationContext) context).setY(((Node) parent).getConstraint().height - 2 * GRID_SIZE);
@@ -47,18 +42,16 @@ public class AddTimerFeature extends AddNodeWithImageFeature implements GEFConst
             Image image = gaService.createImage(containerShape, "graph/" + imageName);
             gaService.setLocationAndSize(image, context.getX(), context.getY(), bounds.width, bounds.height);
 
-            Shape ellipseShape = createService.createShape(containerShape, false);
-            Ellipse ellipse = Graphiti.getGaService().createPlainEllipse(ellipseShape);
-            ellipse.getProperties().add(new GaProperty(GaProperty.ID, GaProperty.BOUNDARY_ELLIPSE));
-            ellipse.setStyle(StyleUtil.getStateNodeBoundaryEventEllipseStyle(getDiagram(), timer));
-            ellipse.setLineVisible(!timer.isInterruptingBoundaryEvent());
-            Graphiti.getGaService().setLocationAndSize(ellipse, 0, 0, bounds.width, bounds.height);
-
             link(containerShape, timer);
             createService.createChopboxAnchor(containerShape);
             layoutPictogramElement(containerShape);
             return containerShape;
         }
         return super.add(context);
+    }
+
+    @Override
+    protected String getIcon(Node node) {
+        return !((Timer) node).isInterruptingBoundaryEvent() ? "timer_non_interrupting.png" : super.getIcon(node);
     }
 }
