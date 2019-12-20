@@ -3,7 +3,6 @@ package ru.runa.gpd.editor.graphiti.update;
 import org.eclipse.graphiti.features.context.ICustomContext;
 import org.eclipse.jface.window.Window;
 import ru.runa.gpd.lang.model.EndTokenState;
-import ru.runa.gpd.lang.model.EventTrigger;
 import ru.runa.gpd.ui.dialog.MessageNodeDialog;
 
 public class DoubleClickEndTokenNodeFeature extends DoubleClickElementFeature {
@@ -16,12 +15,10 @@ public class DoubleClickEndTokenNodeFeature extends DoubleClickElementFeature {
     @Override
     public void execute(ICustomContext context) {
         EndTokenState endNode = (EndTokenState) fp.getBusinessObjectForPictogramElement(context.getInnerPictogramElement());
-        EventTrigger eventTrigger = endNode.getEventTrigger();
-        if (eventTrigger.getEventType() != null) {
-            MessageNodeDialog dialog = new MessageNodeDialog(endNode.getProcessDefinition(), eventTrigger.getVariableMappings(), true,
-                    endNode.getName());
+        if (endNode.isEndWithEvent()) {
+            MessageNodeDialog dialog = new MessageNodeDialog(endNode.getProcessDefinition(), endNode.getVariableMappings(), true, endNode.getName());
             if (dialog.open() != Window.CANCEL) {
-                eventTrigger.setVariableMappings(dialog.getVariableMappings());
+                endNode.setVariableMappings(dialog.getVariableMappings());
             }
         }
     }

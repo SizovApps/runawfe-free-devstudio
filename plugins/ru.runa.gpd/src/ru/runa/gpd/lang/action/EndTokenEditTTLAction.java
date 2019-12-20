@@ -10,10 +10,10 @@ public class EndTokenEditTTLAction extends BaseModelActionDelegate {
     @Override
     public void run(IAction action) {
         EndTokenState endNode = getSelection();
-        DurationEditDialog dialog = new DurationEditDialog(endNode.getProcessDefinition(), endNode.getEventTrigger().getTtlDuration());
+        DurationEditDialog dialog = new DurationEditDialog(endNode.getProcessDefinition(), endNode.getTtlDuration());
         Duration result = (Duration) dialog.openDialog();
         if (result != null) {
-            endNode.getEventTrigger().setTtlDuration(result);
+            endNode.setTtlDuration(result);
         }
     }
 }

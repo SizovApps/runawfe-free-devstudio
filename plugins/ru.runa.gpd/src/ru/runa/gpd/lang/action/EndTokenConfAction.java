@@ -10,10 +10,9 @@ public class EndTokenConfAction extends BaseModelActionDelegate {
     @Override
     public void run(IAction action) {
         EndTokenState endNode = getSelection();
-        MessageNodeDialog dialog = new MessageNodeDialog(endNode.getProcessDefinition(), endNode.getEventTrigger().getVariableMappings(), true,
-                endNode.getName());
+        MessageNodeDialog dialog = new MessageNodeDialog(endNode.getProcessDefinition(), endNode.getVariableMappings(), true, endNode.getName());
         if (dialog.open() != Window.CANCEL) {
-            endNode.getEventTrigger().setVariableMappings(dialog.getVariableMappings());
+            endNode.setVariableMappings(dialog.getVariableMappings());
         }
     }
 }

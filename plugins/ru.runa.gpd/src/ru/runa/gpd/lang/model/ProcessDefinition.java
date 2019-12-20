@@ -25,7 +25,7 @@ import ru.runa.gpd.extension.VariableFormatRegistry;
 import ru.runa.gpd.extension.regulations.RegulationsRegistry;
 import ru.runa.gpd.lang.Language;
 import ru.runa.gpd.lang.ValidationError;
-import ru.runa.gpd.lang.model.bpmn.EventNodeType;
+import ru.runa.gpd.lang.model.bpmn.StartEventType;
 import ru.runa.gpd.lang.par.ParContentProvider;
 import ru.runa.gpd.property.DurationPropertyDescriptor;
 import ru.runa.gpd.property.StartImagePropertyDescriptor;
@@ -608,18 +608,26 @@ public class ProcessDefinition extends NamedGraphElement implements Describable 
     }
 
     public void setDefaultStartNode(StartState theStartNode) {
-        EventNodeType oldEventType = EventNodeType.message;
+        StartEventType oldEventType = StartEventType.message;
         List<StartState> startNodes = getChildren(StartState.class);
         for (StartState startNode : startNodes) {
             if (startNode == theStartNode) {
-                oldEventType = startNode.getEventTrigger().getEventType();
-                startNode.getEventTrigger().setEventType(null);
+                oldEventType = startNode.getEventType();
+                startNode.setEventType(StartEventType.blank);
+                break;
             }
         }
+        Swimlane oldSwimlane = null;
         for (StartState startNode : startNodes) {
             if (startNode != theStartNode && !startNode.isStartByEvent()) {
-                startNode.getEventTrigger().setEventType(oldEventType);
+                oldSwimlane = startNode.getSwimlane();
+                startNode.setSwimlane(null);
+                startNode.setEventType(oldEventType);
+                break;
             }
+        }
+        if (oldSwimlane != null) {
+            theStartNode.setSwimlane(oldSwimlane);
         }
     }
 

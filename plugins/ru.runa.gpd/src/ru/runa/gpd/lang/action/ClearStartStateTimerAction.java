@@ -3,7 +3,7 @@ package ru.runa.gpd.lang.action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import ru.runa.gpd.lang.model.StartState;
-import ru.runa.gpd.lang.model.bpmn.EventNodeType;
+import ru.runa.gpd.lang.model.bpmn.StartEventType;
 
 public class ClearStartStateTimerAction extends BaseModelActionDelegate {
     
@@ -24,7 +24,7 @@ public class ClearStartStateTimerAction extends BaseModelActionDelegate {
         if (defaultStartState != null) {
             if (startState != defaultStartState) {
                 if (!startState.isStartByEvent()) {
-                    startState.getEventTrigger().setEventType(EventNodeType.message);
+                    startState.setEventType(StartEventType.message);
                 }
                 startState.deleteFiles();
             }

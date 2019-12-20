@@ -11,7 +11,6 @@ import org.eclipse.graphiti.services.Graphiti;
 import ru.runa.gpd.editor.graphiti.GaProperty;
 import ru.runa.gpd.editor.graphiti.PropertyUtil;
 import ru.runa.gpd.lang.model.EndTokenState;
-import ru.runa.gpd.lang.model.bpmn.EventNodeType;
 
 public class UpdateEndTokenNodeFeature extends UpdateFeatureWithTextDecorator {
 
@@ -46,8 +45,6 @@ public class UpdateEndTokenNodeFeature extends UpdateFeatureWithTextDecorator {
     }
 
     private String getImageId(EndTokenState endNode) {
-        EventNodeType eventType = endNode.getEventTrigger().getEventType();
-        return "graph/" + (eventType == null ? "endtoken.png" : eventType.getImageName("end", false, false));
+        return "graph/" + endNode.getEventType().getImageName();
     }
-
 }

@@ -2,6 +2,7 @@ package ru.runa.gpd.lang.model;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
+import java.util.ArrayList;
 import java.util.List;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.ui.views.properties.ComboBoxPropertyDescriptor;
@@ -10,10 +11,11 @@ import ru.runa.gpd.Localization;
 import ru.runa.gpd.editor.graphiti.HasTextDecorator;
 import ru.runa.gpd.editor.graphiti.TextDecoratorEmulation;
 import ru.runa.gpd.lang.ValidationError;
-import ru.runa.gpd.lang.model.bpmn.EventNodeType;
+import ru.runa.gpd.lang.model.bpmn.StartEventType;
+import ru.runa.gpd.util.VariableMapping;
 import ru.runa.wfe.definition.ProcessDefinitionAccessType;
 
-public class StartState extends FormNode implements HasTextDecorator, EventCatcher {
+public class StartState extends FormNode implements HasTextDecorator {
 
     protected TextDecoratorEmulation decoratorEmulation;
     protected String timerEventDefinition;
@@ -34,7 +36,7 @@ public class StartState extends FormNode implements HasTextDecorator, EventCatch
 
     @Override
     public boolean isSwimlaneDisabled() {
-        return getProcessDefinition() instanceof SubprocessDefinition || !isStartByTimer() && isStartByEvent();
+        return getProcessDefinition() instanceof SubprocessDefinition || isStartByEvent();
     }
 
     @Override
@@ -63,6 +65,9 @@ public class StartState extends FormNode implements HasTextDecorator, EventCatch
         if (isStartByTimer() && hasFormValidation() && getValidation(getProcessDefinition().getFile()).getRequiredVariableNames().size() > 0) {
             errors.add(ValidationError.createLocalizedError(this, "startState.startNodeHasBothTimerDefinitionAndRequiredVariables"));
         }
+        if (isStartByTimer() && Strings.isNullOrEmpty(getTimerEventDefinition())) {
+            errors.add(ValidationError.createLocalizedError(this, "startState.timerEventNotDefined"));
+        }
     }
 
     @Override
@@ -70,29 +75,16 @@ public class StartState extends FormNode implements HasTextDecorator, EventCatch
         return decoratorEmulation;
     }
 
-    protected final EventTrigger eventTrigger = new EventTrigger(this);
-
-    @Override
-    public EventTrigger getEventTrigger() {
-        return eventTrigger;
-    }
-
     @Override
     protected void populateCustomPropertyDescriptors(List<IPropertyDescriptor> descriptors) {
         super.populateCustomPropertyDescriptors(descriptors);
-        if (!isStartByTimer()) {
-            descriptors.add(
-                    new ComboBoxPropertyDescriptor(PROPERTY_EVENT_TYPE, Localization.getString("property.eventType"), EventTrigger.EVENT_TYPE_NAMES));
-        }
+        descriptors.add(new ComboBoxPropertyDescriptor(PROPERTY_EVENT_TYPE, Localization.getString("property.eventType"), StartEventType.LABELS));
     }
 
     @Override
     public Object getPropertyValue(Object id) {
         if (PROPERTY_EVENT_TYPE.equals(id)) {
-            if (eventTrigger.getEventType() == null) {
-                return Integer.valueOf(0);
-            }
-            return eventTrigger.getEventType().ordinal() + 1;
+            return getEventType().ordinal();
         }
         return super.getPropertyValue(id);
     }
@@ -104,7 +96,7 @@ public class StartState extends FormNode implements HasTextDecorator, EventCatch
             if (index == 0) {
                 getProcessDefinition().setDefaultStartNode(this);
             }
-            eventTrigger.setEventType(index > 0 ? EventNodeType.values()[index - 1] : null);
+            setEventType(StartEventType.values()[index]);
             deleteFiles();
         } else {
             super.setPropertyValue(id, value);
@@ -112,13 +104,13 @@ public class StartState extends FormNode implements HasTextDecorator, EventCatch
     }
 
     public boolean isStartByEvent() {
-        return getEventTrigger().getEventType() != null;
+        return eventType != StartEventType.blank;
     }
 
     @Override
     public boolean testAttribute(Object target, String name, String value) {
         if ("isEventTypeDefined".equals(name)) {
-            return Objects.equal(value, String.valueOf(!isStartByTimer() && isStartByEvent()));
+            return Objects.equal(value, String.valueOf(isStartByEvent()));
         }
         return super.testAttribute(target, name, value);
     }
@@ -136,6 +128,33 @@ public class StartState extends FormNode implements HasTextDecorator, EventCatch
     }
 
     public boolean isStartByTimer() {
-        return !Strings.isNullOrEmpty(timerEventDefinition);
+        return eventType == StartEventType.timer;
     }
+
+    private StartEventType eventType = StartEventType.blank;
+
+    public StartEventType getEventType() {
+        return eventType;
+    }
+
+    public void setEventType(StartEventType eventType) {
+        if (eventType != this.eventType) {
+            StartEventType old = this.eventType;
+            this.eventType = eventType;
+            firePropertyChange(PROPERTY_EVENT_TYPE, old, this.eventType);
+        }
+    }
+
+    private final List<VariableMapping> variableMappings = new ArrayList<VariableMapping>();
+
+    public List<VariableMapping> getVariableMappings() {
+        return variableMappings;
+    }
+
+    public void setVariableMappings(List<VariableMapping> variablesList) {
+        this.variableMappings.clear();
+        this.variableMappings.addAll(variablesList);
+        setDirty();
+    }
+
 }

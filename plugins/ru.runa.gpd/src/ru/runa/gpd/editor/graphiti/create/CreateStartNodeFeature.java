@@ -3,7 +3,7 @@ package ru.runa.gpd.editor.graphiti.create;
 import org.eclipse.graphiti.features.context.ICreateContext;
 import ru.runa.gpd.lang.model.StartState;
 import ru.runa.gpd.lang.model.Subprocess;
-import ru.runa.gpd.lang.model.bpmn.EventNodeType;
+import ru.runa.gpd.lang.model.bpmn.StartEventType;
 
 public class CreateStartNodeFeature extends CreateElementFeature {
     @Override
@@ -21,10 +21,9 @@ public class CreateStartNodeFeature extends CreateElementFeature {
         if (newObjects != null) {
             StartState newStartNode = (StartState) newObjects[0];
             if (newStartNode != newStartNode.getProcessDefinition().getDefaultStartNode()) {
-                newStartNode.getEventTrigger().setEventType(EventNodeType.message);
+                newStartNode.setEventType(StartEventType.message);
             }
         }
         return newObjects;
     }
-
 }

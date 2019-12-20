@@ -70,35 +70,6 @@
        </menu>
     </objectContribution>
     <objectContribution
-          adaptable="false"
-          id="startState.options"
-          objectClass="ru.runa.gpd.lang.model.StartState">
-       <menu
-             id="startState.options"
-             label="%label.action.startState.options"
-             path="additions">
-          <separator
-                name="startBy">
-          </separator>
-       </menu>
-       <action
-             class="ru.runa.gpd.lang.action.EditStartStateTimerAction"
-             id="startByTimer"
-             label="%label.action.startByTimer"
-             style="radio"
-             state="false"
-             menubarPath="startState.options/startBy">
-       </action>
-       <action
-             class="ru.runa.gpd.lang.action.ClearStartStateTimerAction"
-             id="startByHand"
-             label="%label.action.startByHand"
-             style="radio"
-             state="true"
-             menubarPath="startState.options/startBy">
-       </action>
-    </objectContribution>
-    <objectContribution
            adaptable="false"
            id="jpdl.state.handlers"
            objectClass="ru.runa.gpd.lang.model.TaskState">

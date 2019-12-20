@@ -9,7 +9,6 @@ import org.eclipse.graphiti.mm.pictograms.ContainerShape;
 import org.eclipse.graphiti.mm.pictograms.PictogramElement;
 import org.eclipse.graphiti.services.Graphiti;
 import ru.runa.gpd.lang.model.StartState;
-import ru.runa.gpd.lang.model.bpmn.EventNodeType;
 import ru.runa.gpd.lang.model.bpmn.StartTextDecoration.StartDefinitionUI;
 
 public class UpdateStartNodeFeature extends UpdateFeatureWithTextDecorator {
@@ -34,6 +33,7 @@ public class UpdateStartNodeFeature extends UpdateFeatureWithTextDecorator {
 
     @Override
     public boolean update(IUpdateContext context) {
+        super.update(context);
         ContainerShape containerShape = (ContainerShape) context.getPictogramElement();
         StartState startState = (StartState) getBusinessObjectForPictogramElement(containerShape);
         String imageId = getImageId(startState);
@@ -47,8 +47,6 @@ public class UpdateStartNodeFeature extends UpdateFeatureWithTextDecorator {
 
 
     private String getImageId(StartState startState) {
-        EventNodeType eventType = startState.getEventTrigger().getEventType();
-        return "graph/" + (startState.isStartByTimer() ? "startByTimer.png"
-                : (eventType == null ? "start.png" : eventType.getImageName("start", true, false)));
+        return "graph/" + startState.getEventType().getImageName();
     }
 }

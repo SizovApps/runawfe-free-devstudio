@@ -32,7 +32,8 @@ import ru.runa.gpd.editor.graphiti.create.CreateDragAndDropElementFeature;
 import ru.runa.gpd.editor.graphiti.create.CreateElementFeature;
 import ru.runa.gpd.editor.graphiti.create.CreateStartNodeFeature;
 import ru.runa.gpd.editor.graphiti.create.CreateSwimlaneFeature;
-import ru.runa.gpd.editor.graphiti.update.ChangeEventTypeFeature;
+import ru.runa.gpd.editor.graphiti.update.ChangeEndEventTypeFeature;
+import ru.runa.gpd.editor.graphiti.update.ChangeStartEventTypeFeature;
 import ru.runa.gpd.editor.graphiti.update.OpenSubProcessFeature;
 import ru.runa.gpd.extension.HandlerArtifact;
 import ru.runa.gpd.extension.HandlerRegistry;
@@ -41,7 +42,6 @@ import ru.runa.gpd.lang.NodeTypeDefinition;
 import ru.runa.gpd.lang.model.Action;
 import ru.runa.gpd.lang.model.Delegable;
 import ru.runa.gpd.lang.model.EndTokenState;
-import ru.runa.gpd.lang.model.EventTrigger;
 import ru.runa.gpd.lang.model.GraphElement;
 import ru.runa.gpd.lang.model.Node;
 import ru.runa.gpd.lang.model.StartState;
@@ -49,7 +49,8 @@ import ru.runa.gpd.lang.model.Subprocess;
 import ru.runa.gpd.lang.model.Swimlane;
 import ru.runa.gpd.lang.model.TaskState;
 import ru.runa.gpd.lang.model.Transition;
-import ru.runa.gpd.lang.model.bpmn.EventNodeType;
+import ru.runa.gpd.lang.model.bpmn.EndEventType;
+import ru.runa.gpd.lang.model.bpmn.StartEventType;
 import ru.runa.gpd.lang.model.bpmn.TextDecorationNode;
 
 public class DiagramToolBehaviorProvider extends DefaultToolBehaviorProvider {
@@ -150,7 +151,7 @@ public class DiagramToolBehaviorProvider extends DefaultToolBehaviorProvider {
                 }
             }
         }
-        if (element instanceof StartState && (!((StartState) element).isStartByTimer()) || element instanceof EndTokenState) {
+        if (element instanceof StartState || element instanceof EndTokenState) {
             boolean startNode = element instanceof StartState;
             ContextButtonEntry changeEventTypeButton = new ContextButtonEntry(null, null);
             changeEventTypeButton.setText(Localization.getString("event.type.label"));
@@ -159,18 +160,23 @@ public class DiagramToolBehaviorProvider extends DefaultToolBehaviorProvider {
             data.getDomainSpecificContextButtons().add(changeEventTypeButton);
             PictogramElement pes[] = { pe };
             ICustomContext customContext = new CustomContext(pes);
-            for (int i = 0; i < EventTrigger.EVENT_TYPE_NAMES.length; i++) {
-                ContextButtonEntry createButton = null;
-                if (i == 0) {
-                    createButton = new ContextButtonEntry(new ChangeEventTypeFeature(getFeatureProvider(), null), customContext);
-                    createButton.setIconId("graph/" + (startNode ? "start.png" : "endtoken.png"));
-                } else {
-                    EventNodeType ent = EventNodeType.values()[i - 1];
-                    createButton = new ContextButtonEntry(new ChangeEventTypeFeature(getFeatureProvider(), ent), customContext);
-                    createButton.setIconId("graph/" + ent.getImageName(startNode ? "start" : "end", startNode, false));
+            if (startNode) {
+                for (int i = 0; i < StartEventType.LABELS.length; i++) {
+                    StartEventType et = StartEventType.values()[i];
+                    ContextButtonEntry createButton = new ContextButtonEntry(new ChangeStartEventTypeFeature(getFeatureProvider(), et),
+                            customContext);
+                    createButton.setIconId("graph/" + et.getImageName());
+                    createButton.setText(StartEventType.LABELS[i]);
+                    changeEventTypeButton.addContextButtonMenuEntry(createButton);
                 }
-                createButton.setText(EventTrigger.EVENT_TYPE_NAMES[i]);
-                changeEventTypeButton.addContextButtonMenuEntry(createButton);
+            } else {
+                for (int i = 0; i < EndEventType.LABELS.length; i++) {
+                    EndEventType et = EndEventType.values()[i];
+                    ContextButtonEntry createButton = new ContextButtonEntry(new ChangeEndEventTypeFeature(getFeatureProvider(), et), customContext);
+                    createButton.setIconId("graph/" + et.getImageName());
+                    createButton.setText(EndEventType.LABELS[i]);
+                    changeEventTypeButton.addContextButtonMenuEntry(createButton);
+                }
             }
         }
         return data;
