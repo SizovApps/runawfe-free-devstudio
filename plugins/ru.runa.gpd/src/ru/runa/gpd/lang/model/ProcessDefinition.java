@@ -608,7 +608,7 @@ public class ProcessDefinition extends NamedGraphElement implements Describable 
     }
 
     public void setDefaultStartNode(StartState theStartNode) {
-        StartEventType oldEventType = StartEventType.message;
+        StartEventType oldEventType = StartEventType.signal;
         List<StartState> startNodes = getChildren(StartState.class);
         for (StartState startNode : startNodes) {
             if (startNode == theStartNode) {

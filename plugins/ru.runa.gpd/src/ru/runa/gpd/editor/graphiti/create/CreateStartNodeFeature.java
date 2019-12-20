@@ -21,7 +21,7 @@ public class CreateStartNodeFeature extends CreateElementFeature {
         if (newObjects != null) {
             StartState newStartNode = (StartState) newObjects[0];
             if (newStartNode != newStartNode.getProcessDefinition().getDefaultStartNode()) {
-                newStartNode.setEventType(StartEventType.message);
+                newStartNode.setEventType(StartEventType.signal);
             }
         }
         return newObjects;
