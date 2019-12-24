@@ -124,11 +124,7 @@ public class VariableUserType extends EventSupport implements VariableContainer,
     }
 
     public VariableUserType getCopy() {
-        VariableUserType type = new VariableUserType();
-        type.name = name;
-        type.isStoreInExternalStorage = isStoreInExternalStorage;
-        type.attributes.addAll(getAttributes());
-        return type;
+        return getCopy(this);
     }
 
     @Override
@@ -154,4 +150,19 @@ public class VariableUserType extends EventSupport implements VariableContainer,
     public String toString() {
         return Objects.toStringHelper(getClass()).add("name", name).add("attributes", attributes).toString();
     }
+
+    private VariableUserType getCopy(VariableUserType source) {
+        VariableUserType clone = new VariableUserType(source.getName());
+        clone.setStoreInExternalStorage(source.isStoreInExternalStorage());
+        for (Variable attribute : source.getAttributes()) {
+            if (attribute.isComplex()) {
+                clone.addAttribute(
+                        new Variable(attribute.getName(), attribute.getScriptingName(), attribute.getFormat(), getCopy(attribute.getUserType())));
+            } else {
+                clone.addAttribute(new Variable(attribute));
+            }
+        }
+        return clone;
+    }
+
 }
