@@ -3,7 +3,6 @@ package ru.runa.gpd.office.store.externalstorage;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-
 import ru.runa.gpd.lang.model.Variable;
 import ru.runa.gpd.lang.model.VariableContainer;
 import ru.runa.gpd.lang.model.VariableUserType;
@@ -23,7 +22,7 @@ public interface VariableProvider extends VariableContainer {
 
     default String getVariableTypeNameByVariableName(String variableName) throws IllegalArgumentException {
         return complexUserTypeNames(userType -> userType.getName().equals(variableName)).findAny()
-                .orElseThrow(() -> new IllegalArgumentException("Не найден тип для переменной " + variableName));
+                .orElseThrow(() -> new IllegalArgumentException("VariableUserType not found for variable " + variableName));
     }
 
     default Stream<String> variableNamesAccordingToType(String format) {
