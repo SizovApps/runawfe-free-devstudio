@@ -97,6 +97,7 @@ public class StartState extends FormNode implements HasTextDecorator {
                 getProcessDefinition().setDefaultStartNode(this);
             }
             setEventType(StartEventType.values()[index]);
+            setSwimlane(null);
             deleteFiles();
         } else {
             super.setPropertyValue(id, value);
