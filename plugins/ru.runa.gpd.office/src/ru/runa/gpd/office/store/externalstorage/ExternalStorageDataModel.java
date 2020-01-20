@@ -1,14 +1,11 @@
 package ru.runa.gpd.office.store.externalstorage;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.dom4j.Document;
-import org.dom4j.Element;
-
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
-
+import java.util.List;
+import java.util.stream.Collectors;
+import org.dom4j.Document;
+import org.dom4j.Element;
 import ru.runa.gpd.office.FilesSupplierMode;
 import ru.runa.gpd.office.store.DataModel;
 import ru.runa.gpd.office.store.QueryType;
@@ -32,7 +29,7 @@ public class ExternalStorageDataModel extends DataModel {
         final List<StorageConstraintsModel> constraints = (List<StorageConstraintsModel>) document.getRootElement().elements("binding").stream()
                 .map(element -> StorageConstraintsModel.deserialize((Element) element)).collect(Collectors.toList());
 
-        Preconditions.checkState(constraints.size() == 1, "Для обработчика внешнего хранилища данных используется только один constraint");
+        Preconditions.checkState(constraints.size() == 1, "Expected constraints.size() == 1, actual " + constraints.size());
 
         final StorageConstraintsModel constraintsModel = Iterables.getOnlyElement(constraints);
         final FilesSupplierMode mode = constraintsModel.getQueryType().equals(QueryType.SELECT) ? FilesSupplierMode.BOTH : FilesSupplierMode.IN;

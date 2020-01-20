@@ -2,16 +2,9 @@ package ru.runa.gpd.lang.action;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
-
 import ru.runa.gpd.lang.model.bpmn.ScriptTask;
 
-public class UseExternalStorageInFeatureDelegate extends BaseModelActionDelegate {
-
-    @Override
-    public void run(IAction action) {
-        final ScriptTask scriptTask = getSelection();
-        scriptTask.setUseExternalStorageIn(!scriptTask.isUseExternalStorageIn());
-    }
+public class UseExternalStorageInFeatureDelegate extends AbstractUseExternalStorageFeatureDelegate {
 
     @Override
     public void selectionChanged(IAction action, ISelection selection) {
@@ -20,6 +13,12 @@ public class UseExternalStorageInFeatureDelegate extends BaseModelActionDelegate
         if (scriptTask != null) {
             action.setChecked(scriptTask.isUseExternalStorageIn());
         }
+    }
+
+    @Override
+    protected boolean changeProperty(ScriptTask scriptTask) {
+        scriptTask.setUseExternalStorageIn(!scriptTask.isUseExternalStorageIn());
+        return scriptTask.isUseExternalStorageIn();
     }
 
 }
