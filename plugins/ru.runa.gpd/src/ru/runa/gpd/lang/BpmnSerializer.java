@@ -474,6 +474,7 @@ public class BpmnSerializer extends ProcessSerializer {
         for (DottedTransition transition : transitions) {
             final Element transitionElement = processElement.addElement(DOTTED_TRANSITION);
             transitionElement.addAttribute(ID, transition.getId());
+            transitionElement.addAttribute(NAME, transition.getName());
 
             final String sourceNodeId = transition.getSource().getId();
             final String targetNodeId = transition.getTarget().getId();
@@ -933,6 +934,7 @@ public class BpmnSerializer extends ProcessSerializer {
 
             final DottedTransition transition = NodeRegistry.getNodeTypeDefinition(DottedTransition.class).createElement(source, false);
             transition.setId(transitionElement.attributeValue(ID));
+            transition.setName(transitionElement.attributeValue(NAME));
             transition.setTarget(target);
             ((ConnectableViaDottedTransition) source).addLeavingDottedTransition(transition);
         }
