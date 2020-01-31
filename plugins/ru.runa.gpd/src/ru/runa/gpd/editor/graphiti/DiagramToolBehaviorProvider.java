@@ -26,6 +26,8 @@ import org.eclipse.ui.views.properties.IPropertyDescriptor;
 import org.eclipse.ui.views.properties.IPropertySource;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.PropertyNames;
+import ru.runa.gpd.editor.graphiti.create.CreateDataStoreFeature;
+import ru.runa.gpd.editor.graphiti.create.CreateDottedTransitionFeature;
 import ru.runa.gpd.editor.graphiti.create.CreateDragAndDropElementFeature;
 import ru.runa.gpd.editor.graphiti.create.CreateElementFeature;
 import ru.runa.gpd.editor.graphiti.create.CreateStartNodeFeature;
@@ -111,7 +113,8 @@ public class DiagramToolBehaviorProvider extends DefaultToolBehaviorProvider {
         createTransitionButton.setIconId(transitionDefinition.getPaletteIcon());
         ICreateConnectionFeature[] features = getFeatureProvider().getCreateConnectionFeatures();
         for (ICreateConnectionFeature feature : features) {
-            if (feature.isAvailable(createConnectionContext) && feature.canStartConnection(createConnectionContext)) {
+            if (!(feature instanceof CreateDottedTransitionFeature) && feature.isAvailable(createConnectionContext)
+                    && feature.canStartConnection(createConnectionContext)) {
                 createTransitionButton.addDragAndDropFeature(feature);
             }
         }
@@ -126,7 +129,8 @@ public class DiagramToolBehaviorProvider extends DefaultToolBehaviorProvider {
             createElementButton.setIconId("elements.png");
             data.getDomainSpecificContextButtons().add(createElementButton);
             for (ICreateFeature feature : getFeatureProvider().getCreateFeatures()) {
-                if (feature instanceof CreateSwimlaneFeature || feature instanceof CreateStartNodeFeature) {
+                if (feature instanceof CreateSwimlaneFeature || feature instanceof CreateStartNodeFeature
+                        || feature instanceof CreateDataStoreFeature) {
                     continue;
                 }
                 if (feature instanceof CreateElementFeature && feature.canCreate(createContext)) {
@@ -146,8 +150,8 @@ public class DiagramToolBehaviorProvider extends DefaultToolBehaviorProvider {
         return data;
     }
 
-    static final private Set<String> TOOL_TIP_PROPERTY_NAMES =
-            Sets.newHashSet(PropertyNames.PROPERTY_ID, PropertyNames.PROPERTY_NAME, PropertyNames.PROPERTY_DESCRIPTION, PropertyNames.PROPERTY_CLASS);
+    static final private Set<String> TOOL_TIP_PROPERTY_NAMES = Sets.newHashSet(PropertyNames.PROPERTY_ID, PropertyNames.PROPERTY_NAME,
+            PropertyNames.PROPERTY_DESCRIPTION, PropertyNames.PROPERTY_CLASS);
 
     @Override
     public String getToolTip(GraphicsAlgorithm ga) {
