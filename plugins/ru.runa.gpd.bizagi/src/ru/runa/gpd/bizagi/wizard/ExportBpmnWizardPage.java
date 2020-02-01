@@ -11,6 +11,7 @@ import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.dialogs.IDialogSettings;
+import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -34,12 +35,12 @@ import ru.runa.gpd.bizagi.resource.Messages;
 import ru.runa.gpd.lang.model.ProcessDefinition;
 import ru.runa.gpd.lang.model.SubprocessDefinition;
 import ru.runa.gpd.util.IOUtils;
-import ru.runa.gpd.util.SwimlaneDisplayMode;
 
 @SuppressWarnings("restriction")
 public class ExportBpmnWizardPage extends WizardFileSystemResourceExportPage1 {
     private final Map<String, IFile> definitionNameFileMap;
     private ListViewer definitionListViewer;
+    private BooleanFieldEditor expandMinimizedNodes;
 
     protected ExportBpmnWizardPage(IStructuredSelection selection) {
         super(selection);
@@ -49,8 +50,7 @@ public class ExportBpmnWizardPage extends WizardFileSystemResourceExportPage1 {
         this.definitionNameFileMap = new TreeMap<String, IFile>();
         for (IFile file : ProcessCache.getAllProcessDefinitionsMap().keySet()) {
             ProcessDefinition definition = ProcessCache.getProcessDefinition(file);
-            if (definition != null && (!definition.getSwimlaneDisplayMode().equals(SwimlaneDisplayMode.none) || definition.getSwimlanes().size() < 2)
-                    && !(definition instanceof SubprocessDefinition)) {
+            if (definition != null && !(definition instanceof SubprocessDefinition)) {
                 definitionNameFileMap.put(getKey(file, definition), file);
             }
         }
@@ -81,6 +81,8 @@ public class ExportBpmnWizardPage extends WizardFileSystemResourceExportPage1 {
                 }
             }
         }
+        expandMinimizedNodes = new BooleanFieldEditor("expandMinimizedNodes", Messages.getString("ExportBpmnWizardPage.expand_minimized_nodes"),
+                processListGroup);
     }
 
     private void createViewer(Composite parent) {
@@ -157,7 +159,7 @@ public class ExportBpmnWizardPage extends WizardFileSystemResourceExportPage1 {
                 ProcessDefinition definition = ProcessCache.getProcessDefinition(definitionFile);
                 definition.getLanguage().getSerializer().validateProcessDefinitionXML(definitionFile);
                 String outputFileName = getDestinationValue() + definition.getName() + ".bpmn";
-                new BpmnExporter().go(definition, outputFileName);
+                new BpmnExporter().go(definition, outputFileName, expandMinimizedNodes.getBooleanValue());
             } catch (Throwable th) {
                 PluginLogger.logErrorWithoutDialog(Localization.getString("ExportParWizardPage.error.export"), th);
                 setErrorMessage(Throwables.getRootCause(th).getMessage());

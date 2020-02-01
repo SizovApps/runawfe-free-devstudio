@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.UUID;
 import org.dom4j.Document;
 import org.dom4j.Element;
+import org.eclipse.draw2d.geometry.Dimension;
 import org.eclipse.draw2d.geometry.Point;
 import org.eclipse.draw2d.geometry.PrecisionPoint;
 import org.eclipse.draw2d.geometry.Rectangle;
@@ -124,10 +125,13 @@ public class BpmnExporter implements GEFConstants {
     private static final String ATTR_WIDTH = "width";
     private static final String ATTR_HEIGHT = "height";
 
+    private static final Dimension MINIMIZED_NODE_SIZE = new Dimension(3 * GRID_SIZE, 3 * GRID_SIZE);
+
     private enum GatewayDirection {Unspecified, Converging, Diverging, Mixed}
 
-    private boolean horizontalSwinlanes = true;
-    private Rectangle noneLaneBound = null;
+    private boolean expandMinimizedNodes = true;
+    private boolean horizontalSwimlanes = true;
+    private Rectangle participantConstraint = null;
     private List<Transition> transitions = null;
     private Document document;
     private Element definitions;
@@ -136,9 +140,10 @@ public class BpmnExporter implements GEFConstants {
     private Element diagram;
     private Element plane;
 
-    public void go(ProcessDefinition pd, String outputFileName) throws Exception {
+    public void go(ProcessDefinition pd, String outputFileName, boolean expandMinimizedNodes) throws Exception {
+        this.expandMinimizedNodes = expandMinimizedNodes;
         if (pd.getSwimlaneDisplayMode() != SwimlaneDisplayMode.none) {
-            horizontalSwinlanes = pd.getSwimlaneDisplayMode() == SwimlaneDisplayMode.horizontal;
+            horizontalSwimlanes = pd.getSwimlaneDisplayMode() == SwimlaneDisplayMode.horizontal;
         }
         
         document = XmlUtil.createDocument(bpmn(ELEM_DEFINITIONS));
@@ -169,31 +174,22 @@ public class BpmnExporter implements GEFConstants {
         participant.addAttribute(ATTR_ID, participantId);
         participant.addAttribute(ATTR_NAME, pd.getName());
         participant.addAttribute(ATTR_PROCESS_REF, processId);
-        Rectangle participantConstraint = null;
-        String noneLaneId = null;
 
         diagram = definitions.addElement(bpmndi(ELEM_BPMN_DIAGRAM));
         plane = diagram.addElement(bpmndi(ELEM_BPMN_PLANE));
         plane.addAttribute(ATTR_BPMN_ELEMENT, collaborationId);
 
         if (pd.getClass() != SubprocessDefinition.class) {
-            Element laneSet = process.addElement(bpmn(ELEM_LANE_SET)).addAttribute(ATTR_ID, "laneSet1");
-            for (Swimlane swimlane : pd.getSwimlanes()) {
-                Element lane = laneSet.addElement(bpmn(ELEM_LANE));
-                baseProperties(lane, swimlane);
-                List<GraphElement> elements = pd.getContainerElements(swimlane);
-                for (GraphElement ge : elements) {
-                    lane.addElement(bpmn(ELEM_FLOW_NODE_REF)).addText(ge.getId());
-                }
+            Element laneSet = null;
+            List<Swimlane> swimlanes = pd.getSwimlanes();
+            for (Swimlane swimlane : swimlanes) {
                 if (participantConstraint == null) {
-                    if (swimlane.getConstraint() == null) {
-                        noneLaneBound = pd.getConstraint().getCopy().setSize(0, 0);
+                    if (swimlane.getConstraint() == null) { // no lanes
+                        participantConstraint = pd.getConstraint().getCopy().setSize(0, 0);
                         for (GraphElement e : pd.getChildren(GraphElement.class)) {
-                            noneLaneBound.union(e.getConstraint());
+                            participantConstraint.union(e.getConstraint());
                         }
-                        noneLaneBound.resize(PARTICIPANT_SHAPE_DX, PARTICIPANT_SHAPE_DY);
-                        participantConstraint = noneLaneBound.getCopy();
-                        noneLaneId = swimlane.getId();
+                        participantConstraint.resize(PARTICIPANT_SHAPE_DX, PARTICIPANT_SHAPE_DY);
                         break;
                     } else {
                         participantConstraint = swimlane.getConstraint().getCopy();
@@ -201,37 +197,41 @@ public class BpmnExporter implements GEFConstants {
                 } else {
                     participantConstraint.union(swimlane.getConstraint().getCopy());
                 }
+                if (laneSet == null) {
+                    laneSet = process.addElement(bpmn(ELEM_LANE_SET)).addAttribute(ATTR_ID, "laneSet1");
+                }
+                Element lane = laneSet.addElement(bpmn(ELEM_LANE));
+                List<GraphElement> elements = pd.getContainerElements(swimlane);
+                for (GraphElement ge : elements) {
+                    lane.addElement(bpmn(ELEM_FLOW_NODE_REF)).addText(ge.getId());
+                }
+                baseProperties(lane, swimlane);
             }
         }
         if (participantConstraint != null) {
             plane.addElement(bpmndi(ELEM_BPMN_SHAPE)).addAttribute(ATTR_BPMN_ELEMENT, participantId)
-                    .addAttribute(ATTR_HORIZONTAL, String.valueOf(horizontalSwinlanes))
+                    .addAttribute(ATTR_HORIZONTAL, String.valueOf(horizontalSwimlanes))
                     .addElement(omgdc(ELEM_BOUNDS))
-                    .addAttribute(ATTR_X, String.valueOf(participantConstraint.x - (horizontalSwinlanes ? PARTICIPANT_SHAPE_DX : 0)))
-                    .addAttribute(ATTR_Y, String.valueOf(participantConstraint.y - (horizontalSwinlanes ? 0 : PARTICIPANT_SHAPE_DY)))
-                    .addAttribute(ATTR_WIDTH, String.valueOf(participantConstraint.width + (horizontalSwinlanes ? PARTICIPANT_SHAPE_DX : 0)))
-                    .addAttribute(ATTR_HEIGHT, String.valueOf(participantConstraint.height + (horizontalSwinlanes ? 0 : PARTICIPANT_SHAPE_DY)));
-            if (noneLaneId != null) {
-                plane.addElement(bpmndi(ELEM_BPMN_SHAPE)).addAttribute(ATTR_BPMN_ELEMENT, noneLaneId)
-                        .addAttribute(ATTR_HORIZONTAL, String.valueOf(horizontalSwinlanes)).addElement(omgdc(ELEM_BOUNDS))
-                        .addAttribute(ATTR_X, String.valueOf(participantConstraint.x))
-                        .addAttribute(ATTR_Y, String.valueOf(participantConstraint.y))
-                        .addAttribute(ATTR_WIDTH, String.valueOf(participantConstraint.width))
-                        .addAttribute(ATTR_HEIGHT, String.valueOf(participantConstraint.height));
-            }
+                    .addAttribute(ATTR_X, String.valueOf(participantConstraint.x - (horizontalSwimlanes ? PARTICIPANT_SHAPE_DX : 0)))
+                    .addAttribute(ATTR_Y, String.valueOf(participantConstraint.y - (horizontalSwimlanes ? 0 : PARTICIPANT_SHAPE_DY)))
+                    .addAttribute(ATTR_WIDTH, String.valueOf(participantConstraint.width + (horizontalSwimlanes ? PARTICIPANT_SHAPE_DX : 0)))
+                    .addAttribute(ATTR_HEIGHT, String.valueOf(participantConstraint.height + (horizontalSwimlanes ? 0 : PARTICIPANT_SHAPE_DY)));
         }
         transitions = pd.getChildrenRecursive(Transition.class);
         for (GraphElement ge : pd.getChildren(GraphElement.class)) {
             shape(ge);
+            boolean noName = false;
             Element e = null;
             if (ge instanceof StartState) {
                 e = process.addElement(bpmn(ELEM_START_EVENT));
             }
             else if (ge instanceof ExclusiveGateway) {
                 e = process.addElement(bpmn(ELEM_EXCLUSIVE_GATEWAY));
+                noName = true;
             }
             else if (ge instanceof ParallelGateway) {
                 e = process.addElement(bpmn(ELEM_PARALLEL_GATEWAY));
+                noName = true;
             }
             else if (ge instanceof TaskState) {
                 TaskState ce = (TaskState) ge;
@@ -266,6 +266,7 @@ public class BpmnExporter implements GEFConstants {
                 e = process.addElement(bpmn(ELEM_INTERMEDIATE_THROW_EVENT));
                 e.addElement(bpmn(eventType(ce.getEventNodeType())));
                 boundaryEvents(e, ce);
+                noName = true;
             }
             else if (ge instanceof CatchEventNode) {
                 CatchEventNode ce = (CatchEventNode) ge;
@@ -273,6 +274,7 @@ public class BpmnExporter implements GEFConstants {
                 e.addElement(bpmn(eventType(ce.getEventNodeType())));
                 boundaryTimer(e, ce);
                 boundaryEvents(e, ce);
+                noName = true;
             }
             else if (ge instanceof TextAnnotation) {
                 e = process.addElement(bpmn(ELEM_TEXT_ANNOTATION));
@@ -285,7 +287,7 @@ public class BpmnExporter implements GEFConstants {
                 e.addElement(bpmn(ELEM_TERMINATE_EVENT_DEFINITION));
             }
             if (e != null) {
-                baseProperties(e, ge);
+                baseProperties(e, ge, !noName);
                 if (ge instanceof Node) {
                     transitions(e, (Node) ge);
                 }
@@ -308,7 +310,7 @@ public class BpmnExporter implements GEFConstants {
         for (CatchEventNode eventNode : catchEventNodes) {
             shape(eventNode);
             Element boundaryEvent = process.addElement(bpmn(ELEM_BOUNDARY_EVENT));
-            baseProperties(boundaryEvent, eventNode);
+            baseProperties(boundaryEvent, eventNode, false);
             boundaryEvent.addAttribute(ATTR_CANCEL_ACTIVITY, String.valueOf(eventNode.isInterruptingBoundaryEvent()));
             boundaryEvent.addAttribute(ATTR_ATTACHED_TO_REF, eventNode.getParent().getId());
             boundaryEvent.addElement(bpmn(eventType(eventNode.getEventNodeType())));
@@ -353,9 +355,16 @@ public class BpmnExporter implements GEFConstants {
     }
 
     private void baseProperties(Element element, GraphElement graphElement) {
+        baseProperties(element, graphElement, true);
+    }
+
+    private void baseProperties(Element element, GraphElement graphElement, boolean withName) {
         setAttribute(element, ATTR_ID, graphElement.getId());
-        if (graphElement instanceof NamedGraphElement) {
-            setAttribute(element, ATTR_NAME, ((NamedGraphElement) graphElement).getName());
+        if (withName && graphElement instanceof NamedGraphElement) {
+            if (!(graphElement instanceof Node) || expandMinimizedNodes || !((Node) graphElement).isMinimizedView()) {
+                setAttribute(element, ATTR_NAME,
+                        graphElement instanceof Timer ? ((Timer) graphElement).getDelay().toString() : ((NamedGraphElement) graphElement).getName());
+            }
         }
         if (graphElement instanceof Describable) {
             String description = ((Describable) graphElement).getDescription();
@@ -380,13 +389,14 @@ public class BpmnExporter implements GEFConstants {
             }
         }
         int outgoingCount = 0;
-        for (Transition transition : node.getLeavingTransitions()) {
+        List<Transition> transitions = node.getLeavingTransitions();
+        for (Transition transition : transitions) {
             if (transition.isDefaultFlow()) {
                 owner.addAttribute(ATTR_DEFAULT, transition.getId());
             }
             owner.addElement(bpmn(ELEM_OUTGOING)).setText(transition.getId());
             Element transitionElement = process.addElement(bpmn(ELEM_SEQUENCE_FLOW));
-            baseProperties(transitionElement, transition);
+            baseProperties(transitionElement, transition, !(node instanceof ParallelGateway) && transitions.size() > 1);
             String sourceNodeId = transition.getSource().getId();
             String targetNodeId = transition.getTarget().getId();
             if (Objects.equal(sourceNodeId, targetNodeId)) {
@@ -416,7 +426,10 @@ public class BpmnExporter implements GEFConstants {
                 parentBound = transition.getSource().getParentContainer().getConstraint().getCopy();
                 startBound = transition.getSource().getConstraint().getCopy().translate(parentBound.getTopLeft());
             } else { // ProcessDefinition
-                startBound = transition.getSource().getConstraint().getCopy();
+                startBound = bound(transition.getSource());
+            }
+            if (transition.getSource() instanceof Node && !expandMinimizedNodes && transition.getSource().isMinimizedView()) {
+                startBound.setSize(MINIMIZED_NODE_SIZE);
             }
             startPoint = new Point(startBound.x + startBound.width / 2, startBound.y + startBound.height / 2);
             waypoints.add(startPoint);
@@ -429,8 +442,11 @@ public class BpmnExporter implements GEFConstants {
             if (transition.getTarget().getParentContainer() != null) {
                 parentBound = transition.getTarget().getParentContainer().getConstraint().getCopy();
                 endBound = transition.getTarget().getConstraint().getCopy().translate(parentBound.getTopLeft());
-            } else {
-                endBound = transition.getTarget().getConstraint().getCopy();
+            } else { // ProcessDefinition
+                endBound = bound(transition.getTarget());
+            }
+            if (transition.getTarget() instanceof Node && !expandMinimizedNodes && transition.getTarget().isMinimizedView()) {
+                endBound.setSize(MINIMIZED_NODE_SIZE);
             }
             Point endPoint = new Point(endBound.x + endBound.width / 2, endBound.y + endBound.height / 2);
             waypoints.add(endPoint);
@@ -467,6 +483,18 @@ public class BpmnExporter implements GEFConstants {
             }
             owner.addAttribute(ATTR_GATEWAY_DIRECTION, direction.name());
         }
+    }
+
+    private Rectangle bound(Node node) {
+        Rectangle bound = node.getConstraint().getCopy();
+        if (!node.getTypeDefinition().getGraphitiEntry().isFixedSize()) {
+            if (!expandMinimizedNodes && node.isMinimizedView()) {
+                bound.setSize(MINIMIZED_NODE_SIZE);
+            } else {
+                bound.shrink(GRID_SIZE / 2, GRID_SIZE / 2);
+            }
+        }
+        return bound;
     }
 
     private Point intersectionPoint(Point startPoint, Point endPoint, Rectangle bound) {
@@ -580,13 +608,18 @@ public class BpmnExporter implements GEFConstants {
                         constraints.setSize(constraints.width - GRID_SIZE, constraints.height - GRID_SIZE);
                     }
                 }
+            } else if (graphElement instanceof Node) {
+                constraints = bound((Node) graphElement);
+            }
+            if (graphElement instanceof Node && !expandMinimizedNodes && ((Node) graphElement).isMinimizedView()) {
+                constraints.setSize(MINIMIZED_NODE_SIZE);
             }
             Element shape = plane.addElement(bpmndi(ELEM_BPMN_SHAPE));
             shape.addAttribute(ATTR_BPMN_ELEMENT, graphElement.getId()).addElement(omgdc(ELEM_BOUNDS))
                     .addAttribute(ATTR_X, String.valueOf(constraints.x)).addAttribute(ATTR_Y, String.valueOf(constraints.y))
                     .addAttribute(ATTR_WIDTH, String.valueOf(constraints.width)).addAttribute(ATTR_HEIGHT, String.valueOf(constraints.height));
             if (graphElement instanceof Swimlane) {
-                shape.addAttribute(ATTR_HORIZONTAL, String.valueOf(horizontalSwinlanes));
+                shape.addAttribute(ATTR_HORIZONTAL, String.valueOf(horizontalSwimlanes));
             }
         }
     }
@@ -594,8 +627,8 @@ public class BpmnExporter implements GEFConstants {
     private Rectangle parentBound(GraphElement element) {
         GraphElement parentContainer = element.getParentContainer();
         if (parentContainer == null) {
-            if (noneLaneBound != null) {
-                return noneLaneBound;
+            if (participantConstraint != null) {
+                return participantConstraint;
             } else {
                 parentContainer = element.getParent();
             }
@@ -623,8 +656,4 @@ public class BpmnExporter implements GEFConstants {
         return OMGDI_PREFIX + COLON + nodeName;
     }
 
-    private String xsi(String nodeName) {
-        return XSI_PREFIX + COLON + nodeName;
-    }
-    
 }
