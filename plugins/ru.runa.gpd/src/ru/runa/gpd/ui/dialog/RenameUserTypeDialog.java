@@ -4,10 +4,8 @@ import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -21,24 +19,20 @@ import ru.runa.gpd.lang.model.VariableUserType;
 import ru.runa.gpd.ui.custom.LoggingModifyTextAdapter;
 import ru.runa.gpd.ui.custom.VariableNameChecker;
 
-public class VariableUserTypeDialog extends Dialog {
+public class RenameUserTypeDialog extends Dialog {
     private String name;
-    private boolean isStoreInExternalStorage;
     private final ProcessDefinition processDefinition;
-    private final boolean createMode;
 
-    public VariableUserTypeDialog(ProcessDefinition processDefinition, VariableUserType type) {
+    public RenameUserTypeDialog(ProcessDefinition processDefinition, VariableUserType type) {
         super(Display.getCurrent().getActiveShell());
         this.processDefinition = processDefinition;
         this.name = type != null ? type.getName() : "";
-        this.isStoreInExternalStorage = type != null ? type.isStoreInExternalStorage() : false;
-        this.createMode = type == null;
     }
 
     @Override
     protected void configureShell(Shell newShell) {
         super.configureShell(newShell);
-        newShell.setText(Localization.getString(createMode ? "UserDefinedVariableType.create.title" : "UserDefinedVariableType.update.title"));
+        newShell.setText(Localization.getString("UserDefinedVariableType.update.title"));
     }
 
     @Override
@@ -72,28 +66,15 @@ public class VariableUserTypeDialog extends Dialog {
                 updateButtons();
             }
         });
-
-        new Label(composite, SWT.NONE);
-        final Button storeInExternalStorageCheckbox = new Button(composite, SWT.CHECK);
-        storeInExternalStorageCheckbox.setText(Localization.getString("UserDefinedVariableType.storeInExternalStorage"));
-        storeInExternalStorageCheckbox.setSelection(isStoreInExternalStorage);
-        storeInExternalStorageCheckbox.addSelectionListener(SelectionListener.widgetSelectedAdapter(c -> {
-            isStoreInExternalStorage = !isStoreInExternalStorage;
-            updateButtons();
-        }));
-
-        if (!createMode) {
-            nameField.selectAll();
-        }
+        nameField.selectAll();
         return area;
     }
 
     private void updateButtons() {
-        final VariableUserType type = processDefinition.getVariableUserType(name);
-        final boolean allowCreation = type == null && VariableFormatRegistry.getInstance().getArtifactByLabel(name) == null
+        VariableUserType type = processDefinition.getVariableUserType(name);
+        boolean allowCreation = type == null && VariableFormatRegistry.getInstance().getArtifactByLabel(name) == null
                 && VariableNameChecker.isValid(name);
-        final boolean allowEdit = (type != null && type.isStoreInExternalStorage() != isStoreInExternalStorage) || allowCreation;
-        getButton(IDialogConstants.OK_ID).setEnabled(createMode ? allowCreation : allowEdit);
+        getButton(IDialogConstants.OK_ID).setEnabled(allowCreation);
     }
 
     @Override
@@ -106,7 +87,4 @@ public class VariableUserTypeDialog extends Dialog {
         return name;
     }
 
-    public boolean isStoreInExternalStorage() {
-        return isStoreInExternalStorage;
-    }
 }
