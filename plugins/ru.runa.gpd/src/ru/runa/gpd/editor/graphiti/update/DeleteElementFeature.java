@@ -23,6 +23,8 @@ import ru.runa.gpd.lang.model.GraphElement;
 import ru.runa.gpd.lang.model.NamedGraphElement;
 import ru.runa.gpd.lang.model.Node;
 import ru.runa.gpd.lang.model.Transition;
+import ru.runa.gpd.lang.model.bpmn.ConnectableViaDottedTransition;
+import ru.runa.gpd.lang.model.bpmn.DottedTransition;
 import ru.runa.gpd.lang.model.bpmn.TextDecorationNode;
 import ru.runa.gpd.settings.PrefConstants;
 
@@ -101,6 +103,11 @@ public class DeleteElementFeature extends DefaultDeleteFeature implements ICusto
             Transition transition = (Transition) element;
             transition.getSource().removeLeavingTransition(transition);
             return;
+        } else if (element instanceof DottedTransition) {
+            final DottedTransition transition = (DottedTransition) element;
+            ((ConnectableViaDottedTransition) transition.getSource()).removeLeavingDottedTransition(transition);
+            ((ConnectableViaDottedTransition) transition.getTarget()).removeArrivingDottedTransition(transition);
+            return;
         }
         element.getParent().removeChild(element);
     }
@@ -169,11 +176,9 @@ public class DeleteElementFeature extends DefaultDeleteFeature implements ICusto
         super.preDelete(context);
         if (getBusinessObjectForPictogramElement(context.getPictogramElement()) instanceof Action) {
             PictogramElement pe = context.getPictogramElement();
-            context.putProperty(
-                    "action-container",
-                    pe instanceof ConnectionDecorator ?
-                            ((ConnectionDecorator) context.getPictogramElement()).getConnection() :
-                                ((Shape) context.getPictogramElement()).getContainer());
+            context.putProperty("action-container",
+                    pe instanceof ConnectionDecorator ? ((ConnectionDecorator) context.getPictogramElement()).getConnection()
+                            : ((Shape) context.getPictogramElement()).getContainer());
         }
     }
 

@@ -175,26 +175,6 @@
     </objectContribution>
     <objectContribution
           adaptable="false"
-          id="scripttask.useExternalStorageOut"
-          objectClass="ru.runa.gpd.lang.model.bpmn.ScriptTask">
-       <action
-             class="ru.runa.gpd.lang.action.UseExternalStorageOutFeatureDelegate"
-             id="scripttask.useExternalStorageOut"
-             label="%label.action.useExternalStorageOut">
-       </action>
-    </objectContribution>
-    <objectContribution
-          adaptable="false"
-          id="scripttask.useExternalStorageIn"
-          objectClass="ru.runa.gpd.lang.model.bpmn.ScriptTask">
-       <action
-             class="ru.runa.gpd.lang.action.UseExternalStorageInFeatureDelegate"
-             id="scripttask.useExternalStorageIn"
-             label="%label.action.useExternalStorageIn">
-       </action>
-    </objectContribution>
-    <objectContribution
-          adaptable="false"
           id="subprocess.compactview"
           objectClass="ru.runa.gpd.lang.model.Subprocess">
        <action
@@ -869,6 +849,22 @@
          </graphiti>
       </element>
       <element
+            type="connection"
+            model="ru.runa.gpd.lang.model.bpmn.DottedTransition"
+            bpmn="dataStoreReference"
+            icon="transitiondotted.png"
+            label="%label.element.dottedTransition">
+         <graphiti
+               add="ru.runa.gpd.editor.graphiti.add.AddDottedTransitionFeature"
+               create="ru.runa.gpd.editor.graphiti.create.CreateDottedTransitionFeature"
+               fixedSize="false"
+               height="1"
+               layout="ru.runa.gpd.editor.graphiti.layout.LayoutTransitionFeature"
+               update="ru.runa.gpd.editor.graphiti.update.UpdateDottedTransitionFeature"
+               width="1">
+         </graphiti>
+      </element>
+      <element
             bpmn="textAnnotation"
             label="%label.element.textAnnotation"
             icon="textAnnotation.png"
@@ -994,6 +990,22 @@
                update="ru.runa.gpd.editor.graphiti.update.UpdateStateNodeFeature"
                doubleClick="ru.runa.gpd.editor.graphiti.update.ScriptTaskDoubleClickDelegableFeature"
                width="15">
+         </graphiti>
+      </element>
+      <element
+            bpmn="dataStore"
+            icon="datastore.png"
+            enabledInRegulationsByDefault="false"
+            label="%label.element.datastore"
+            model="ru.runa.gpd.lang.model.bpmn.DataStore"
+            type="node">
+         <graphiti
+               add="ru.runa.gpd.editor.graphiti.add.AddDataStoreNodeFeature"
+               create="ru.runa.gpd.editor.graphiti.create.CreateDataStoreFeature"
+               fixedSize="true"
+               height="4"
+               update="ru.runa.gpd.editor.graphiti.update.UpdateStateNodeFeature"
+               width="4">
          </graphiti>
       </element>
       <element
