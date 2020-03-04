@@ -54,8 +54,7 @@ public abstract class GraphElement extends EventSupport implements IPropertySour
     }
 
     /**
-     * @return parent container or <code>null</code> in case of
-     *         {@link ProcessDefinition}
+     * @return parent container or <code>null</code> in case of {@link ProcessDefinition}
      */
     public GraphElement getParentContainer() {
         return parentContainer;
@@ -70,7 +69,7 @@ public abstract class GraphElement extends EventSupport implements IPropertySour
         if ("language".equals(name)) {
             return Objects.equal(value, getProcessDefinition().getLanguage().name().toLowerCase());
         }
-        if ("delegable".equals(name)) {
+        if ("delegableEditHandler".equals(name) || "delegableEditConfiguration".equals(name)) {
             return Objects.equal(value, String.valueOf(isDelegable()));
         }
         if ("regulationsEnabled".equals(name)) {
@@ -376,14 +375,14 @@ public abstract class GraphElement extends EventSupport implements IPropertySour
         if (isDelegable()) {
             Delegable delegable = (Delegable) this;
             descriptors.add(new DelegableClassPropertyDescriptor(PROPERTY_CLASS, Localization.getString("property.delegation.class"), delegable));
-            descriptors.add(new DelegableConfPropertyDescriptor(PROPERTY_CONFIGURATION, (Delegable) this, Localization
-                    .getString("property.delegation.configuration")));
+            descriptors.add(new DelegableConfPropertyDescriptor(PROPERTY_CONFIGURATION, (Delegable) this,
+                    Localization.getString("property.delegation.configuration")));
         }
         if (this instanceof ITimed && getProcessDefinition().getLanguage() == Language.JPDL) {
             Timer timer = ((ITimed) this).getTimer();
             if (timer != null) {
-                descriptors.add(new DurationPropertyDescriptor(PROPERTY_TIMER_DELAY, timer.getProcessDefinition(), timer.getDelay(), Localization
-                        .getString("property.duration")));
+                descriptors.add(new DurationPropertyDescriptor(PROPERTY_TIMER_DELAY, timer.getProcessDefinition(), timer.getDelay(),
+                        Localization.getString("property.duration")));
                 descriptors.add(new TimerActionPropertyDescriptor(PROPERTY_TIMER_ACTION, Localization.getString("Timer.action"), timer));
             }
         }
