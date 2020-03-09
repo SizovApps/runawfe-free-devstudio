@@ -26,12 +26,14 @@ import org.eclipse.draw2d.geometry.PrecisionRectangle;
 import org.eclipse.draw2d.geometry.Rectangle;
 import ru.runa.gpd.PluginLogger;
 import ru.runa.gpd.ProcessCache;
+import ru.runa.gpd.editor.GEFConstants;
 import ru.runa.gpd.editor.graphiti.GraphitiEntry;
 import ru.runa.gpd.lang.BpmnSerializer;
 import ru.runa.gpd.lang.Language;
 import ru.runa.gpd.lang.NodeRegistry;
 import ru.runa.gpd.lang.NodeTypeDefinition;
 import ru.runa.gpd.lang.ProcessSerializer;
+import ru.runa.gpd.lang.model.EndState;
 import ru.runa.gpd.lang.model.EndTokenState;
 import ru.runa.gpd.lang.model.GraphElement;
 import ru.runa.gpd.lang.model.MultiSubprocess;
@@ -59,9 +61,12 @@ import ru.runa.gpd.util.XmlUtil;
 import ru.runa.wfe.definition.ProcessDefinitionAccessType;
 
 @SuppressWarnings("unchecked")
-public class BizagiBpmnImporter {
+public class BizagiBpmnImporter implements GEFConstants {
 
     private static final double SCALE_FACTOR = 2;
+
+    private static final String TARGET_NAMESPACE = "targetNamespace";
+    private static final String BPMN_TARGET_NAMESPACE = "http://bpmn.io/schema/bpmn";
 
     private static final String DEFAULT = "default";
     private static final String ASSOCIATION = "association";
@@ -94,11 +99,14 @@ public class BizagiBpmnImporter {
     private static final String MESSAGE_EVENT_DEFINITION = "messageEventDefinition";
     private static final String ERROR_EVENT_DEFINITION = "errorEventDefinition";
     private static final String TIMER_EVENT_DEFINITION = "timerEventDefinition";
+    private static final String TERMINATE_EVENT_DEFINITION = "terminateEventDefinition";
     private static final String MULTI_INSTANCE_LOOP_CHARACTERISTICS = "multiInstanceLoopCharacteristics";
     private static final String BIZAGI_NAMESPACE = "http://www.bizagi.com/bpmn20";
     private static final String BIZAGI_PROPERTY = "BizagiProperty";
     private static final String BIZAGI_PROPERTIES = "BizagiProperties";
     private static final String BIZAGI_EXTENSIONS = "BizagiExtensions";
+
+    private static final Dimension MINIMIZED_NODE_SIZE = new Dimension(3 * GRID_SIZE, 3 * GRID_SIZE);
 
     private static Map<String, Element> planeMap = new HashMap<>();
     private static Map<String, GraphElement> geMap = new HashMap<>();
@@ -111,6 +119,7 @@ public class BizagiBpmnImporter {
         try (InputStream is = new FileInputStream(new File(srcFileName))) {
             Document bpmnDocument = XmlUtil.parseWithoutValidation(is);
             Element definitionsElement = bpmnDocument.getRootElement();
+            scaleFactor = (BPMN_TARGET_NAMESPACE.equals(definitionsElement.attributeValue(TARGET_NAMESPACE)) ? 1 : SCALE_FACTOR);
             planeMap.clear();
             for (Element bpmnDiagram : (List<Element>) definitionsElement.elements(BPMN_DIAGRAM)) {
                 Element bpmnPlane = bpmnDiagram.element(BPMN_PLANE);
@@ -126,6 +135,9 @@ public class BizagiBpmnImporter {
             String processName = collaborationElement.attributeValue(NAME);
             nextParticipant:
             for (Element participant : (List<Element>) collaborationElement.elements(PARTICIPANT)) {
+                if (Strings.isNullOrEmpty(processName)) {
+                    processName = participant.attributeValue(NAME);
+                }
                 Element extensionElements = participant.element(EXTENSION_ELEMENTS);
                 if (extensionElements != null) {
                     Element bizagiExtensionElements = extensionElements.element(QName.get(BIZAGI_EXTENSIONS, BIZAGI_NAMESPACE));
@@ -204,7 +216,7 @@ public class BizagiBpmnImporter {
                         setConstraint(start, id);
                         Swimlane swimlane = swimlane(start);
                         start.setSwimlane(swimlane);
-                        if (showSwimlanes) {
+                        if (showSwimlanes && swimlane != null) {
                             start.setParentContainer(swimlane);
                             start.getConstraint().translate(swimlane.getConstraint().getTopLeft().negate());
                         }
@@ -220,9 +232,10 @@ public class BizagiBpmnImporter {
                         task.setName(name);
                         task.setDescription(documentation);
                         task.setConstraint(bounds(id));
+                        adjustMinimized(task);
                         Swimlane swimlane = swimlane(task);
                         task.setSwimlane(swimlane);
-                        if (showSwimlanes) {
+                        if (showSwimlanes && swimlane != null) {
                             task.setParentContainer(swimlane);
                             task.getConstraint().translate(swimlane.getConstraint().getTopLeft().negate());
                         }
@@ -262,6 +275,7 @@ public class BizagiBpmnImporter {
                         sp.setSubProcessName(name);
                         sp.setDescription(documentation);
                         sp.setConstraint(bounds(id));
+                        adjustMinimized(sp);
                         definition.addChild(sp);
                         geMap.put(id, sp);
                         embeddedSubprocesses.add(sp);
@@ -274,6 +288,7 @@ public class BizagiBpmnImporter {
                         sp.setSubProcessName(name);
                         sp.setDescription(documentation);
                         sp.setConstraint(bounds(id));
+                        adjustMinimized(sp);
                         definition.addChild(sp);
                         geMap.put(id, sp);
                         break;
@@ -285,12 +300,18 @@ public class BizagiBpmnImporter {
                         sp.setSubProcessName(name);
                         sp.setDescription("?" + elementName + "?" + (Strings.isNullOrEmpty(documentation) ? "" : documentation));
                         sp.setConstraint(bounds(id));
+                        adjustMinimized(sp);
                         definition.addChild(sp);
                         geMap.put(id, sp);
                         break;
                     }
                     case "endEvent": {
-                        EndTokenState end = new EndTokenState();
+                        NamedGraphElement end = null;
+                        if (element.element(TERMINATE_EVENT_DEFINITION) == null) {
+                            end = new EndTokenState();
+                        } else {
+                            end = new EndState();
+                        }
                         end.setName(name);
                         end.setDescription(documentation);
                         setConstraint(end, id);
@@ -344,6 +365,7 @@ public class BizagiBpmnImporter {
                         task.setName(name);
                         task.setDescription(documentation);
                         task.setConstraint(bounds(id));
+                        adjustMinimized(task);
                         definition.addChild(task);
                         geMap.put(id, task);
                         break;
@@ -445,16 +467,24 @@ public class BizagiBpmnImporter {
         ge.setConstraint(bounds);
     }
 
+    private static double scaleFactor = 1;
+
     private static Rectangle bounds(String id) {
         Element shape = planeMap.get(id);
         if (shape != null) {
             Element bounds = shape.element(BOUNDS);
             if (bounds != null) {
                 return new PrecisionRectangle(Double.parseDouble(bounds.attributeValue(X)), Double.parseDouble(bounds.attributeValue(Y)),
-                        Double.parseDouble(bounds.attributeValue(WIDTH)), Double.parseDouble(bounds.attributeValue(HEIGHT))).scale(SCALE_FACTOR);
+                        Double.parseDouble(bounds.attributeValue(WIDTH)), Double.parseDouble(bounds.attributeValue(HEIGHT))).scale(scaleFactor);
             }
         }
         throw new IllegalStateException("id: " + id + " does not exist");
+    }
+
+    private static void adjustMinimized(Node node) {
+        if (node.getConstraint().getSize().equals(MINIMIZED_NODE_SIZE)) {
+            node.setMinimizedView(true);
+        }
     }
 
     private static List<Point> waypoints(String id, Rectangle sourceBounds, Rectangle targetBounds) {
@@ -465,7 +495,7 @@ public class BizagiBpmnImporter {
             if (waypoints != null) {
                 for (Element waypoint : waypoints) {
                     Point point = new PrecisionPoint(Double.parseDouble(waypoint.attributeValue(X)), Double.parseDouble(waypoint.attributeValue(Y)))
-                            .scale(SCALE_FACTOR);
+                            .scale(scaleFactor);
                     if (!sourceBounds.contains(point.translate(-1, -1)) && !targetBounds.contains(point.translate(-1, -1))) {
                         bendPoints.add(point);
                     }
@@ -482,7 +512,7 @@ public class BizagiBpmnImporter {
                 return entry.getValue();
             }
         }
-        throw new IllegalStateException("unknown swimlane for GraphElement " + node + ", constraint: " + node.getConstraint());
+        return null;
     }
 
     private BizagiBpmnImporter() {

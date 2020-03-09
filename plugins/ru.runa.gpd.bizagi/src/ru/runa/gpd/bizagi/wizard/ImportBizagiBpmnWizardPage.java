@@ -56,7 +56,7 @@ public class ImportBizagiBpmnWizardPage extends ImportWizardPage {
         fileSelectionLayout.marginWidth = 0;
         fileSelectionLayout.marginHeight = 0;
         fileSelectionArea.setLayout(fileSelectionLayout);
-        selectFileEditor = new FileFieldEditor("selectFile", Messages.getString("ImportBpmnWizardPage.page.title"), fileSelectionArea);
+        selectFileEditor = new FileFieldEditor("selectFile", Messages.getString("ImportBpmnWizardPage.page.selectFile"), fileSelectionArea);
         selectFileEditor.setFileExtensions(new String[] { "*.bpmn" });
         showSwimlanesEditor = new BooleanFieldEditor("showSwimlanes", Messages.getString("ImportBpmnWizardPage.show_swimlanes"), fileSelectionArea);
         ignoreBendPointsEditor = new BooleanFieldEditor("ignoreBendPoints", Messages.getString("ImportBpmnWizardPage.ignore_bend_points"),
