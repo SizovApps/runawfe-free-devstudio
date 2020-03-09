@@ -1,7 +1,6 @@
 package ru.runa.gpd.ui.dialog;
 
 import java.net.URL;
-
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
@@ -15,7 +14,6 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.browser.IWebBrowser;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 import org.eclipse.ui.forms.events.HyperlinkEvent;
-
 import ru.runa.gpd.Application;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.SharedImages;
@@ -38,13 +36,13 @@ public class AboutDialog extends Dialog {
         Text versionText = new Text(parent, SWT.READ_ONLY);
         versionText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         versionText.setText(Localization.getString("version") + ": " + Application.getVersion().toString());
-        SWTUtils.createLink(parent, "runawfe.org", new LoggingHyperlinkAdapter() {
+        SWTUtils.createLink(parent, "processtech.ru", new LoggingHyperlinkAdapter() {
 
             @Override
             protected void onLinkActivated(HyperlinkEvent e) throws Exception {
                 IWorkbenchBrowserSupport support = PlatformUI.getWorkbench().getBrowserSupport();
                 IWebBrowser browser = support.getExternalBrowser();
-                browser.openURL(new URL("http://runawfe.org"));
+                browser.openURL(new URL("http://processtech.ru"));
             }
         });
         return parent;

@@ -74,6 +74,7 @@ public interface PropertyNames {
     public static final String PROPERTY_COLOR = "color";
     public static final String PROPERTY_USE_GLOBALS = "useGlobals";
     public static final String PROPERTY_GLOBAL = "global";
+    public static final String PROPERTY_TIMER_EVENT_DEFINITION = "timerEventDefinition";
     public static final String PROPERTY_STORE_IN_EXTERNAL_STORAGE = "storeInExternalStorage";
 
 }

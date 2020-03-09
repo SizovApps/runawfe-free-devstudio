@@ -22,13 +22,14 @@
 		<module>ru.runa.gpd.feature</module>
 		<module>ru.runa.gpd.form.quick.feature</module>
 		<module>ru.runa.gpd.apis_removed_from_j11</module>
+		<module>ru.runa.gpd.bizagi</module>
 	</modules>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
-		<tycho.version>1.2.0</tycho.version>
+		<tycho.version>1.5.1</tycho.version>
 	</properties>
 
 	<build>
