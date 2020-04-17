@@ -15,7 +15,7 @@ import ru.runa.gpd.lang.model.bpmn.StartEventType;
 import ru.runa.gpd.util.VariableMapping;
 import ru.runa.wfe.definition.ProcessDefinitionAccessType;
 
-public class StartState extends FormNode implements HasTextDecorator {
+public class StartState extends FormNode implements HasTextDecorator, VariableMappingsValidator {
 
     protected TextDecoratorEmulation decoratorEmulation;
     protected String timerEventDefinition;
@@ -68,6 +68,9 @@ public class StartState extends FormNode implements HasTextDecorator {
         if (isStartByTimer() && Strings.isNullOrEmpty(getTimerEventDefinition())) {
             errors.add(ValidationError.createLocalizedError(this, "startState.timerEventNotDefined"));
         }
+        if (shouldHaveRoutingRules()) {
+            validate(errors, definitionFile, () -> this);
+        }
     }
 
     @Override
@@ -106,6 +109,11 @@ public class StartState extends FormNode implements HasTextDecorator {
 
     public boolean isStartByEvent() {
         return eventType != StartEventType.blank;
+    }
+
+    public boolean shouldHaveRoutingRules() {
+        return eventType == StartEventType.message || eventType == StartEventType.signal || eventType == StartEventType.error
+                || eventType == StartEventType.cancel;
     }
 
     @Override
@@ -148,6 +156,7 @@ public class StartState extends FormNode implements HasTextDecorator {
 
     private final List<VariableMapping> variableMappings = new ArrayList<VariableMapping>();
 
+    @Override
     public List<VariableMapping> getVariableMappings() {
         return variableMappings;
     }
@@ -156,6 +165,11 @@ public class StartState extends FormNode implements HasTextDecorator {
         this.variableMappings.clear();
         this.variableMappings.addAll(variablesList);
         setDirty();
+    }
+
+    @Override
+    public void validateOnEmptyRules(List<ValidationError> errors) {
+        errors.add(ValidationError.createLocalizedError(this, "message.selectorRulesEmpty"));
     }
 
 }

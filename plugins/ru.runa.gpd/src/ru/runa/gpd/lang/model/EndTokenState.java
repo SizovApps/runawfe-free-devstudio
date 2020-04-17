@@ -3,23 +3,24 @@ package ru.runa.gpd.lang.model;
 import com.google.common.base.Objects;
 import java.util.ArrayList;
 import java.util.List;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.ui.views.properties.ComboBoxPropertyDescriptor;
 import org.eclipse.ui.views.properties.IPropertyDescriptor;
 import ru.runa.gpd.Localization;
+import ru.runa.gpd.lang.ValidationError;
 import ru.runa.gpd.lang.model.bpmn.AbstractEndTextDecorated;
 import ru.runa.gpd.lang.model.bpmn.EndEventType;
 import ru.runa.gpd.util.Duration;
 import ru.runa.gpd.util.VariableMapping;
 
-public class EndTokenState extends AbstractEndTextDecorated {
+public class EndTokenState extends AbstractEndTextDecorated implements VariableMappingsValidator {
 
     private EndTokenSubprocessDefinitionBehavior subprocessDefinitionBehavior = EndTokenSubprocessDefinitionBehavior.BACK_TO_BASE_PROCESS;
 
     @Override
     protected void populateCustomPropertyDescriptors(List<IPropertyDescriptor> descriptors) {
         super.populateCustomPropertyDescriptors(descriptors);
-        descriptors.add(
-                new ComboBoxPropertyDescriptor(PROPERTY_EVENT_TYPE, Localization.getString("property.eventType"), EndEventType.LABELS));
+        descriptors.add(new ComboBoxPropertyDescriptor(PROPERTY_EVENT_TYPE, Localization.getString("property.eventType"), EndEventType.LABELS));
         if (getProcessDefinition() instanceof SubprocessDefinition) {
             descriptors.add(new ComboBoxPropertyDescriptor(PROPERTY_END_TOKEN_BEHAVIOR, Localization.getString("EndTokenState.property.behaviour"),
                     EndTokenSubprocessDefinitionBehavior.getLabels()));
@@ -93,6 +94,7 @@ public class EndTokenState extends AbstractEndTextDecorated {
 
     private final List<VariableMapping> variableMappings = new ArrayList<VariableMapping>();
 
+    @Override
     public List<VariableMapping> getVariableMappings() {
         return variableMappings;
     }
@@ -113,6 +115,24 @@ public class EndTokenState extends AbstractEndTextDecorated {
         Duration old = this.ttlDuration;
         this.ttlDuration = ttlDuration;
         firePropertyChange(PROPERTY_TTL, old, ttlDuration);
+    }
+
+    @Override
+    public void validate(List<ValidationError> errors, IFile definitionFile) {
+        super.validate(errors, definitionFile);
+        if (shouldHaveRoutingRules()) {
+            validate(errors, definitionFile, () -> this);
+        }
+    }
+
+    public boolean shouldHaveRoutingRules() {
+        return eventType == EndEventType.message || eventType == EndEventType.signal || eventType == EndEventType.error
+                || eventType == EndEventType.cancel;
+    }
+
+    @Override
+    public void validateOnEmptyRules(List<ValidationError> errors) {
+        errors.add(ValidationError.createLocalizedError(this, "message.selectorRulesEmpty"));
     }
 
 }
