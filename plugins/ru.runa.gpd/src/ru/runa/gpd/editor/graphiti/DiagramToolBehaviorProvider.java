@@ -3,6 +3,7 @@ package ru.runa.gpd.editor.graphiti;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import org.eclipse.graphiti.dt.IDiagramTypeProvider;
 import org.eclipse.graphiti.features.ICreateConnectionFeature;
@@ -131,7 +132,7 @@ public class DiagramToolBehaviorProvider extends DefaultToolBehaviorProvider {
             }
         }
         //
-        
+
         if (allowTargetNodeCreation) {
             ContextButtonEntry createElementButton = null;
             if (!expandContextButtonPad) {
@@ -185,6 +186,10 @@ public class DiagramToolBehaviorProvider extends DefaultToolBehaviorProvider {
             if (startNode) {
                 for (int i = 0; i < StartEventType.LABELS.length; i++) {
                     StartEventType et = StartEventType.values()[i];
+                    if (et.equals(StartEventType.timer) && element.getProcessDefinition().getChildren(StartState.class).stream()
+                            .filter(startState -> !Objects.equals(startState.getId(), element.getId())).anyMatch(StartState::isStartByTimer)) {
+                        continue;
+                    }
                     ContextButtonEntry createButton = new ContextButtonEntry(new ChangeStartEventTypeFeature(getFeatureProvider(), et),
                             customContext);
                     createButton.setIconId("graph/" + et.getImageName());

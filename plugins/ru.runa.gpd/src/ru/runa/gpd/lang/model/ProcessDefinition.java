@@ -269,6 +269,8 @@ public class ProcessDefinition extends NamedGraphElement implements Describable 
         List<StartState> startStates = getChildren(StartState.class);
         if (startStates.size() == 0) {
             errors.add(ValidationError.createLocalizedError(this, "startState.doesNotExist"));
+        } else if (startStates.stream().filter(StartState::isStartByTimer).count() > 1) {
+            errors.add(ValidationError.createLocalizedError(this, "startState.multipleStartStatesWithTimerNotAllowed"));
         }
         boolean invalid = false;
         for (ValidationError validationError : errors) {
@@ -413,15 +415,16 @@ public class ProcessDefinition extends NamedGraphElement implements Describable 
         } else {
             descriptors.add(new StartImagePropertyDescriptor("startProcessImage", Localization.getString("ProcessDefinition.property.startImage")));
             descriptors.add(new PropertyDescriptor(PROPERTY_LANGUAGE, Localization.getString("ProcessDefinition.property.language")));
-            descriptors.add(new DurationPropertyDescriptor(PROPERTY_TASK_DEADLINE, this, getDefaultTaskTimeoutDelay(), Localization
-                    .getString("default.task.deadline")));
+            descriptors.add(new DurationPropertyDescriptor(PROPERTY_TASK_DEADLINE, this, getDefaultTaskTimeoutDelay(),
+                    Localization.getString("default.task.deadline")));
             String[] array = { Localization.getString("ProcessDefinition.property.accessType.Process"),
                     Localization.getString("ProcessDefinition.property.accessType.OnlySubprocess") };
-            descriptors.add(new ComboBoxPropertyDescriptor(PROPERTY_ACCESS_TYPE, Localization.getString("ProcessDefinition.property.accessType"),
-                    array));
-            descriptors.add(new ComboBoxPropertyDescriptor(PROPERTY_NODE_ASYNC_EXECUTION, Localization
-                    .getString("ProcessDefinition.property.nodeAsyncExecution"), NodeAsyncExecution.LABELS));
-            descriptors.add(new ComboBoxPropertyDescriptor(PROPERTY_USE_GLOBALS, Localization.getString("ProcessDefinition.property.useGlobals"), new String[] {"false", "true"}));
+            descriptors.add(
+                    new ComboBoxPropertyDescriptor(PROPERTY_ACCESS_TYPE, Localization.getString("ProcessDefinition.property.accessType"), array));
+            descriptors.add(new ComboBoxPropertyDescriptor(PROPERTY_NODE_ASYNC_EXECUTION,
+                    Localization.getString("ProcessDefinition.property.nodeAsyncExecution"), NodeAsyncExecution.LABELS));
+            descriptors.add(new ComboBoxPropertyDescriptor(PROPERTY_USE_GLOBALS, Localization.getString("ProcessDefinition.property.useGlobals"),
+                    new String[] { "false", "true" }));
         }
     }
 
