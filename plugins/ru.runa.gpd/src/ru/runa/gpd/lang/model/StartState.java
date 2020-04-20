@@ -71,6 +71,9 @@ public class StartState extends FormNode implements HasTextDecorator, VariableMa
         if (shouldHaveRoutingRules()) {
             validate(errors, definitionFile, () -> this);
         }
+        if (isStartByEvent() && getProcessDefinition() instanceof SubprocessDefinition) {
+            errors.add(ValidationError.createLocalizedError(this, "startState.startByEventIsNotUsableInEmbeddedSubprocess"));
+        }
     }
 
     @Override
