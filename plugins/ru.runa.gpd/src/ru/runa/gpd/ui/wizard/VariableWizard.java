@@ -79,6 +79,7 @@ public class VariableWizard extends Wizard {
         variable.setDefaultValue(defaultValue);
         variable.setDescription(description);
         variable.setStoreType(storeTypePage.getStoreType());
+        variable.setPrimaryKey(formatPage.isPrimaryKey());
         return true;
     }
 }

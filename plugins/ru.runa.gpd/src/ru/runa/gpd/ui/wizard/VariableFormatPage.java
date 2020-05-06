@@ -1,15 +1,16 @@
 package ru.runa.gpd.ui.wizard;
 
+import com.google.common.collect.Maps;
 import java.util.Map;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
-
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.extension.VariableFormatArtifact;
 import ru.runa.gpd.extension.VariableFormatRegistry;
@@ -25,8 +26,6 @@ import ru.runa.wfe.var.format.MapFormat;
 import ru.runa.wfe.var.format.StringFormat;
 import ru.runa.wfe.var.format.UserTypeFormat;
 
-import com.google.common.collect.Maps;
-
 public class VariableFormatPage extends DynaContentWizardPage {
     private final VariableContainer variableContainer;
     private VariableFormatArtifact type;
@@ -34,19 +33,25 @@ public class VariableFormatPage extends DynaContentWizardPage {
     private String[] componentClassNames;
     private final ProcessDefinition processDefinition;
     private final boolean editFormat;
+
+    private final boolean isStoreInExternalStorage;
+    private boolean primaryKey = false;
+
     private static Map<String, String[]> containerFormats = Maps.newHashMap();
     static {
         containerFormats.put(ListFormat.class.getName(), new String[] { Localization.getString("VariableFormatPage.components.list.value") });
-        containerFormats.put(
-                MapFormat.class.getName(),
-                new String[] { Localization.getString("VariableFormatPage.components.map.key"),
-                        Localization.getString("VariableFormatPage.components.map.value") });
+        containerFormats.put(MapFormat.class.getName(), new String[] { Localization.getString("VariableFormatPage.components.map.key"),
+                Localization.getString("VariableFormatPage.components.map.value") });
     }
 
     public VariableFormatPage(ProcessDefinition processDefinition, VariableContainer variableContainer, Variable variable, boolean editFormat) {
         this.processDefinition = processDefinition;
         this.variableContainer = variableContainer;
+        this.isStoreInExternalStorage = (variableContainer instanceof VariableUserType)
+                ? ((VariableUserType) variableContainer).isStoreInExternalStorage()
+                : false;
         if (variable != null) {
+            this.primaryKey = variable.isPrimaryKey();
             if (variable.getUserType() != null) {
                 this.userType = variable.getUserType();
                 setTypeByFormatClassName(UserTypeFormat.class.getName());
@@ -92,6 +97,18 @@ public class VariableFormatPage extends DynaContentWizardPage {
                 updateContent();
             }
         });
+
+        if (isStoreInExternalStorage) {
+            final Button primaryKeyChecbox = new Button(composite, SWT.CHECK);
+            primaryKeyChecbox.setText(Localization.getString("VariableFormatPage.primaryKey"));
+            primaryKeyChecbox.setSelection(primaryKey);
+            primaryKeyChecbox.setEnabled(editFormat);
+            primaryKeyChecbox.addSelectionListener(SelectionListener.widgetSelectedAdapter(c -> {
+                primaryKey = !primaryKey;
+                updateContent();
+            }));
+        }
+
         dynaComposite = new Composite(composite, SWT.NONE);
         dynaComposite.setLayout(new GridLayout(2, false));
         dynaComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -169,5 +186,9 @@ public class VariableFormatPage extends DynaContentWizardPage {
 
     public String[] getComponentClassNames() {
         return componentClassNames;
+    }
+
+    public boolean isPrimaryKey() {
+        return primaryKey;
     }
 }

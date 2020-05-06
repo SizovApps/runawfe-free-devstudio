@@ -23,6 +23,7 @@ public class Variable extends NamedGraphElement implements Describable {
     private VariableUserType userType;
     private VariableStoreType storeType = VariableStoreType.DEFAULT;
     private boolean global;
+    private boolean primaryKey = false;
 
     public Variable() {
     }
@@ -242,6 +243,17 @@ public class Variable extends NamedGraphElement implements Describable {
         if (this.global != global) {
             this.global = global;
             firePropertyChange(PROPERTY_GLOBAL, !this.global, this.global);
+        }
+    }
+
+    public boolean isPrimaryKey() {
+        return primaryKey;
+    }
+
+    public void setPrimaryKey(boolean primaryKey) {
+        if (this.primaryKey != primaryKey) {
+            this.primaryKey = !this.primaryKey;
+            firePropertyChange(PROPERTY_PRIMARY_KEY, !this.primaryKey, this.primaryKey);
         }
     }
 
