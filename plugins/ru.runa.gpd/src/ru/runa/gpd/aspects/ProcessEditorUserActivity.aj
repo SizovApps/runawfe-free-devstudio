@@ -125,8 +125,10 @@ public aspect ProcessEditorUserActivity extends UserActivity {
 
     after(String propertyName, Object oldValue, Object newValue) : graphElementProperyChange(propertyName, oldValue, newValue) {
         if (isStarted()) {
-            GraphElement graphElement = (GraphElement) thisJoinPoint.getThis();
-            log(graphElement.getProcessDefinition(), UserAction.GE_ChangeProperty.asString(graphElement, graphElement.getId(), propertyName, oldValue, newValue));
+            if (thisJoinPoint.getThis() instanceof GraphElement) {
+                GraphElement graphElement = (GraphElement) thisJoinPoint.getThis();
+                log(graphElement.getProcessDefinition(), UserAction.GE_ChangeProperty.asString(graphElement, graphElement.getId(), propertyName, oldValue, newValue));
+            }
         }
     }
 

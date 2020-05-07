@@ -1,24 +1,21 @@
 package ru.runa.gpd.lang.model;
 
+import com.google.common.base.Objects;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.List;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.ui.views.properties.ComboBoxPropertyDescriptor;
 import org.eclipse.ui.views.properties.IPropertyDescriptor;
-
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.lang.ValidationError;
 import ru.runa.gpd.util.SwimlaneDisplayMode;
 import ru.runa.gpd.util.VariableUtils;
 
-import com.google.common.base.Objects;
-
 public abstract class SwimlanedNode extends Node implements PropertyChangeListener {
     private Swimlane swimlane;
 
-    protected boolean isSwimlaneDisabled() {
+    public boolean isSwimlaneDisabled() {
         return false;
     }
 
