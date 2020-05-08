@@ -1,9 +1,9 @@
 package ru.runa.gpd.editor.graphiti.create;
 
 import org.eclipse.graphiti.features.context.ICreateContext;
-
 import ru.runa.gpd.lang.model.StartState;
 import ru.runa.gpd.lang.model.Subprocess;
+import ru.runa.gpd.lang.model.bpmn.StartEventType;
 
 public class CreateStartNodeFeature extends CreateElementFeature {
     @Override
@@ -12,9 +12,18 @@ public class CreateStartNodeFeature extends CreateElementFeature {
         if (parentObject instanceof Subprocess) {
             return false;
         }
-        if (getProcessDefinition().getChildren(StartState.class).size() > 0) {
-            return false;
-        }
         return super.canCreate(context);
+    }
+
+    @Override
+    public Object[] create(ICreateContext context) {
+        Object[] newObjects = super.create(context);
+        if (newObjects != null) {
+            StartState newStartNode = (StartState) newObjects[0];
+            if (newStartNode != newStartNode.getProcessDefinition().getDefaultStartNode()) {
+                newStartNode.setEventType(StartEventType.signal);
+            }
+        }
+        return newObjects;
     }
 }

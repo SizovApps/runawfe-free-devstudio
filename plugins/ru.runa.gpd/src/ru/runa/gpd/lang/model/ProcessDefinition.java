@@ -25,6 +25,7 @@ import ru.runa.gpd.extension.VariableFormatRegistry;
 import ru.runa.gpd.extension.regulations.RegulationsRegistry;
 import ru.runa.gpd.lang.Language;
 import ru.runa.gpd.lang.ValidationError;
+import ru.runa.gpd.lang.model.bpmn.StartEventType;
 import ru.runa.gpd.lang.par.ParContentProvider;
 import ru.runa.gpd.property.DurationPropertyDescriptor;
 import ru.runa.gpd.property.StartImagePropertyDescriptor;
@@ -268,9 +269,8 @@ public class ProcessDefinition extends NamedGraphElement implements Describable 
         List<StartState> startStates = getChildren(StartState.class);
         if (startStates.size() == 0) {
             errors.add(ValidationError.createLocalizedError(this, "startState.doesNotExist"));
-        }
-        if (startStates.size() > 1) {
-            errors.add(ValidationError.createLocalizedError(this, "multipleStartStatesNotAllowed"));
+        } else if (startStates.stream().filter(StartState::isStartByTimer).count() > 1) {
+            errors.add(ValidationError.createLocalizedError(this, "startState.multipleStartStatesWithTimerNotAllowed"));
         }
         boolean invalid = false;
         for (ValidationError validationError : errors) {
@@ -415,15 +415,16 @@ public class ProcessDefinition extends NamedGraphElement implements Describable 
         } else {
             descriptors.add(new StartImagePropertyDescriptor("startProcessImage", Localization.getString("ProcessDefinition.property.startImage")));
             descriptors.add(new PropertyDescriptor(PROPERTY_LANGUAGE, Localization.getString("ProcessDefinition.property.language")));
-            descriptors.add(new DurationPropertyDescriptor(PROPERTY_TASK_DEADLINE, this, getDefaultTaskTimeoutDelay(), Localization
-                    .getString("default.task.deadline")));
+            descriptors.add(new DurationPropertyDescriptor(PROPERTY_TASK_DEADLINE, this, getDefaultTaskTimeoutDelay(),
+                    Localization.getString("default.task.deadline")));
             String[] array = { Localization.getString("ProcessDefinition.property.accessType.Process"),
                     Localization.getString("ProcessDefinition.property.accessType.OnlySubprocess") };
-            descriptors.add(new ComboBoxPropertyDescriptor(PROPERTY_ACCESS_TYPE, Localization.getString("ProcessDefinition.property.accessType"),
-                    array));
-            descriptors.add(new ComboBoxPropertyDescriptor(PROPERTY_NODE_ASYNC_EXECUTION, Localization
-                    .getString("ProcessDefinition.property.nodeAsyncExecution"), NodeAsyncExecution.LABELS));
-            descriptors.add(new ComboBoxPropertyDescriptor(PROPERTY_USE_GLOBALS, Localization.getString("ProcessDefinition.property.useGlobals"), new String[] {"false", "true"}));
+            descriptors.add(
+                    new ComboBoxPropertyDescriptor(PROPERTY_ACCESS_TYPE, Localization.getString("ProcessDefinition.property.accessType"), array));
+            descriptors.add(new ComboBoxPropertyDescriptor(PROPERTY_NODE_ASYNC_EXECUTION,
+                    Localization.getString("ProcessDefinition.property.nodeAsyncExecution"), NodeAsyncExecution.LABELS));
+            descriptors.add(new ComboBoxPropertyDescriptor(PROPERTY_USE_GLOBALS, Localization.getString("ProcessDefinition.property.useGlobals"),
+                    new String[] { "false", "true" }));
         }
     }
 
@@ -597,6 +598,39 @@ public class ProcessDefinition extends NamedGraphElement implements Describable 
                 return swimlanes;
             }
             return getGlobalSwimlanes(parent, swimlanes);
+        }
+    }
+
+    public StartState getDefaultStartNode() {
+        for (StartState startNode : getChildren(StartState.class)) {
+            if (!startNode.isStartByEvent()) {
+                return startNode;
+            }
+        }
+        return null;
+    }
+
+    public void setDefaultStartNode(StartState theStartNode) {
+        StartEventType oldEventType = StartEventType.signal;
+        List<StartState> startNodes = getChildren(StartState.class);
+        for (StartState startNode : startNodes) {
+            if (startNode == theStartNode) {
+                oldEventType = startNode.getEventType();
+                startNode.setEventType(StartEventType.blank);
+                break;
+            }
+        }
+        Swimlane oldSwimlane = null;
+        for (StartState startNode : startNodes) {
+            if (startNode != theStartNode && !startNode.isStartByEvent()) {
+                oldSwimlane = startNode.getSwimlane();
+                startNode.setSwimlane(null);
+                startNode.setEventType(oldEventType);
+                break;
+            }
+        }
+        if (oldSwimlane != null) {
+            theStartNode.setSwimlane(oldSwimlane);
         }
     }
 

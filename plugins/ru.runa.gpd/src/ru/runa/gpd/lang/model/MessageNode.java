@@ -1,6 +1,5 @@
 package ru.runa.gpd.lang.model;
 
-import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
 import org.eclipse.core.resources.IFile;
@@ -8,17 +7,14 @@ import org.eclipse.ui.views.properties.IPropertyDescriptor;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.lang.ValidationError;
 import ru.runa.gpd.property.DurationPropertyDescriptor;
-import ru.runa.gpd.ui.custom.JavaIdentifierChecker;
 import ru.runa.gpd.util.Duration;
 import ru.runa.gpd.util.VariableMapping;
-import ru.runa.gpd.util.VariableUtils;
 
-public abstract class MessageNode extends Node {
+public abstract class MessageNode extends Node implements VariableMappingsValidator {
     protected final List<VariableMapping> variableMappings = new ArrayList<VariableMapping>();
-    private static final List<String> SELECTOR_SPECIAL_NAMES = Lists.newArrayList(VariableUtils.CURRENT_PROCESS_ID,
-            VariableUtils.CURRENT_PROCESS_DEFINITION_NAME, VariableUtils.CURRENT_NODE_NAME, VariableUtils.CURRENT_NODE_ID);
     private Duration ttlDuration = new Duration("1 days");
 
+    @Override
     public List<VariableMapping> getVariableMappings() {
         return variableMappings;
     }
@@ -43,8 +39,8 @@ public abstract class MessageNode extends Node {
     public void populateCustomPropertyDescriptors(List<IPropertyDescriptor> descriptors) {
         super.populateCustomPropertyDescriptors(descriptors);
         if (this instanceof ISendMessageNode) {
-            descriptors.add(new DurationPropertyDescriptor(PROPERTY_TTL, getProcessDefinition(), getTtlDuration(), Localization
-                    .getString("property.message.ttl")));
+            descriptors.add(new DurationPropertyDescriptor(PROPERTY_TTL, getProcessDefinition(), getTtlDuration(),
+                    Localization.getString("property.message.ttl")));
         }
     }
 
@@ -73,33 +69,7 @@ public abstract class MessageNode extends Node {
     @Override
     public void validate(List<ValidationError> errors, IFile definitionFile) {
         super.validate(errors, definitionFile);
-        int selectorRulesCount = 0;
-        List<String> variableNames = getProcessDefinition().getVariableNames(true);
-        for (VariableMapping mapping : variableMappings) {
-            if (mapping.isPropertySelector()) {
-                selectorRulesCount++;
-                if (!JavaIdentifierChecker.isValid(mapping.getName())) {
-                    errors.add(ValidationError.createLocalizedError(this, "message.invalidSelectorName", mapping.getName()));
-                }
-                if (SELECTOR_SPECIAL_NAMES.contains(mapping.getMappedName())) {
-                    continue;
-                }
-                if (VariableUtils.isVariableNameWrapped(mapping.getMappedName())) {
-                    String variableName = VariableUtils.unwrapVariableName(mapping.getMappedName());
-                    if (!variableNames.contains(variableName)) {
-                        errors.add(ValidationError.createLocalizedError(this, "message.processVariableDoesNotExist", variableName));
-                    }
-                }
-                continue;
-            }
-            if (!variableNames.contains(mapping.getName())) {
-                errors.add(ValidationError.createLocalizedError(this, "message.processVariableDoesNotExist", mapping.getName()));
-                continue;
-            }
-        }
-        if (selectorRulesCount == 0) {
-            validateOnEmptyRules(errors);
-        }
+        validate(errors, definitionFile, () -> this);
     }
 
     @Override
@@ -111,7 +81,8 @@ public abstract class MessageNode extends Node {
         }
     }
 
-    protected void validateOnEmptyRules(List<ValidationError> errors) {
+    @Override
+    public void validateOnEmptyRules(List<ValidationError> errors) {
         errors.add(ValidationError.createLocalizedWarning(this, "message.selectorRulesEmpty"));
     }
 
