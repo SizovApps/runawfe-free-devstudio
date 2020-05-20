@@ -14,7 +14,6 @@ import ru.runa.gpd.editor.graphiti.StyleUtil;
 import ru.runa.gpd.lang.BpmnSerializer;
 import ru.runa.gpd.lang.Language;
 import ru.runa.gpd.lang.NodeRegistry;
-import ru.runa.gpd.lang.model.Node;
 import ru.runa.gpd.lang.model.StartState;
 import ru.runa.gpd.lang.model.bpmn.StartTextDecoration;
 import ru.runa.gpd.util.SwimlaneDisplayMode;
@@ -62,11 +61,8 @@ public class AddStartNodeFeature extends AddNodeWithImageFeature {
         textDefinition.setFeatureProvider((DiagramFeatureProvider) getFeatureProvider());
         textDefinition.add(myAddContext);
 
-        return containerShape;
-    }
+        updatePictogramElement(containerShape);
 
-    @Override
-    protected String getIcon(Node node) {
-        return ((StartState) node).isStartByTimer() ? "startByTimer.png" : super.getIcon(node);
+        return containerShape;
     }
 }

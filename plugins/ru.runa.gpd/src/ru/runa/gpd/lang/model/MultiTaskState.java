@@ -30,7 +30,7 @@ public class MultiTaskState extends TaskState implements IMultiInstancesContaine
     private final List<VariableMapping> variableMappings = Lists.newArrayList();
 
     @Override
-    protected boolean isSwimlaneDisabled() {
+    public boolean isSwimlaneDisabled() {
         return creationMode == MultiTaskCreationMode.BY_EXECUTORS || discriminatorUsage.contains(VariableMapping.USAGE_DISCRIMINATOR_GROUP)
                 || discriminatorUsage.contains(VariableMapping.USAGE_DISCRIMINATOR_RELATION);
     }

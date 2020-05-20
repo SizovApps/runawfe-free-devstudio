@@ -13,7 +13,6 @@ import org.dom4j.Element;
 import org.dom4j.QName;
 import org.eclipse.core.resources.IFile;
 import ru.runa.gpd.Application;
-import ru.runa.gpd.Localization;
 import ru.runa.gpd.PluginLogger;
 import ru.runa.gpd.PropertyNames;
 import ru.runa.gpd.editor.graphiti.TransitionUtil;
@@ -48,15 +47,16 @@ import ru.runa.gpd.lang.model.bpmn.CatchEventNode;
 import ru.runa.gpd.lang.model.bpmn.ConnectableViaDottedTransition;
 import ru.runa.gpd.lang.model.bpmn.DataStore;
 import ru.runa.gpd.lang.model.bpmn.DottedTransition;
+import ru.runa.gpd.lang.model.bpmn.EndEventType;
 import ru.runa.gpd.lang.model.bpmn.EventNodeType;
 import ru.runa.gpd.lang.model.bpmn.ExclusiveGateway;
 import ru.runa.gpd.lang.model.bpmn.IBoundaryEvent;
 import ru.runa.gpd.lang.model.bpmn.IBoundaryEventContainer;
 import ru.runa.gpd.lang.model.bpmn.ParallelGateway;
 import ru.runa.gpd.lang.model.bpmn.ScriptTask;
+import ru.runa.gpd.lang.model.bpmn.StartEventType;
 import ru.runa.gpd.lang.model.bpmn.TextAnnotation;
 import ru.runa.gpd.lang.model.bpmn.ThrowEventNode;
-import ru.runa.gpd.ui.custom.Dialogs;
 import ru.runa.gpd.util.Duration;
 import ru.runa.gpd.util.MultiinstanceParameters;
 import ru.runa.gpd.util.SwimlaneDisplayMode;
@@ -195,12 +195,22 @@ public class BpmnSerializer extends ProcessSerializer {
                 }
             }
         }
-        StartState startState = definition.getFirstChild(StartState.class);
-        if (startState != null) {
-            Element startEventElement = writeTaskState(processElement, startState);
-            if (startState.isStartByTimer()) {
-                startEventElement.addElement(TIMER_EVENT_DEFINITION).addElement(timeElement(startState))
-                        .addText(startState.getTimerEventDefinition());
+        for (StartState startState : definition.getChildren(StartState.class)) {
+            Element element = writeTaskState(processElement, startState);
+            if (startState.isStartByEvent()) {
+                element.addAttribute(RUNA_PREFIX + ":" + TYPE, startState.getEventType().name());
+                if (startState.isStartByTimer()) {
+                    if (!Strings.isNullOrEmpty(startState.getTimerEventDefinition())) {
+                        element.addElement(TIMER_EVENT_DEFINITION).addElement(timeElement(startState)).addText(startState.getTimerEventDefinition());
+                    }
+                } else {
+                    List<VariableMapping> variableMappings = startState.getVariableMappings();
+                    Map<String, Object> properties = Maps.newLinkedHashMap();
+                    if (variableMappings != null && variableMappings.size() > 0) {
+                        properties.put(VARIABLES, variableMappings);
+                    }
+                    writeExtensionElements(element, properties);
+                }
             }
             writeTransitions(processElement, startState);
         }
@@ -275,14 +285,21 @@ public class BpmnSerializer extends ProcessSerializer {
         List<EndTokenState> endTokenStates = definition.getChildren(EndTokenState.class);
         for (EndTokenState endTokenState : endTokenStates) {
             Element element = writeNode(processElement, endTokenState);
-            Map<String, String> properties = Maps.newLinkedHashMap();
+            Map<String, Object> properties = Maps.newLinkedHashMap();
             properties.put(TOKEN, "true");
+            if (endTokenState.isEndWithEvent()) {
+                element.addAttribute(RUNA_PREFIX + ":" + TYPE, endTokenState.getEventType().name());
+                element.addAttribute(RUNA_PREFIX + ":" + TIME_DURATION, endTokenState.getTtlDuration().getDuration());
+                List<VariableMapping> variableMappings = endTokenState.getVariableMappings();
+                if (variableMappings != null && variableMappings.size() > 0) {
+                    properties.put(VARIABLES, variableMappings);
+                }
+            }
             if (definition instanceof SubprocessDefinition) {
                 properties.put(BEHAVIOR, endTokenState.getSubprocessDefinitionBehavior().name());
             }
             writeExtensionElements(element, properties);
         }
-
         List<EndState> endStates = definition.getChildren(EndState.class);
         for (EndState endState : endStates) {
             writeNode(processElement, endState);
@@ -326,7 +343,7 @@ public class BpmnSerializer extends ProcessSerializer {
         Element nodeElement = writeElement(parent, swimlanedNode);
         Map<String, String> properties = Maps.newLinkedHashMap();
         String swimlaneName = swimlanedNode.getSwimlaneName();
-        if (((ProcessDefinition) swimlanedNode.getParent()).getSwimlaneByName(swimlaneName) != null) {
+        if (!swimlanedNode.isSwimlaneDisabled() && ((ProcessDefinition) swimlanedNode.getParent()).getSwimlaneByName(swimlaneName) != null) {
             properties.put(LANE, swimlaneName);
         }
         if (swimlanedNode instanceof TaskState) {
@@ -746,19 +763,22 @@ public class BpmnSerializer extends ProcessSerializer {
                 }
             }
         }
-        List<Element> startStates = processElement.elements(START_EVENT);
-        if (startStates.size() > 0) {
-            if (startStates.size() > 1) {
-                Dialogs.error(Localization.getString("model.validation.multipleStartStatesNotAllowed"));
-            }
-            Element startStateElement = startStates.get(0);
+        for (Element startStateElement : (List<Element>) processElement.elements(START_EVENT)) {
             StartState startState = create(startStateElement, definition);
-            String swimlaneName = parseExtensionProperties(startStateElement).get(LANE);
-            Swimlane swimlane = definition.getSwimlaneByName(swimlaneName);
-            startState.setSwimlane(swimlane);
-            Element timerEventDefinitionElement = startStateElement.element(TIMER_EVENT_DEFINITION);
-            if (timerEventDefinitionElement != null) {
-                startState.setTimerEventDefinition(((Element) timerEventDefinitionElement.elements().get(0)).getTextTrim());
+            if (startStateElement.attributeValue(TYPE) != null) {
+                startState.setEventType(StartEventType.valueOf(startStateElement.attributeValue(TYPE)));
+                if (startState.isStartByTimer()) {
+                    Element timerEventDefinitionElement = startStateElement.element(TIMER_EVENT_DEFINITION);
+                    if (timerEventDefinitionElement != null) {
+                        startState.setTimerEventDefinition(((Element) timerEventDefinitionElement.elements().get(0)).getTextTrim());
+                    }
+                } else {
+                    startState.setVariableMappings(parseVariableMappings(startStateElement));
+                }
+            } else {
+                String swimlaneName = parseExtensionProperties(startStateElement).get(LANE);
+                Swimlane swimlane = definition.getSwimlaneByName(swimlaneName);
+                startState.setSwimlane(swimlane);
             }
         }
         List<Element> taskStateElements = new ArrayList<Element>(processElement.elements(USER_TASK));
@@ -891,8 +911,14 @@ public class BpmnSerializer extends ProcessSerializer {
             Node endNode = create(element, definition);
             if (endNode instanceof EndTokenState) {
                 Map<String, String> properties = parseExtensionProperties(element);
+                EndTokenState endTokenNode = (EndTokenState) endNode;
                 if (properties.containsKey(BEHAVIOR)) {
-                    ((EndTokenState) endNode).setSubprocessDefinitionBehavior(EndTokenSubprocessDefinitionBehavior.valueOf(properties.get(BEHAVIOR)));
+                    endTokenNode.setSubprocessDefinitionBehavior(EndTokenSubprocessDefinitionBehavior.valueOf(properties.get(BEHAVIOR)));
+                }
+                if (element.attributeValue(TYPE) != null) {
+                    endTokenNode.setEventType(EndEventType.valueOf(element.attributeValue(TYPE)));
+                    endTokenNode.setTtlDuration(new Duration(element.attributeValue(TIME_DURATION, "1 days")));
+                    endTokenNode.setVariableMappings(parseVariableMappings(element));
                 }
             }
         }

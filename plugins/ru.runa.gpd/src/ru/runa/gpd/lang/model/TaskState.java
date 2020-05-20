@@ -131,6 +131,9 @@ public class TaskState extends FormNode implements ActionContainer, ITimed, Sync
         if (super.testAttribute(target, name, value)) {
             return true;
         }
+        if ("isEventTypeDefined".equals(name)) {
+            return Objects.equal(value, String.valueOf(false));
+        }
         if ("swimlanePointsToBot".equals(name)) {
             String botName = getSwimlaneBotName();
             return botName != null && BotCache.getAllBotNames().contains(botName);
@@ -219,12 +222,12 @@ public class TaskState extends FormNode implements ActionContainer, ITimed, Sync
     public void populateCustomPropertyDescriptors(List<IPropertyDescriptor> descriptors) {
         super.populateCustomPropertyDescriptors(descriptors);
         descriptors.add(new PropertyDescriptor(PROPERTY_IGNORE_SUBSTITUTION_RULES, Localization.getString("property.ignoreSubstitution")));
-        descriptors.add(new DurationPropertyDescriptor(PROPERTY_TASK_DEADLINE, getProcessDefinition(), getTimeOutDelay(), Localization
-                .getString("property.deadline")));
+        descriptors.add(new DurationPropertyDescriptor(PROPERTY_TASK_DEADLINE, getProcessDefinition(), getTimeOutDelay(),
+                Localization.getString("property.deadline")));
         if (useEscalation) {
             descriptors.add(new EscalationActionPropertyDescriptor(PROPERTY_ESCALATION_ACTION, Localization.getString("escalation.action"), this));
-            descriptors.add(new DurationPropertyDescriptor(PROPERTY_ESCALATION_DURATION, getProcessDefinition(), getEscalationDelay(), Localization
-                    .getString("escalation.duration")));
+            descriptors.add(new DurationPropertyDescriptor(PROPERTY_ESCALATION_DURATION, getProcessDefinition(), getEscalationDelay(),
+                    Localization.getString("escalation.duration")));
         }
         if (botTaskLink != null) {
             descriptors.add(new PropertyDescriptor(PROPERTY_BOT_TASK_NAME, Localization.getString("property.botTaskName")));
