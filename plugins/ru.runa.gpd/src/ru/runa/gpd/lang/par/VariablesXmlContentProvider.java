@@ -29,6 +29,7 @@ public class VariablesXmlContentProvider extends AuxContentProvider {
     private static final String USER_TYPE = "usertype";
     private static final String EDITOR = "editor";
     private static final String PRIMARY_KEY = "primaryKey";
+    private static final String AUTOINCREMENT = "autoincrement";
 
     @Override
     public boolean isSupportedForEmbeddedSubprocess() {
@@ -121,6 +122,7 @@ public class VariablesXmlContentProvider extends AuxContentProvider {
         variable.setDescription(description);
         variable.setStoreType(storeType);
         variable.setPrimaryKey(Boolean.parseBoolean(element.attributeValue(PRIMARY_KEY, "false")));
+        variable.setAutoincrement(Boolean.parseBoolean(element.attributeValue(AUTOINCREMENT, "false")));
         return variable;
     }
 
@@ -167,6 +169,9 @@ public class VariablesXmlContentProvider extends AuxContentProvider {
         }
         if (variable.isPrimaryKey()) {
             element.addAttribute(PRIMARY_KEY, Boolean.TRUE.toString());
+        }
+        if (variable.isAutoincrement()) {
+            element.addAttribute(AUTOINCREMENT, Boolean.TRUE.toString());
         }
         if (variable instanceof Swimlane) {
             Swimlane swimlane = (Swimlane) variable;

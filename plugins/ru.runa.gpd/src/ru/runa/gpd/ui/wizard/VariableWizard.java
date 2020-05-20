@@ -1,7 +1,6 @@
 package ru.runa.gpd.ui.wizard;
 
 import org.eclipse.jface.wizard.Wizard;
-
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.lang.model.ProcessDefinition;
 import ru.runa.gpd.lang.model.Variable;
@@ -80,6 +79,7 @@ public class VariableWizard extends Wizard {
         variable.setDescription(description);
         variable.setStoreType(storeTypePage.getStoreType());
         variable.setPrimaryKey(formatPage.isPrimaryKey());
+        variable.setAutoincrement(formatPage.isAutoincrement());
         return true;
     }
 }

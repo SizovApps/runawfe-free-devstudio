@@ -24,6 +24,7 @@ public class Variable extends NamedGraphElement implements Describable {
     private VariableStoreType storeType = VariableStoreType.DEFAULT;
     private boolean global;
     private boolean primaryKey = false;
+    private boolean autoincrement = false;
 
     public Variable() {
     }
@@ -254,6 +255,17 @@ public class Variable extends NamedGraphElement implements Describable {
         if (this.primaryKey != primaryKey) {
             this.primaryKey = !this.primaryKey;
             firePropertyChange(PROPERTY_PRIMARY_KEY, !this.primaryKey, this.primaryKey);
+        }
+    }
+
+    public boolean isAutoincrement() {
+        return autoincrement;
+    }
+
+    public void setAutoincrement(boolean autoincrement) {
+        if (this.autoincrement != autoincrement) {
+            this.autoincrement = !this.autoincrement;
+            firePropertyChange(PROPERTY_AUTOINCREMENT, !this.autoincrement, this.autoincrement);
         }
     }
 
