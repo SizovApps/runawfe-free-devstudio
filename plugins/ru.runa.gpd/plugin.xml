@@ -70,35 +70,6 @@
        </menu>
     </objectContribution>
     <objectContribution
-          adaptable="false"
-          id="startState.options"
-          objectClass="ru.runa.gpd.lang.model.StartState">
-       <menu
-             id="startState.options"
-             label="%label.action.startState.options"
-             path="additions">
-          <separator
-                name="startBy">
-          </separator>
-       </menu>
-       <action
-             class="ru.runa.gpd.lang.action.EditStartStateTimerAction"
-             id="startByTimer"
-             label="%label.action.startByTimer"
-             style="radio"
-             state="false"
-             menubarPath="startState.options/startBy">
-       </action>
-       <action
-             class="ru.runa.gpd.lang.action.ClearStartStateTimerAction"
-             id="startByHand"
-             label="%label.action.startByHand"
-             style="radio"
-             state="true"
-             menubarPath="startState.options/startBy">
-       </action>
-    </objectContribution>
-    <objectContribution
            adaptable="false"
            id="jpdl.state.handlers"
            objectClass="ru.runa.gpd.lang.model.TaskState">
@@ -275,6 +246,12 @@
              label="%label.action.deleteFormFiles"
              menubarPath="formdata/sp2">
        </action>
+       <visibility>
+          <objectState
+               name="isEventTypeDefined"
+               value="false">
+          </objectState>
+       </visibility>
     </objectContribution>
     <objectContribution
           adaptable="false"
@@ -676,7 +653,47 @@
              id="ru.runa.gpd.generateRegulationData"
              label="%label.menu.generateRegulationData">
        </action>
-     </objectContribution>
+    </objectContribution>
+    <objectContribution
+          adaptable="false"
+          id="end.token.configuration"
+          objectClass="ru.runa.gpd.lang.model.EndTokenState">
+       <action
+             class="ru.runa.gpd.lang.action.EndTokenEditTTLAction"
+             id="endToken.ttl"
+             label="%label.action.editTTL"
+             menubarPath="additions">
+       </action>
+       <action
+             class="ru.runa.gpd.lang.action.EndTokenConfAction"
+             id="endToken.configuration"
+             label="%label.action.editConfiguration"
+             menubarPath="additions">
+       </action>
+       <visibility>
+          <objectState
+               name="isEventTypeDefined"
+               value="true">
+          </objectState>
+       </visibility>
+    </objectContribution>
+    <objectContribution
+          adaptable="false"
+          id="start.configuration"
+          objectClass="ru.runa.gpd.lang.model.StartState">
+       <action
+             class="ru.runa.gpd.lang.action.StartConfAction"
+             id="start.configuration"
+             label="%label.action.editConfiguration"
+             menubarPath="additions">
+       </action>
+       <visibility>
+          <objectState
+               name="isEventTypeDefined"
+               value="true">
+          </objectState>
+       </visibility>
+    </objectContribution>
   </extension>
  <extension
        point="org.eclipse.ui.menus">
@@ -974,7 +991,7 @@
                add="ru.runa.gpd.editor.graphiti.add.AddStartNodeFeature"
                create="ru.runa.gpd.editor.graphiti.create.CreateStartNodeFeature"
                update="ru.runa.gpd.editor.graphiti.update.UpdateStartNodeFeature"
-               doubleClick="ru.runa.gpd.editor.graphiti.update.DoubleClickFormNodeFeature"
+               doubleClick="ru.runa.gpd.editor.graphiti.update.DoubleClickStartNodeFeature"
                fixedSize="true"
                height="4"
                width="4">
@@ -1358,7 +1375,8 @@
          <graphiti
                add="ru.runa.gpd.editor.graphiti.add.AddEndNodeFeature"
                create="ru.runa.gpd.editor.graphiti.create.CreateElementFeature"
-               update="ru.runa.gpd.editor.graphiti.update.UpdateEndNodeFeature"
+               update="ru.runa.gpd.editor.graphiti.update.UpdateEndTokenNodeFeature"
+               doubleClick="ru.runa.gpd.editor.graphiti.update.DoubleClickEndTokenNodeFeature"
                fixedSize="true"
                height="4"
                width="4">
@@ -2958,6 +2976,12 @@
             name="runa"
             parentId="org.eclipse.ui.defaultAcceleratorConfiguration">
       </scheme>
+      <key
+            commandId="ru.runa.gpd.commands.exportProcessDefinitionToServer"
+            contextId="ru.runa.gpd.context.app"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="CTRL+D">
+      </key>
    </extension>
    <extension
          point="org.eclipse.ui.commands">
@@ -3021,6 +3045,11 @@
           name="%Install.command"
           id="org.eclipse.equinox.p2.ui.sdk.install">
           defaultHandler="org.eclipse.equinox.internal.p2.ui.sdk.InstallNewSoftwareHandler">
+    </command>
+    <command
+          defaultHandler="ru.runa.gpd.lang.action.ExportProcessDefinitionToServerHandler"
+          id="ru.runa.gpd.commands.exportProcessDefinitionToServer"
+          name="Export process defninition to server">
     </command>
    </extension>
    <extension
