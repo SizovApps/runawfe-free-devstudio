@@ -44,6 +44,8 @@ final class Serializator {
         out.writeObject(Strings.nullToEmpty(variable.getDefaultValue()));
         out.writeObject(variable.getName());
         out.writeObject(Strings.nullToEmpty(variable.getDescription()));
+        out.writeBoolean(variable.isPrimaryKey());
+        out.writeBoolean(variable.isAutoincrement());
         out.writeObject(variable.getUserType() == null ? "" : variable.getUserType().getName());
         out.writeBoolean(variable.isComplex());
         if (variable.isComplex()) {
@@ -79,6 +81,8 @@ final class Serializator {
         variable.setDefaultValue((String) in.readObject());
         variable.setName((String) in.readObject());
         variable.setDescription((String) in.readObject());
+        variable.setPrimaryKey(in.readBoolean());
+        variable.setAutoincrement(in.readBoolean());
         String label = (String) in.readObject();
         if (!label.isEmpty()) {
             variable.setUserType(processDefinition.getVariableUserType(label));
@@ -114,6 +118,7 @@ final class Serializator {
 
     static void write(ObjectOutputStream out, VariableUserType type) throws IOException {
         out.writeObject(type.getName());
+        out.writeBoolean(type.isStoreInExternalStorage());
         out.writeInt(type.getAttributes().size());
         for (Variable var : type.getAttributes()) {
             write(out, var);
@@ -122,6 +127,7 @@ final class Serializator {
 
     static void read(ObjectInputStream in, VariableUserType type, ProcessDefinition processDefinition) throws IOException, ClassNotFoundException {
         type.setName((String) in.readObject());
+        type.setStoreInExternalStorage(in.readBoolean());
         int attrLength = in.readInt();
         for (int j = 0; j < attrLength; j++) {
             Variable var = new Variable();

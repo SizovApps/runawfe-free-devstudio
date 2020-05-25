@@ -41,6 +41,8 @@ public class Variable extends NamedGraphElement implements Describable {
         setPublicVisibility(variable.isPublicVisibility());
         setDefaultValue(variable.getDefaultValue());
         setStoreType(variable.getStoreType());
+        setPrimaryKey(variable.isPrimaryKey());
+        setAutoincrement(variable.isAutoincrement());
     }
 
     public Variable(String name, String scriptingName, Variable variable) {
