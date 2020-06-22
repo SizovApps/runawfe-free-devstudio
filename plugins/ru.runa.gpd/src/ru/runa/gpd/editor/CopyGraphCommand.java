@@ -50,6 +50,7 @@ import ru.runa.gpd.lang.model.Variable;
 import ru.runa.gpd.lang.model.VariableUserType;
 import ru.runa.gpd.lang.model.bpmn.CatchEventNode;
 import ru.runa.gpd.lang.model.bpmn.IBoundaryEventContainer;
+import ru.runa.gpd.lang.model.bpmn.StartEventType;
 import ru.runa.gpd.ui.dialog.InfoWithDetailsDialog;
 import ru.runa.gpd.ui.dialog.MultipleSelectionDialog;
 import ru.runa.gpd.util.IOUtils;
@@ -132,6 +133,12 @@ public class CopyGraphCommand extends Command {
                         copyAction.setSourceFolder(copyBuffer.getSourceFolder());
                         copyAction.setTargetFolder(targetFolder);
                         copyActions.add(copyAction);
+                    }
+                    if (copy instanceof StartState) {
+                        StartState startNode = (StartState) copy;
+                        if (startNode.getProcessDefinition().getDefaultStartNode() != null) {
+                            startNode.setEventType(StartEventType.signal);
+                        }
                     }
                 }
                 if (node instanceof SwimlanedNode) {
