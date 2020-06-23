@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.StringJoiner;
 import org.dom4j.Document;
@@ -73,9 +74,16 @@ public class DataSourceDialog extends Dialog implements DataSourceStuff {
     private int subpaneState;
     private Composite subPanes;
 
+    private Map<JdbcDataSourceType, String> dsType2SampleString = new LinkedHashMap<>(JdbcDataSourceType.values().length);
+
     public DataSourceDialog(IFile ds) {
         super(Display.getDefault().getActiveShell());
         this.ds = ds;
+
+        dsType2SampleString.put(JdbcDataSourceType.H2, "jdbc:h2:mem:<DBNAME>;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE");
+        dsType2SampleString.put(JdbcDataSourceType.SqlServer, "jdbc:sqlserver://<HOST>:<PORT=1433>;databaseName=<DBNAME>;");
+        dsType2SampleString.put(JdbcDataSourceType.Oracle, "jdbc:oracle:thin:@<HOST>:<PORT=1521>:<DBNAME>");
+        dsType2SampleString.put(JdbcDataSourceType.PostgreSql, "jdbc:postgresql://<HOST>:<PORT=5432>/<DBNAME>");
     }
 
     @Override
@@ -213,8 +221,8 @@ public class DataSourceDialog extends Dialog implements DataSourceStuff {
         label = new Label(pane, SWT.NONE);
         label.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, true, false, 2, 1));
         StringJoiner sj = new StringJoiner("\n");
-        for (JdbcDataSourceType dsType : JdbcDataSourceType.values()) {
-            sj.add(dsType.urlSample());
+        for (String value : dsType2SampleString.values()) {
+            sj.add(value);
         }
         label.setText(sj.toString());
         label = new Label(pane, SWT.NONE);
@@ -246,6 +254,7 @@ public class DataSourceDialog extends Dialog implements DataSourceStuff {
             @Override
             public void modifyText(ModifyEvent e) {
                 updateButtons();
+                updateWidgets(JdbcDataSourceType.valueOf(cbDbType.getText()));
             }
         });
         label = new Label(pane, SWT.NONE);
@@ -275,6 +284,8 @@ public class DataSourceDialog extends Dialog implements DataSourceStuff {
         txtParamPassword = new Text(pane, SWT.BORDER | SWT.PASSWORD);
         txtParamPassword.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         paneCacheDetail[SUBPANE_PARAM_STATE] = pane;
+
+        updateWidgets(null);
     }
 
     private void updateSubpane(Composite panes, int state) {
@@ -394,9 +405,14 @@ public class DataSourceDialog extends Dialog implements DataSourceStuff {
     }
 
     private String getJdbcShortUrl(String host, String port, String dbType) {
+        final JdbcDataSourceType dsDbType = JdbcDataSourceType.valueOf(dbType);
+        final String urlSample = dsType2SampleString.get(dsDbType);
+        if (dsDbType.equals(JdbcDataSourceType.H2)) {
+            return urlSample.replace("<DBNAME>", "DBNAME");
+        }
+
         final String portWc = "PORT=";
         final String hostWc = "<HOST>";
-        String urlSample = JdbcDataSourceType.valueOf(dbType).urlSample();
         int portStartIdx = urlSample.indexOf(portWc);
         int portEndIdx = urlSample.indexOf(">", portStartIdx);
         String defaultPort = urlSample.substring(portStartIdx + portWc.length(), portEndIdx);
@@ -406,10 +422,15 @@ public class DataSourceDialog extends Dialog implements DataSourceStuff {
     }
 
     private String[] parseJdbcShortUrl(String url, String dbType) {
+        final JdbcDataSourceType dsDbType = JdbcDataSourceType.valueOf(dbType);
+        if (dsDbType.equals(JdbcDataSourceType.H2)) {
+            return new String[] { "", "" };
+        }
+
         final String portWc = "PORT=";
         final String hostWc = "<HOST>";
         String[] result = new String[2];
-        String urlSample = JdbcDataSourceType.valueOf(dbType).urlSample();
+        String urlSample = dsType2SampleString.get(JdbcDataSourceType.valueOf(dbType));
         int portStartIdx = urlSample.indexOf(portWc);
         int portEndIdx = urlSample.indexOf(">", portStartIdx);
         String defaultPort = urlSample.substring(portStartIdx + portWc.length(), portEndIdx);
@@ -462,6 +483,12 @@ public class DataSourceDialog extends Dialog implements DataSourceStuff {
                                     && (txtDbUrl.getText().length() > 0)));
             btnOk.setEnabled(canBeSaved);
         }
+    }
+
+    private void updateWidgets(JdbcDataSourceType jdbcDataSourceType) {
+        final boolean hostAndPortEnabled = !JdbcDataSourceType.H2.equals(jdbcDataSourceType);
+        txtDbHost.setEnabled(hostAndPortEnabled);
+        txtDbHostPort.setEnabled(hostAndPortEnabled);
     }
 
     @Override
