@@ -19,16 +19,19 @@ import ru.runa.gpd.extension.handler.XmlBasedConstructorProvider;
 import ru.runa.gpd.lang.ValidationError;
 import ru.runa.gpd.lang.model.Delegable;
 import ru.runa.gpd.lang.model.GraphElement;
+import ru.runa.gpd.lang.model.GraphElementAware;
 import ru.runa.gpd.lang.model.ProcessDefinition;
+import ru.runa.gpd.lang.model.ProcessDefinitionAware;
+import ru.runa.gpd.lang.model.StorageAware;
 import ru.runa.gpd.lang.model.VariableContainer;
 import ru.runa.gpd.lang.model.VariableUserType;
-import ru.runa.gpd.lang.model.bpmn.ScriptTask;
+import ru.runa.gpd.lang.model.VariableUserTypeNameAware;
 import ru.runa.gpd.office.FilesSupplierMode;
 import ru.runa.gpd.office.Messages;
 import ru.runa.gpd.office.store.externalstorage.ConstraintsCompositeBuilder;
 import ru.runa.gpd.office.store.externalstorage.DeleteConstraintsComposite;
-import ru.runa.gpd.office.store.externalstorage.InternalStorageDataModel;
 import ru.runa.gpd.office.store.externalstorage.InsertConstraintsComposite;
+import ru.runa.gpd.office.store.externalstorage.InternalStorageDataModel;
 import ru.runa.gpd.office.store.externalstorage.PredicateCompositeDelegateBuilder;
 import ru.runa.gpd.office.store.externalstorage.ProcessDefinitionVariableProvider;
 import ru.runa.gpd.office.store.externalstorage.SelectConstraintsComposite;
@@ -55,23 +58,30 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
 
     @Override
     protected Composite createConstructorComposite(Composite parent, Delegable delegable, InternalStorageDataModel model) {
-        final boolean isUseExternalStorageIn = (delegable instanceof ScriptTask) ? ((ScriptTask) delegable).isUseExternalStorageIn() : false;
-        final boolean isUseExternalStorageOut = (delegable instanceof ScriptTask) ? ((ScriptTask) delegable).isUseExternalStorageOut() : false;
+        final boolean isUseExternalStorageIn = (delegable instanceof StorageAware) ? ((StorageAware) delegable).isUseExternalStorageIn() : false;
+        final boolean isUseExternalStorageOut = (delegable instanceof StorageAware) ? ((StorageAware) delegable).isUseExternalStorageOut() : false;
 
         Optional<ProcessDefinition> processDefinition = Optional.empty();
-        if (delegable instanceof GraphElement) {
-            processDefinition = Optional.ofNullable(((GraphElement) delegable).getProcessDefinition());
+        if (delegable instanceof ProcessDefinitionAware) {
+            processDefinition = Optional.ofNullable(((ProcessDefinitionAware) delegable).getProcessDefinition());
         }
         if (!processDefinition.isPresent() && delegable instanceof VariableContainer) {
             processDefinition = ((VariableContainer) delegable).getVariables(false, true).stream().map(variable -> variable.getProcessDefinition())
                     .findAny();
         }
 
-        if (delegable instanceof ScriptTask) {
+        if (delegable instanceof StorageAware) {
+            if (delegable instanceof VariableUserTypeNameAware) {
+                return new ConstructorView(parent, delegable, model,
+                        new ProcessDefinitionVariableProvider(
+                                processDefinition.orElseThrow(() -> new IllegalStateException("process definition unavailable"))),
+                        isUseExternalStorageIn, isUseExternalStorageOut,
+                        new VariableUserTypeInfo(true, ((VariableUserTypeNameAware) delegable).getUserTypeName())).build();
+            }
             return new ConstructorView(parent, delegable, model,
                     new ProcessDefinitionVariableProvider(
                             processDefinition.orElseThrow(() -> new IllegalStateException("process definition unavailable"))),
-                    isUseExternalStorageIn, isUseExternalStorageOut);
+                    isUseExternalStorageIn, isUseExternalStorageOut).build();
         } else {
             // TODO 1506 Реализовать VariableProvider для параметров бота
             throw new UnsupportedOperationException("VariableProvider is not realized for " + delegable.getClass().getName());
@@ -92,8 +102,9 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
     public boolean validateValue(Delegable delegable, List<ValidationError> errors) throws Exception {
         final String configuration = delegable.getDelegationConfiguration();
         if (configuration.trim().isEmpty()) {
-            errors.add(
-                    ValidationError.createError(((GraphElement) delegable), Messages.getString("model.validation.xlsx.constraint.variable.empty")));
+            errors.add(ValidationError.createError(
+                    delegable instanceof GraphElementAware ? ((GraphElementAware) delegable).getGraphElement() : ((GraphElement) delegable),
+                    Messages.getString("model.validation.xlsx.constraint.variable.empty")));
             return false;
         }
         return super.validateValue(delegable, errors);
@@ -101,7 +112,11 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
 
     @Override
     protected boolean validateModel(Delegable delegable, InternalStorageDataModel model, List<ValidationError> errors) {
-        GraphElement graphElement = ((GraphElement) delegable);
+        final GraphElement graphElement = delegable instanceof GraphElementAware ? ((GraphElementAware) delegable).getGraphElement()
+                : ((GraphElement) delegable);
+        if (delegable instanceof GraphElementAware) {
+            model.setMode(FilesSupplierMode.IN);
+        }
         model.validate(graphElement, errors);
         return super.validateModel(delegable, model, errors);
     }
@@ -115,7 +130,7 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
         private final boolean isUseExternalStorageOut;
 
         private StorageConstraintsModel constraintsModel;
-        private String variableTypeName;
+        private VariableUserTypeInfo variableUserTypeInfo = new VariableUserTypeInfo(false, "");
 
         private ConstraintsCompositeBuilder constraintsCompositeBuilder;
 
@@ -127,7 +142,17 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
             this.isUseExternalStorageOut = isUseExternalStorageOut;
             model.getInOutModel().inputPath = INTERNAL_STORAGE_DATASOURCE_PATH;
             setLayout(new GridLayout(2, false));
+        }
+
+        public ConstructorView(Composite parent, Delegable delegable, InternalStorageDataModel model, VariableProvider variableProvider,
+                boolean isUseExternalStorageIn, boolean isUseExternalStorageOut, VariableUserTypeInfo variableUserTypeInfo) {
+            this(parent, delegable, model, variableProvider, isUseExternalStorageIn, isUseExternalStorageOut);
+            this.variableUserTypeInfo = variableUserTypeInfo;
+        }
+
+        public ConstructorView build() {
             buildFromModel();
+            return this;
         }
 
         @Override
@@ -137,11 +162,15 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
                 control.dispose();
             }
 
-            if (constraintsModel.getVariableName() != null && !constraintsModel.getVariableName().isEmpty()) {
+            if (constraintsModel.getSheetName() != null && !constraintsModel.getSheetName().isEmpty()) {
                 final VariableUserType userType = variableProvider.getUserType(constraintsModel.getSheetName());
-                variableTypeName = userType != null ? userType.getName() : "";
-                constraintsModel.setSheetName(variableTypeName);
+                variableUserTypeInfo.setVariableTypeName(userType != null ? userType.getName() : "");
+
+                if (variableUserTypeInfo.isImmutable() && !variableUserTypeInfo.getVariableTypeName().equals(constraintsModel.getSheetName())) {
+                    constraintsModel.setQueryString("");
+                }
             }
+
             new Label(this, SWT.NONE).setText(Messages.getString("label.ExecutionAction"));
             if (isUseExternalStorageIn) {
                 SWTUtils.createLabel(this, QueryType.SELECT.name());
@@ -152,7 +181,14 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
             }
 
             new Label(this, SWT.NONE).setText(Messages.getString("label.DataType"));
-            addDataTypeCombo();
+            if (variableUserTypeInfo.isImmutable()) {
+                SWTUtils.createLabel(this, variableUserTypeInfo.getVariableTypeName());
+                constraintsModel.setSheetName(variableUserTypeInfo.getVariableTypeName());
+                constraintsModel.setVariableName(null);
+                model.setMode(FilesSupplierMode.IN);
+            } else {
+                addDataTypeCombo();
+            }
 
             initConstraintsCompositeBuilder();
             if (constraintsCompositeBuilder != null) {
@@ -185,20 +221,22 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
                 switch (constraintsModel.getQueryType()) {
                 case INSERT:
                     constraintsCompositeBuilder = new InsertConstraintsComposite(this, SWT.NONE, constraintsModel, variableProvider,
-                            variableTypeName);
+                            variableUserTypeInfo.getVariableTypeName());
                     break;
                 case SELECT:
                     constraintsCompositeBuilder = new PredicateCompositeDelegateBuilder(this, SWT.NONE, constraintsModel, variableProvider,
-                            variableTypeName, new SelectConstraintsComposite(this, SWT.NONE, constraintsModel, variableProvider, variableTypeName,
-                                    (resultVariableName) -> model.getInOutModel().outputVariable = resultVariableName));
+                            variableUserTypeInfo.getVariableTypeName(), new SelectConstraintsComposite(this, SWT.NONE, constraintsModel,
+                                    variableProvider, variableUserTypeInfo, model.getInOutModel()));
                     break;
                 case UPDATE:
                     constraintsCompositeBuilder = new PredicateCompositeDelegateBuilder(this, SWT.NONE, constraintsModel, variableProvider,
-                            variableTypeName, new UpdateConstraintsComposite(this, SWT.NONE, constraintsModel, variableProvider, variableTypeName));
+                            variableUserTypeInfo.getVariableTypeName(), new UpdateConstraintsComposite(this, SWT.NONE, constraintsModel,
+                                    variableProvider, variableUserTypeInfo.getVariableTypeName()));
                     break;
                 case DELETE:
                     constraintsCompositeBuilder = new PredicateCompositeDelegateBuilder(this, SWT.NONE, constraintsModel, variableProvider,
-                            variableTypeName, new DeleteConstraintsComposite(this, SWT.NONE, constraintsModel, variableProvider, variableTypeName));
+                            variableUserTypeInfo.getVariableTypeName(), new DeleteConstraintsComposite(this, SWT.NONE, constraintsModel,
+                                    variableProvider, variableUserTypeInfo.getVariableTypeName()));
                     break;
                 }
             }
@@ -212,10 +250,10 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
                 if (Strings.isNullOrEmpty(text)) {
                     return;
                 }
-                variableTypeName = text;
-                constraintsModel.setSheetName(variableTypeName);
+                variableUserTypeInfo.setVariableTypeName(text);
+                constraintsModel.setSheetName(variableUserTypeInfo.getVariableTypeName());
                 if (constraintsCompositeBuilder != null) {
-                    constraintsCompositeBuilder.onChangeVariableTypeName(variableTypeName);
+                    constraintsCompositeBuilder.onChangeVariableTypeName(variableUserTypeInfo.getVariableTypeName());
                 }
                 buildFromModel();
             }));
@@ -223,7 +261,7 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
             final VariableUserType userType = variableProvider.getUserType(constraintsModel.getSheetName());
             if (userType != null) {
                 combo.setText(userType.getName());
-                variableTypeName = userType.getName();
+                variableUserTypeInfo.setVariableTypeName(userType.getName());
             }
         }
 
@@ -254,6 +292,31 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
                 combo.setText(types.get(0).name());
                 constraintsModel.setQueryType(types.get(0));
             }
+        }
+    }
+
+    public static class VariableUserTypeInfo {
+        private final boolean isImmutable;
+        private String variableTypeName;
+
+        public VariableUserTypeInfo(boolean isConst, String variableTypeName) {
+            this.isImmutable = isConst;
+            this.variableTypeName = variableTypeName;
+        }
+
+        public String getVariableTypeName() {
+            return variableTypeName;
+        }
+
+        public void setVariableTypeName(String variableTypeName) {
+            if (isImmutable) {
+                return;
+            }
+            this.variableTypeName = variableTypeName;
+        }
+
+        public boolean isImmutable() {
+            return isImmutable;
         }
     }
 }
