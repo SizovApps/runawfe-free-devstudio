@@ -344,7 +344,7 @@ public class StartStateTimerDialog extends Dialog {
     }
 
     private String duration() {
-        if (chkDuration.getSelection()) {
+        if (((!chkStartDate.getSelection() && !chkStartTime.getSelection() || chkRepeat.getSelection())) && chkDuration.getSelection()) {
             String datePart = ifNotZero(spYears.getSelection(), "Y") + ifNotZero(spMonths.getSelection(), "M")
                     + ifNotZero(spWeeks.getSelection(), "W") + ifNotZero(spDays.getSelection(), "D");
             String timePart = ifNotZero(spHours.getSelection(), "H") + ifNotZero(spMinutes.getSelection(), "M");
