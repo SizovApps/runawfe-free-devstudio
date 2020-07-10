@@ -98,9 +98,13 @@ public class WFEConnectionPreferencePage extends FieldEditorPreferencePage imple
             @Override
             public void widgetSelected(SelectionEvent e) {
                 try {
-                    performApply();
-                    WFEServerConnector.getInstance().connect();
-                    Dialogs.information(Localization.getString("test.Connection.Ok"));
+                    if (WFEServerConnector.getInstance().isServerSuitable()) {
+                        performApply();
+                        WFEServerConnector.getInstance().connect();
+                        Dialogs.information(Localization.getString("test.Connection.Ok"));
+                    } else {
+                        Dialogs.warning(Localization.getString("wrong.server.product"));
+                    }
                 } catch (Throwable th) {
                     Dialogs.error(Localization.getString("error.ConnectionFailed"), th);
                 }

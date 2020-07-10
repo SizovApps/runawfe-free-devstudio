@@ -1,17 +1,14 @@
 package ru.runa.gpd.wfe;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import java.util.List;
 import java.util.Map;
-
 import org.eclipse.core.runtime.IProgressMonitor;
-
 import ru.runa.wfe.bot.Bot;
 import ru.runa.wfe.bot.BotStation;
 import ru.runa.wfe.bot.BotTask;
 import ru.runa.wfe.definition.dto.WfDefinition;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 public class WFEServerConnectorStub extends WFEServerConnector {
     @Override
@@ -106,6 +103,11 @@ public class WFEServerConnectorStub extends WFEServerConnector {
 
     @Override
     public List<String> getDataSourceNames() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isServerSuitable() {
         throw new UnsupportedOperationException();
     }
 
