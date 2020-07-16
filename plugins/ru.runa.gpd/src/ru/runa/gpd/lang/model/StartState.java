@@ -181,6 +181,13 @@ public class StartState extends FormNode implements HasTextDecorator, VariableMa
         super.fillCopyCustomFields(aCopy);
         StartState copy = (StartState) aCopy;
         copy.setEventType(getEventType());
+        if (!copy.isStartByEvent()) {
+            StartState defaultStartNode = copy.getProcessDefinition().getDefaultStartNode();
+            if (defaultStartNode != null && !copy.equals(defaultStartNode)) {
+                copy.setEventType(StartEventType.signal);
+                copy.setSwimlane(null);
+            }
+        }
         if (isStartByTimer()) {
             copy.setTimerEventDefinition(getTimerEventDefinition());
         } else if (isStartByEvent()) {
