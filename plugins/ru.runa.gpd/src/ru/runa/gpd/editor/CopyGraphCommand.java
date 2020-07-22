@@ -24,6 +24,7 @@ import org.eclipse.graphiti.mm.pictograms.PictogramElement;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import ru.runa.gpd.Localization;
@@ -109,6 +110,12 @@ public class CopyGraphCommand extends Command {
                     // if swimlane is copied as graph element twice
                 } else if (node instanceof Swimlane && targetDefinition.getSwimlaneByName(node.getName()) != null) {
                     continue;
+                } else if (node instanceof StartState && !((StartState) node).isStartByEvent() && targetDefinition.getDefaultStartNode() != null) {
+                    Window dialog = new InfoWithDetailsDialog(MessageDialog.CONFIRM, Localization.getString("message.confirm"),
+                            Localization.getString("CopyBuffer.OnlyOneDefaultStartNodeAcceptable"), null);
+                    if (dialog.open() != IDialogConstants.OK_ID) {
+                        continue;
+                    }
                 }
                 NamedGraphElement copy = (NamedGraphElement) node.makeCopy(targetDefinition);
                 adjustLocation(copy);
@@ -127,7 +134,8 @@ public class CopyGraphCommand extends Command {
                 targetNodeMap.put(node.getId(), copy);
                 if (node instanceof FormNode) {
                     FormNode formNode = (FormNode) node;
-                    if (formNode.hasForm() || formNode.hasFormValidation() || formNode.hasFormScript() || formNode.hasFormTemplate()) {
+                    if ((!(copy instanceof StartState) || !((StartState) copy).isStartByEvent())
+                            && (formNode.hasForm() || formNode.hasFormValidation() || formNode.hasFormScript() || formNode.hasFormTemplate())) {
                         CopyFormFilesAction copyAction = new CopyFormFilesAction(formNode, (FormNode) copy);
                         copyAction.setSourceFolder(copyBuffer.getSourceFolder());
                         copyAction.setTargetFolder(targetFolder);

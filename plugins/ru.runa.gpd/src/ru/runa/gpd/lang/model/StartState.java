@@ -186,6 +186,8 @@ public class StartState extends FormNode implements HasTextDecorator, VariableMa
             if (defaultStartNode != null && !copy.equals(defaultStartNode)) {
                 copy.setEventType(StartEventType.signal);
                 copy.setSwimlane(null);
+                copy.setFormFileName("");
+                copy.setTemplateFileName(null);
             }
         }
         if (isStartByTimer()) {
