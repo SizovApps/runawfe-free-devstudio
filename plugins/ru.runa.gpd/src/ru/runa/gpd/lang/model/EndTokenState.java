@@ -1,6 +1,7 @@
 package ru.runa.gpd.lang.model;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
 import org.eclipse.core.resources.IFile;
@@ -61,9 +62,15 @@ public class EndTokenState extends AbstractEndTextDecorated implements VariableM
     }
 
     @Override
-    protected void fillCopyCustomFields(GraphElement copy) {
-        super.fillCopyCustomFields(copy);
-        ((EndTokenState) copy).setSubprocessDefinitionBehavior(getSubprocessDefinitionBehavior());
+    protected void fillCopyCustomFields(GraphElement aCopy) {
+        super.fillCopyCustomFields(aCopy);
+        EndTokenState copy = (EndTokenState) aCopy;
+        copy.setSubprocessDefinitionBehavior(getSubprocessDefinitionBehavior());
+        copy.setEventType(getEventType());
+        if (isEndWithEvent()) {
+            copy.setVariableMappings(Lists.newArrayList(getVariableMappings()));
+            copy.setTtlDuration(new Duration(getTtlDuration()));
+        }
     }
 
     @Override
