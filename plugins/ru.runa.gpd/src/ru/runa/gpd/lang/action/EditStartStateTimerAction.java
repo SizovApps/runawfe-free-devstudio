@@ -2,6 +2,9 @@ package ru.runa.gpd.lang.action;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.swt.widgets.Display;
+import ru.runa.gpd.editor.graphiti.ChangeTimerDefinitionFeature;
+import ru.runa.gpd.editor.graphiti.UndoRedoUtil;
 import ru.runa.gpd.lang.model.StartState;
 import ru.runa.gpd.ui.dialog.StartStateTimerDialog;
 
@@ -22,7 +25,12 @@ public class EditStartStateTimerAction extends BaseModelActionDelegate {
             StartState startState = getSelection();
             String newTimerDefinition = new StartStateTimerDialog(startState.getTimerEventDefinition()).openDialog();
             if (newTimerDefinition != null) {
-                startState.setTimerEventDefinition(newTimerDefinition);
+                Display.getDefault().asyncExec(new Runnable() {
+                    @Override
+                    public void run() {
+                        UndoRedoUtil.executeFeature(new ChangeTimerDefinitionFeature(startState, newTimerDefinition));
+                    }
+                });
             }
             action.setChecked(startState.getTimerEventDefinition() != null);
         }

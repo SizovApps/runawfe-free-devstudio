@@ -8,7 +8,7 @@ import ru.runa.gpd.ui.custom.JavaIdentifierChecker;
 import ru.runa.gpd.util.VariableMapping;
 import ru.runa.gpd.util.VariableUtils;
 
-public interface VariableMappingsValidator {
+public interface VariableMappingsValidator extends VariableMappingsHolder {
     default void validate(List<ValidationError> errors, IFile definitionFile, Supplier<GraphElement> source) {
         int selectorRulesCount = 0;
         List<String> variableNames = getProcessDefinition().getVariableNames(true);
@@ -40,8 +40,6 @@ public interface VariableMappingsValidator {
     }
 
     void validateOnEmptyRules(List<ValidationError> errors);
-
-    List<VariableMapping> getVariableMappings();
 
     ProcessDefinition getProcessDefinition();
 }

@@ -10,7 +10,7 @@ import ru.runa.gpd.property.DurationPropertyDescriptor;
 import ru.runa.gpd.util.Duration;
 import ru.runa.gpd.util.VariableMapping;
 
-public abstract class MessageNode extends Node implements VariableMappingsValidator {
+public abstract class MessageNode extends Node implements VariableMappingsValidator, TtlHolder {
     protected final List<VariableMapping> variableMappings = new ArrayList<VariableMapping>();
     private Duration ttlDuration = new Duration("0 minutes");
 
@@ -25,10 +25,12 @@ public abstract class MessageNode extends Node implements VariableMappingsValida
         setDirty();
     }
 
+    @Override
     public Duration getTtlDuration() {
         return ttlDuration;
     }
 
+    @Override
     public void setTtlDuration(Duration ttlDuration) {
         Duration old = this.ttlDuration;
         this.ttlDuration = ttlDuration;
