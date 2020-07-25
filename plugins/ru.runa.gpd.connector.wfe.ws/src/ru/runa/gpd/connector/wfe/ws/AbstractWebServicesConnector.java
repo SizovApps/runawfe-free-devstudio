@@ -1,20 +1,17 @@
 package ru.runa.gpd.connector.wfe.ws;
 
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.util.List;
-import java.util.Map;
-
-import javax.xml.ws.soap.SOAPFaultException;
-
-import org.eclipse.core.runtime.IProgressMonitor;
-
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.CharStreams;
-
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.util.List;
+import java.util.Map;
+import javax.xml.ws.soap.SOAPFaultException;
+import org.eclipse.core.runtime.IProgressMonitor;
 import ru.runa.gpd.Activator;
+import ru.runa.gpd.Localization;
 import ru.runa.gpd.PluginLogger;
 import ru.runa.gpd.wfe.WFEServerConnector;
 import ru.runa.wfe.bot.Bot;
@@ -62,6 +59,16 @@ public abstract class AbstractWebServicesConnector extends WFEServerConnector {
             }
         }
         return host + ":" + port;
+    }
+
+    @Override
+    public boolean isServerSuitable() {
+        String url = getBaseUrl() + "/wfe/product";
+        try (InputStreamReader reader = new InputStreamReader(new URL(url).openStream())) {
+            return CharStreams.toString(reader).toLowerCase().equals(Localization.getString("product.name").toLowerCase());
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     protected String getVersion() {

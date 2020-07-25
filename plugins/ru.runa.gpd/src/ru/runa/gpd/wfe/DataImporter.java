@@ -1,21 +1,19 @@
 package ru.runa.gpd.wfe;
 
+import com.google.common.collect.Sets;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Iterator;
 import java.util.Set;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-
-import com.google.common.collect.Sets;
-
 import ru.runa.gpd.Activator;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.PluginLogger;
+import ru.runa.gpd.ui.custom.Dialogs;
 
 public abstract class DataImporter {
     
@@ -58,6 +56,10 @@ public abstract class DataImporter {
     }
 
     public final void synchronize() {
+        if (!WFEServerConnector.getInstance().isServerSuitable()) {
+            Dialogs.warning(Localization.getString("wrong.server.product"));
+            return;
+        }
         IMPORTERS.add(this);
         Shell shell = Display.getCurrent() != null ? Display.getCurrent().getActiveShell() : null;
         final ProgressMonitorDialog monitorDialog = new ProgressMonitorDialog(shell);
