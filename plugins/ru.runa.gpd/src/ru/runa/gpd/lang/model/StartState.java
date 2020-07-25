@@ -2,6 +2,7 @@ package ru.runa.gpd.lang.model;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
 import org.eclipse.core.resources.IFile;
@@ -173,6 +174,27 @@ public class StartState extends FormNode implements HasTextDecorator, VariableMa
     @Override
     public void validateOnEmptyRules(List<ValidationError> errors) {
         errors.add(ValidationError.createLocalizedError(this, "message.selectorRulesEmpty"));
+    }
+
+    @Override
+    protected void fillCopyCustomFields(GraphElement aCopy) {
+        super.fillCopyCustomFields(aCopy);
+        StartState copy = (StartState) aCopy;
+        copy.setEventType(getEventType());
+        if (!copy.isStartByEvent()) {
+            StartState defaultStartNode = copy.getProcessDefinition().getDefaultStartNode();
+            if (defaultStartNode != null && !copy.equals(defaultStartNode)) {
+                copy.setEventType(StartEventType.signal);
+                copy.setSwimlane(null);
+                copy.setFormFileName("");
+                copy.setTemplateFileName(null);
+            }
+        }
+        if (isStartByTimer()) {
+            copy.setTimerEventDefinition(getTimerEventDefinition());
+        } else if (isStartByEvent()) {
+            copy.setVariableMappings(Lists.newArrayList(getVariableMappings()));
+        }
     }
 
 }
