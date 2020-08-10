@@ -156,11 +156,18 @@ public class VariableTypeEditorPage extends EditorPartBase<VariableUserType> {
                 case 1:
                     result = o1.getFormatLabel().compareTo(o2.getFormatLabel());
                     break;
+                case 3:
+                    result = Boolean.compare(o1.isPrimaryKey(), o2.isPrimaryKey());
+                    break;
+                case 4:
+                    result = Boolean.compare(o1.isAutoincrement(), o2.isAutoincrement());
                 }
                 return result;
             }
         }), new TableColumnDescription("property.name", 200, SWT.LEFT), new TableColumnDescription("Variable.property.format", 200, SWT.LEFT),
-                new TableColumnDescription("Variable.property.defaultValue", 200, SWT.LEFT, false));
+                new TableColumnDescription("Variable.property.defaultValue", 200, SWT.LEFT, false),
+                new TableColumnDescription("VariableFormatPage.primaryKey", 200, SWT.LEFT),
+                new TableColumnDescription("VariableFormatPage.autoincrement", 200, SWT.LEFT));
 
         Composite attributeButtonsBar = createActionBar(rightComposite);
         createAttributeButton = addButton(attributeButtonsBar, "button.create", new CreateAttributeSelectionListener(), false);
@@ -194,6 +201,7 @@ public class VariableTypeEditorPage extends EditorPartBase<VariableUserType> {
         } else if (evt.getSource() instanceof VariableUserType) {
             if (PropertyNames.PROPERTY_NAME.equals(type) || PropertyNames.PROPERTY_STORE_IN_EXTERNAL_STORAGE.equals(type)) {
                 typeTableViewer.refresh(evt.getSource());
+                updateAttributeViewer();
             }
             if (PropertyNames.PROPERTY_CHILDREN_CHANGED.equals(type)) {
                 updateAttributeViewer();
@@ -277,6 +285,12 @@ public class VariableTypeEditorPage extends EditorPartBase<VariableUserType> {
             VariableUserTypeDialog dialog = new VariableUserTypeDialog(getDefinition(), type);
             if (dialog.open() == Window.OK) {
                 VariableUtils.renameUserType(getDefinition(), type, dialog.getName());
+                if (!dialog.isStoreInExternalStorage() && dialog.isStoreInExternalStorage() != type.isStoreInExternalStorage()) {
+                    for (Variable attribute : type.getAttributes()) {
+                        attribute.setPrimaryKey(false);
+                        attribute.setAutoincrement(false);
+                    }
+                }
                 type.setStoreInExternalStorage(dialog.isStoreInExternalStorage());
             }
         }
@@ -504,6 +518,8 @@ public class VariableTypeEditorPage extends EditorPartBase<VariableUserType> {
                 variable.setUserType(wizard.getVariable().getUserType());
                 variable.setDefaultValue(wizard.getVariable().getDefaultValue());
                 variable.setStoreType(wizard.getVariable().getStoreType());
+                variable.setPrimaryKey(wizard.getVariable().isPrimaryKey());
+                variable.setAutoincrement(wizard.getVariable().isAutoincrement());
                 getDefinition().setDirty();
                 updateAttributeViewer(variable);
             }
@@ -955,6 +971,9 @@ public class VariableTypeEditorPage extends EditorPartBase<VariableUserType> {
                 return variable.getFormatLabel();
             case 2:
                 return Strings.nullToEmpty(variable.getDefaultValue());
+            case 3:
+            case 4:
+                return "";
             default:
                 return "unknown " + index;
             }
@@ -967,6 +986,12 @@ public class VariableTypeEditorPage extends EditorPartBase<VariableUserType> {
 
         @Override
         public Image getColumnImage(Object element, int columnIndex) {
+            if (columnIndex == 3) {
+                return SharedImages.getImage(((Variable) element).isPrimaryKey() ? "icons/checked.gif" : "icons/unchecked.gif");
+            }
+            if (columnIndex == 4) {
+                return SharedImages.getImage(((Variable) element).isAutoincrement() ? "icons/checked.gif" : "icons/unchecked.gif");
+            }
             return null;
         }
     }

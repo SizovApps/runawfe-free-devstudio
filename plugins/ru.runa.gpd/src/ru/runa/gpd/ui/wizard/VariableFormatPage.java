@@ -1,15 +1,16 @@
 package ru.runa.gpd.ui.wizard;
 
+import com.google.common.collect.Maps;
 import java.util.Map;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
-
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.extension.VariableFormatArtifact;
 import ru.runa.gpd.extension.VariableFormatRegistry;
@@ -20,12 +21,12 @@ import ru.runa.gpd.lang.model.VariableUserType;
 import ru.runa.gpd.ui.custom.DynaContentWizardPage;
 import ru.runa.gpd.ui.custom.LoggingSelectionAdapter;
 import ru.runa.gpd.ui.custom.SWTUtils;
+import ru.runa.wfe.var.format.BigDecimalFormat;
 import ru.runa.wfe.var.format.ListFormat;
+import ru.runa.wfe.var.format.LongFormat;
 import ru.runa.wfe.var.format.MapFormat;
 import ru.runa.wfe.var.format.StringFormat;
 import ru.runa.wfe.var.format.UserTypeFormat;
-
-import com.google.common.collect.Maps;
 
 public class VariableFormatPage extends DynaContentWizardPage {
     private final VariableContainer variableContainer;
@@ -34,19 +35,31 @@ public class VariableFormatPage extends DynaContentWizardPage {
     private String[] componentClassNames;
     private final ProcessDefinition processDefinition;
     private final boolean editFormat;
+
+    private final boolean isStoreInExternalStorage;
+    private boolean primaryKey = false;
+    private boolean autoincrement = false;
+    private String format = "";
+
+    private Button autoincrementCheckbox;
+
     private static Map<String, String[]> containerFormats = Maps.newHashMap();
     static {
         containerFormats.put(ListFormat.class.getName(), new String[] { Localization.getString("VariableFormatPage.components.list.value") });
-        containerFormats.put(
-                MapFormat.class.getName(),
-                new String[] { Localization.getString("VariableFormatPage.components.map.key"),
-                        Localization.getString("VariableFormatPage.components.map.value") });
+        containerFormats.put(MapFormat.class.getName(), new String[] { Localization.getString("VariableFormatPage.components.map.key"),
+                Localization.getString("VariableFormatPage.components.map.value") });
     }
 
     public VariableFormatPage(ProcessDefinition processDefinition, VariableContainer variableContainer, Variable variable, boolean editFormat) {
         this.processDefinition = processDefinition;
         this.variableContainer = variableContainer;
+        this.isStoreInExternalStorage = (variableContainer instanceof VariableUserType)
+                ? ((VariableUserType) variableContainer).isStoreInExternalStorage()
+                : false;
         if (variable != null) {
+            this.primaryKey = variable.isPrimaryKey();
+            this.autoincrement = variable.isAutoincrement();
+            format = variable.getFormat();
             if (variable.getUserType() != null) {
                 this.userType = variable.getUserType();
                 setTypeByFormatClassName(UserTypeFormat.class.getName());
@@ -88,13 +101,42 @@ public class VariableFormatPage extends DynaContentWizardPage {
                 } else {
                     type = VariableFormatRegistry.getInstance().getArtifactNotNullByLabel(label);
                 }
+
+                updateAutoincrementCheckboxVisibility(type.getName());
                 createDefaultComponentClassNames();
                 updateContent();
             }
         });
+
+        if (isStoreInExternalStorage) {
+            final Button primaryKeyChecbox = new Button(composite, SWT.CHECK);
+            primaryKeyChecbox.setText(Localization.getString("VariableFormatPage.primaryKey"));
+            primaryKeyChecbox.setSelection(primaryKey);
+            primaryKeyChecbox.setEnabled(editFormat);
+            primaryKeyChecbox.addSelectionListener(SelectionListener.widgetSelectedAdapter(c -> primaryKey = !primaryKey));
+
+            autoincrementCheckbox = new Button(composite, SWT.CHECK);
+            autoincrementCheckbox.setText(Localization.getString("VariableFormatPage.autoincrement"));
+            autoincrementCheckbox.setSelection(autoincrement);
+            autoincrementCheckbox.setEnabled(editFormat);
+            autoincrementCheckbox.addSelectionListener(SelectionListener.widgetSelectedAdapter(c -> autoincrement = !autoincrement));
+            updateAutoincrementCheckboxVisibility(format);
+        }
+
         dynaComposite = new Composite(composite, SWT.NONE);
         dynaComposite.setLayout(new GridLayout(2, false));
         dynaComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
+    }
+
+    private void updateAutoincrementCheckboxVisibility(String format) {
+        if (autoincrementCheckbox == null) {
+            return;
+        }
+        final boolean visible = LongFormat.class.getName().equals(format) || BigDecimalFormat.class.getName().equals(format);
+        autoincrementCheckbox.setVisible(visible);
+        if (!visible) {
+            autoincrement = false;
+        }
     }
 
     private void createDefaultComponentClassNames() {
@@ -169,5 +211,13 @@ public class VariableFormatPage extends DynaContentWizardPage {
 
     public String[] getComponentClassNames() {
         return componentClassNames;
+    }
+
+    public boolean isPrimaryKey() {
+        return primaryKey;
+    }
+
+    public boolean isAutoincrement() {
+        return autoincrement;
     }
 }

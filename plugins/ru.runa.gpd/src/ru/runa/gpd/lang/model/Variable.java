@@ -23,6 +23,8 @@ public class Variable extends NamedGraphElement implements Describable {
     private VariableUserType userType;
     private VariableStoreType storeType = VariableStoreType.DEFAULT;
     private boolean global;
+    private boolean primaryKey = false;
+    private boolean autoincrement = false;
 
     public Variable() {
     }
@@ -39,6 +41,8 @@ public class Variable extends NamedGraphElement implements Describable {
         setPublicVisibility(variable.isPublicVisibility());
         setDefaultValue(variable.getDefaultValue());
         setStoreType(variable.getStoreType());
+        setPrimaryKey(variable.isPrimaryKey());
+        setAutoincrement(variable.isAutoincrement());
     }
 
     public Variable(String name, String scriptingName, Variable variable) {
@@ -242,6 +246,28 @@ public class Variable extends NamedGraphElement implements Describable {
         if (this.global != global) {
             this.global = global;
             firePropertyChange(PROPERTY_GLOBAL, !this.global, this.global);
+        }
+    }
+
+    public boolean isPrimaryKey() {
+        return primaryKey;
+    }
+
+    public void setPrimaryKey(boolean primaryKey) {
+        if (this.primaryKey != primaryKey) {
+            this.primaryKey = !this.primaryKey;
+            firePropertyChange(PROPERTY_PRIMARY_KEY, !this.primaryKey, this.primaryKey);
+        }
+    }
+
+    public boolean isAutoincrement() {
+        return autoincrement;
+    }
+
+    public void setAutoincrement(boolean autoincrement) {
+        if (this.autoincrement != autoincrement) {
+            this.autoincrement = !this.autoincrement;
+            firePropertyChange(PROPERTY_AUTOINCREMENT, !this.autoincrement, this.autoincrement);
         }
     }
 

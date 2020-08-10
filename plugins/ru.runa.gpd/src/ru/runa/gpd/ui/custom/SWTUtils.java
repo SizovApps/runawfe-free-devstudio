@@ -55,7 +55,9 @@ public class SWTUtils {
         Button button = new Button(parent, SWT.PUSH);
         button.setText(label);
         // button.setFont(JFaceResources.getDialogFont());
-        button.addSelectionListener(selectionAdapter);
+        if (selectionAdapter != null) {
+            button.addSelectionListener(selectionAdapter); 
+        }
         return button;
     }
 

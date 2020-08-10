@@ -3,11 +3,9 @@ package ru.runa.gpd.office.store.externalstorage.predicate;
 import com.google.common.base.Strings;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Combo;
@@ -26,68 +24,58 @@ import ru.runa.gpd.ui.custom.SWTUtils;
 
 public class PredicateComposite extends Composite {
     private final StorageConstraintsModel constraintsModel;
-    private final String variableTypeName;
     private final VariableProvider variableProvider;
+    private final VariableUserType variableUserType;
 
     private final Group group;
-    private final List<Label> labels = new ArrayList<>();
+    private final List<Label> labels = new ArrayList<>(5);
 
-    private ConstraintsPredicate<?, ?> constraintsPredicate;
+    private final PredicateTree predicateTree = new PredicateTree();
 
     public PredicateComposite(Composite parent, int style, StorageConstraintsModel constraintsModel, String variableTypeName,
             VariableProvider variableProvider) {
         super(parent, style);
         this.constraintsModel = constraintsModel;
-        this.variableTypeName = variableTypeName;
+        this.variableUserType = variableProvider.getUserType(variableTypeName);
         this.variableProvider = variableProvider;
 
-        setLayout(new GridLayout(5, false));
-        final GridData data = new GridData(GridData.FILL_HORIZONTAL);
-        data.horizontalSpan = 5;
-        setLayoutData(data);
-        setLayout(new FillLayout(SWT.VERTICAL));
+        setLayout(new GridLayout(1, false));
+        setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+
         group = new Group(this, SWT.None);
         group.setLayout(new GridLayout(5, false));
+        group.setLayoutData(new GridData(GridData.FILL_BOTH));
     }
 
     public void build() {
         if (!Strings.isNullOrEmpty(constraintsModel.getQueryString())) {
-            final PredicateParser predicateParser = new PredicateParser(constraintsModel.getQueryString(),
-                    variableProvider.getUserType(variableTypeName), variableProvider);
-            constraintsPredicate = predicateParser.parse();
-            if (constraintsPredicate != null) {
+            final PredicateParser predicateParser = new PredicateParser(constraintsModel.getQueryString(), variableUserType, variableProvider);
+            predicateTree.setHead(predicateParser.parse());
+            if (!predicateTree.isEmpty()) {
                 buildLabels();
-                constructPredicateViewRecursive(constraintsPredicate);
+                constructPredicateView();
             }
         }
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
     public void addPredicate() {
         final VariablePredicate variablePredicate = new VariablePredicate();
-        if (constraintsPredicate != null) {
-            final ExpressionPredicate<?> predicate = new ExpressionPredicate(constraintsPredicate, PredicateOperationType.AND, variablePredicate);
-            buildCompoundTypeCombo(new OnConstructedPredicateDelegate<Object, VariablePredicate>(predicate, this::onPredicateConstructed));
-
-            constraintsPredicate.setParent(predicate);
-            variablePredicate.setParent(predicate);
-            constraintsPredicate = predicate;
-        } else {
-            constraintsPredicate = variablePredicate;
-        }
+        final int index = predicateTree.add(variablePredicate, expression -> buildCompoundTypeCombo(
+                new OnConstructedPredicateDelegate<Object, VariablePredicate>(expression, this::onPredicateConstructed)));
         buildLabels();
-        buildVariablePredicate(new OnConstructedPredicateDelegate<Variable, Variable>(variablePredicate, this::onPredicateConstructed));
+        buildVariablePredicate(new OnConstructedPredicateDelegate<Variable, Variable>(variablePredicate, this::onPredicateConstructed), index);
     }
 
-    public <X, Y> void constructPredicateViewRecursive(ConstraintsPredicate<X, Y> constraintsPredicate) {
-        if (constraintsPredicate instanceof VariablePredicate) {
-            final VariablePredicate predicate = (VariablePredicate) constraintsPredicate;
-            buildVariablePredicate(new OnConstructedPredicateDelegate<Variable, Variable>(predicate, this::onPredicateConstructed));
-        } else {
-            final ExpressionPredicate<?> predicate = (ExpressionPredicate<?>) constraintsPredicate;
-            constructPredicateViewRecursive((ConstraintsPredicate<?, ?>) constraintsPredicate.getLeft());
-            buildCompoundTypeCombo(new OnConstructedPredicateDelegate<X, Y>(predicate, this::onPredicateConstructed));
-            constructPredicateViewRecursive((ConstraintsPredicate<?, ?>) constraintsPredicate.getRight());
+    private <X, Y> void constructPredicateView() {
+        int currentVariablePredicateIndex = 0;
+        for (ConstraintsPredicate<?, ?> predicate : predicateTree) {
+            if (predicate instanceof VariablePredicate) {
+                buildVariablePredicate(
+                        new OnConstructedPredicateDelegate<Variable, Variable>((VariablePredicate) predicate, this::onPredicateConstructed),
+                        currentVariablePredicateIndex++);
+            } else {
+                buildCompoundTypeCombo(new OnConstructedPredicateDelegate<X, Y>((ExpressionPredicate<?>) predicate, this::onPredicateConstructed));
+            }
         }
     }
 
@@ -96,17 +84,16 @@ public class PredicateComposite extends Composite {
         predicate.applicableOperationTypeNames().forEach(compoundTypeCombo::add);
         compoundTypeCombo.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> {
             final String text = compoundTypeCombo.getText();
-            if (Strings.isNullOrEmpty(text)) {
-                return;
+            if (!Strings.isNullOrEmpty(text)) {
+                predicate.setType(PredicateOperationType.byCode(text).orElse(null));
             }
-            predicate.setType(PredicateOperationType.byCode(text).orElse(null));
         }));
         if (predicate.getType() != null) {
             compoundTypeCombo.setText(predicate.getType().code);
         }
     }
 
-    private void buildVariablePredicate(OnConstructedPredicateDelegate<Variable, Variable> predicate) {
+    private void buildVariablePredicate(OnConstructedPredicateDelegate<Variable, Variable> predicate, int index) {
         final Combo subjectCombo = new Combo(group, SWT.READ_ONLY);
         final Combo predicateOperationTypeCombo = new Combo(group, SWT.READ_ONLY);
         final Combo compareWithCombo = new Combo(group, SWT.READ_ONLY);
@@ -114,16 +101,14 @@ public class PredicateComposite extends Composite {
         predicate.applicableOperationTypeNames().forEach(predicateOperationTypeCombo::add);
         predicateOperationTypeCombo.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> {
             final String text = predicateOperationTypeCombo.getText();
-            if (Strings.isNullOrEmpty(text)) {
-                return;
+            if (!Strings.isNullOrEmpty(text)) {
+                predicate.setType(PredicateOperationType.byCode(text).orElse(null));
             }
-            predicate.setType(PredicateOperationType.byCode(text).orElse(null));
         }));
         if (predicate.getType() != null) {
             predicateOperationTypeCombo.setText(predicate.getType().code);
         }
 
-        final VariableUserType variableUserType = variableProvider.getUserType(variableTypeName);
         variableUserType.getAttributes().stream().map(Variable::getName).forEach(subjectCombo::add);
         subjectCombo.addSelectionListener(SelectionListener.widgetSelectedAdapter((e) -> {
             final String text = subjectCombo.getText();
@@ -144,13 +129,9 @@ public class PredicateComposite extends Composite {
 
         compareWithCombo.addSelectionListener(SelectionListener.widgetSelectedAdapter((e) -> {
             final String text = compareWithCombo.getText();
-            if (Strings.isNullOrEmpty(text)) {
-                return;
+            if (!Strings.isNullOrEmpty(text)) {
+                variableProvider.variableByName(text).ifPresent(predicate::setRight);
             }
-            final Optional<Variable> variable = variableProvider.variableByName(text);
-            variable.ifPresent(var -> {
-                predicate.setRight(var);
-            });
         }));
         if (predicate.getRight() != null) {
             compareWithCombo.setText(predicate.getRight().getName());
@@ -159,36 +140,18 @@ public class PredicateComposite extends Composite {
         SWTUtils.createLink(group, "[X]", new LoggingHyperlinkAdapter() {
             @Override
             protected void onLinkActivated(HyperlinkEvent e) throws Exception {
-                onDeletePredicate((VariablePredicate) predicate.getDelegate());
+                onDeletePredicate(index);
             }
         });
     }
 
-    private void onPredicateConstructed(String predicate) {
-        constraintsModel.setQueryString(constraintsPredicate != null ? constraintsPredicate.toString().trim() : "");
+    private void onPredicateConstructed() {
+        constraintsModel.setQueryString(predicateTree.head() != null ? predicateTree.head().toString().trim() : "");
     }
 
-    @SuppressWarnings("unchecked")
-    private void onDeletePredicate(VariablePredicate predicate) {
-        if (Objects.equals(constraintsPredicate, predicate)) {
-            constraintsPredicate = null;
-        } else if (predicate.getParent().getParent() != null) {
-            final ConstraintsPredicate<?, ?> otherChild = !Objects.equals(predicate, predicate.getParent().getLeft())
-                    ? (ConstraintsPredicate<?, ?>) predicate.getParent().getLeft()
-                    : (ConstraintsPredicate<?, ?>) predicate.getParent().getRight();
-            otherChild.setParent(predicate.getParent().getParent());
-            ((ExpressionPredicate<ConstraintsPredicate<?, ?>>) predicate.getParent().getParent()).setLeft(otherChild);
-            predicate.setParent(null);
-        } else if (predicate.getParent().getParent() == null) {
-            final ConstraintsPredicate<?, ?> otherChild = !Objects.equals(predicate, predicate.getParent().getLeft())
-                    ? (ConstraintsPredicate<?, ?>) predicate.getParent().getLeft()
-                    : (ConstraintsPredicate<?, ?>) predicate.getParent().getRight();
-            predicate.setParent(null);
-            otherChild.setParent(null);
-            constraintsPredicate = otherChild;
-        }
-
-        onPredicateConstructed(null);
+    private void onDeletePredicate(int index) {
+        predicateTree.removeVariablePredicateBy(index);
+        onPredicateConstructed();
 
         labels.clear();
         for (Control c : group.getChildren()) {
@@ -200,7 +163,7 @@ public class PredicateComposite extends Composite {
 
     private void buildLabels() {
         if (!labels.isEmpty()) {
-            if (constraintsPredicate instanceof ExpressionPredicate<?>) {
+            if (predicateTree.head() instanceof ExpressionPredicate<?>) {
                 labels.get(4).setText(Messages.getString("label.LogicOperation"));
             }
             return;
@@ -210,7 +173,7 @@ public class PredicateComposite extends Composite {
             labels.add(SWTUtils.createLabel(group, Messages.getString("label.variable")));
             labels.add(SWTUtils.createLabel(group, ""));
             labels.add(SWTUtils.createLabel(group,
-                    (constraintsPredicate instanceof ExpressionPredicate<?>) ? Messages.getString("label.LogicOperation") : ""));
+                    (predicateTree.head() instanceof ExpressionPredicate<?>) ? Messages.getString("label.LogicOperation") : ""));
         }
         getParent().layout(true, true);
     }
