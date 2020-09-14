@@ -132,6 +132,6 @@ public abstract class WFEServerConnector implements IConnector, PrefConstants {
 
     public abstract List<String> getDataSourceNames();
 
-    public abstract boolean isServerSuitable();
+    public abstract ConnectionStatus testConnection();
 
 }

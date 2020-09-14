@@ -19,7 +19,7 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import ru.runa.gpd.Activator;
 import ru.runa.gpd.Localization;
-import ru.runa.gpd.ui.custom.Dialogs;
+import ru.runa.gpd.wfe.ConnectionStatus;
 import ru.runa.gpd.wfe.DataImporter;
 import ru.runa.gpd.wfe.WFEServerConnector;
 
@@ -50,14 +50,16 @@ public class WFEConnectionPreferencePage extends FieldEditorPreferencePage imple
 
     @Override
     public void createFieldEditors() {
-    	addField(new ComboFieldEditor(P_WFE_CONNECTION_PROTOCOL, Localization.getString("pref.connection.wfe.protocol"), getProtocolEntriesArray(), getFieldEditorParent()));	
+        addField(new ComboFieldEditor(P_WFE_CONNECTION_PROTOCOL, Localization.getString("pref.connection.wfe.protocol"), getProtocolEntriesArray(),
+                getFieldEditorParent()));
         addField(new StringFieldEditor(P_WFE_CONNECTION_HOST, Localization.getString("pref.connection.wfe.host"), getFieldEditorParent()));
-		portEditor = new StringFieldEditor(P_WFE_CONNECTION_PORT, Localization.getString("pref.connection.wfe.port"), getFieldEditorParent());
+        portEditor = new StringFieldEditor(P_WFE_CONNECTION_PORT, Localization.getString("pref.connection.wfe.port"), getFieldEditorParent());
         addField(portEditor);
         addField(new StringFieldEditor(P_WFE_CONNECTION_VERSION, Localization.getString("pref.connection.wfe.version"), getFieldEditorParent()));
-        addField(new RadioGroupFieldEditor(P_WFE_CONNECTION_LOGIN_MODE, Localization.getString("pref.connection.loginMode"), 2, new String[][] {
-                { Localization.getString("pref.connection.loginMode.byLogin"), LOGIN_MODE_LOGIN_PASSWORD },
-                { Localization.getString("pref.connection.loginMode.byKerberos"), LOGIN_MODE_KERBEROS } }, getFieldEditorParent()));
+        addField(new RadioGroupFieldEditor(P_WFE_CONNECTION_LOGIN_MODE, Localization.getString("pref.connection.loginMode"), 2,
+                new String[][] { { Localization.getString("pref.connection.loginMode.byLogin"), LOGIN_MODE_LOGIN_PASSWORD },
+                        { Localization.getString("pref.connection.loginMode.byKerberos"), LOGIN_MODE_KERBEROS } },
+                getFieldEditorParent()));
         loginEditor = new StringFieldEditor(P_WFE_CONNECTION_LOGIN, Localization.getString("pref.connection.login"), getFieldEditorParent());
         passwordEditor = new StringFieldEditor(P_WFE_CONNECTION_PASSWORD, Localization.getString("pref.connection.password"), getFieldEditorParent());
         passwordEditor.setEmptyStringAllowed(true);
@@ -97,17 +99,11 @@ public class WFEConnectionPreferencePage extends FieldEditorPreferencePage imple
         testButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                try {
-                    if (WFEServerConnector.getInstance().isServerSuitable()) {
-                        performApply();
-                        WFEServerConnector.getInstance().connect();
-                        Dialogs.information(Localization.getString("test.Connection.Ok"));
-                    } else {
-                        Dialogs.warning(Localization.getString("wrong.server.product"));
-                    }
-                } catch (Throwable th) {
-                    Dialogs.error(Localization.getString("error.ConnectionFailed"), th);
-                }
+                final ConnectionStatus status = WFEServerConnector.getInstance().testConnection();
+                status.visit(new WFEConnectionPreferencePageConnectionStatusVisitor(), () -> {
+                    performApply();
+                    WFEServerConnector.getInstance().connect();
+                });
             }
         });
         testButton.setEnabled(isValid());

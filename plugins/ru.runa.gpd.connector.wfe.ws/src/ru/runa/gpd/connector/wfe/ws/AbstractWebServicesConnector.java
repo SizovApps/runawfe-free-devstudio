@@ -13,6 +13,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import ru.runa.gpd.Activator;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.PluginLogger;
+import ru.runa.gpd.wfe.ConnectionStatus;
 import ru.runa.gpd.wfe.WFEServerConnector;
 import ru.runa.wfe.bot.Bot;
 import ru.runa.wfe.bot.BotStation;
@@ -62,19 +63,21 @@ public abstract class AbstractWebServicesConnector extends WFEServerConnector {
     }
 
     @Override
-    public boolean isServerSuitable() {
+    public ConnectionStatus testConnection() {
         String url = getBaseUrl() + "/wfe/product";
         try (InputStreamReader reader = new InputStreamReader(new URL(url).openStream())) {
-            return CharStreams.toString(reader).toLowerCase().equals(Localization.getString("product.name").toLowerCase());
+            return CharStreams.toString(reader).toLowerCase().equals(Localization.getString("product.name").toLowerCase())
+                    ? ConnectionStatus.INDUSTRIAL_EDITION
+                    : ConnectionStatus.FREE_EDITION;
         } catch (Exception e) {
-            return false;
+            return ConnectionStatus.ESTABLISH_FAILED;
         }
     }
 
     protected String getVersion() {
         String version = Activator.getPrefString(P_WFE_CONNECTION_VERSION);
         if ("auto".equalsIgnoreCase(version)) {
-            String url =  getBaseUrl()  + "/wfe/version";
+            String url = getBaseUrl() + "/wfe/version";
             try {
                 InputStreamReader reader = new InputStreamReader(new URL(url).openStream());
                 version = CharStreams.toString(reader);

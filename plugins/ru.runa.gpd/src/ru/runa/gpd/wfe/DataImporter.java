@@ -13,13 +13,12 @@ import org.eclipse.swt.widgets.Shell;
 import ru.runa.gpd.Activator;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.PluginLogger;
-import ru.runa.gpd.ui.custom.Dialogs;
 
 public abstract class DataImporter {
-    
+
     private static final String CACHE_FOLDER = "dataImporterCache";
     private static final Set<DataImporter> IMPORTERS = Sets.newHashSet();
-    
+
     protected abstract IConnector getConnector();
 
     public boolean isConfigured() {
@@ -37,7 +36,7 @@ public abstract class DataImporter {
         }
         return new File(cacheFolder, getClass().getSimpleName() + ".xml");
     }
-    
+
     protected abstract void clearInMemoryCache();
 
     protected abstract void loadRemoteData(IProgressMonitor monitor) throws Exception;
@@ -56,8 +55,7 @@ public abstract class DataImporter {
     }
 
     public final void synchronize() {
-        if (!WFEServerConnector.getInstance().isServerSuitable()) {
-            Dialogs.warning(Localization.getString("wrong.server.product"));
+        if (!WFEServerConnector.getInstance().testConnection().visit(new DataImporterConnectionStatusVisitor(), null)) {
             return;
         }
         IMPORTERS.add(this);
@@ -92,7 +90,7 @@ public abstract class DataImporter {
         } catch (InvocationTargetException ex) {
             throw new RuntimeException(ex.getTargetException());
         } catch (InterruptedException ex) {
-            // 
+            //
         }
     }
 
