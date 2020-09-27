@@ -20,7 +20,11 @@ public class DeleteFormFilesAction extends BaseModelActionDelegate {
         super.selectionChanged(action, selection);
         FormNode formNode = getSelection();
         if (formNode != null) {
-            action.setEnabled(formNode.hasForm() || formNode.hasFormValidation() || formNode.hasFormScript());
+            if (formNode.isFormEditorOpened()) {
+                action.setEnabled(false);
+            } else {
+                action.setEnabled(formNode.hasForm() || formNode.hasFormValidation() || formNode.hasFormScript());
+            }
         }
     }
 
@@ -52,11 +56,12 @@ public class DeleteFormFilesAction extends BaseModelActionDelegate {
                     formNode.setTemplateFileName(FormNode.EMPTY);
                 }
                 if (deleteValidationFile != null && deleteValidationFile.isEnabled()) {
-                    IOUtils.markAsDeleted(IOUtils.getAdjacentFile(formNode.getProcessDefinition().getFile(), formNode.getValidationFileName()));
+                    IOUtils.markAsDeleted(IOUtils.getAdjacentFile(formNode.getProcessDefinition().getFile(), formNode.getValidationFileName()),
+                            false);
                     formNode.setDirty();
                 }
                 if (deleteScriptFile != null && deleteScriptFile.isEnabled()) {
-                    IOUtils.markAsDeleted(IOUtils.getAdjacentFile(formNode.getProcessDefinition().getFile(), formNode.getScriptFileName()));
+                    IOUtils.markAsDeleted(IOUtils.getAdjacentFile(formNode.getProcessDefinition().getFile(), formNode.getScriptFileName()), false);
                     formNode.setDirty();
                 }
             } catch (CoreException e) {

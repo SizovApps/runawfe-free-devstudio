@@ -25,6 +25,7 @@ import java.util.zip.ZipInputStream;
 import org.eclipse.core.internal.resources.Workspace;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFileState;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -44,10 +45,13 @@ import org.eclipse.ui.PlatformUI;
 import ru.runa.gpd.BotCache;
 import ru.runa.gpd.BotStationNature;
 import ru.runa.gpd.PluginLogger;
+import ru.runa.gpd.ProcessCache;
 import ru.runa.gpd.ProcessProjectNature;
 import ru.runa.gpd.form.FormType;
 import ru.runa.gpd.form.FormTypeProvider;
+import ru.runa.gpd.lang.model.BotTask;
 import ru.runa.gpd.lang.model.FormNode;
+import ru.runa.gpd.lang.model.ProcessDefinition;
 import ru.runa.gpd.lang.model.SubprocessDefinition;
 import ru.runa.gpd.lang.par.ParContentProvider;
 
@@ -294,15 +298,32 @@ public class IOUtils {
         return null;
     }
 
+    public static IFile getCurrentFile(BotTask botTask) {
+        return BotCache.getBotTaskFile(botTask);
+    }
+
+    public static IFile getCurrentFile(ProcessDefinition processDefenition) {
+        return ProcessCache.getProcessDefinitionFile(processDefenition);
+    }
+
+    @Deprecated
     public static IFile getFile(String fileName) {
         return IOUtils.getAdjacentFile(getCurrentFile(), fileName);
+    }
+
+    public static IFile getFile(BotTask botTask, String fileName) {
+        return IOUtils.getAdjacentFile(getCurrentFile(botTask), fileName);
+    }
+
+    public static IFile getFile(ProcessDefinition processDefenition, String fileName) {
+        return IOUtils.getAdjacentFile(getCurrentFile(processDefenition), fileName);
     }
 
     private static IProject[] getWorkspaceProjects() {
         return ResourcesPlugin.getWorkspace().getRoot().getProjects();
     }
 
-    public static IProject[] getAllBotStationProjects() {
+    public static List<IProject> getAllBotStationProjects() {
         try {
             List<IProject> projects = new ArrayList<IProject>();
             for (IProject project : getWorkspaceProjects()) {
@@ -310,7 +331,7 @@ public class IOUtils {
                     projects.add(project);
                 }
             }
-            return projects.toArray(new IProject[0]);
+            return projects;
         } catch (CoreException e) {
             throw new RuntimeException();
         }
@@ -477,11 +498,7 @@ public class IOUtils {
     public static List<IContainer> getAllProcessContainers() {
         List<IContainer> result = Lists.newArrayList();
         for (IProject project : getAllProcessDefinitionProjects()) {
-            if (isProjectHasProcessNature(project)) {
-                findProcessContainers(project, result);
-            } else {
-                result.add(project.getFolder("src/process"));
-            }
+            findProcessContainers(project, result);
         }
         return result;
     }
@@ -622,13 +639,33 @@ public class IOUtils {
 
     private static final String DELETED_FILE_EXTENSION = "deleted";
 
-    public static void markAsDeleted(IFile file) throws CoreException {
+    public static IPath markAsDeleted(IFile file, boolean keepHistory) throws CoreException {
         IPath deleted = file.getFullPath().addFileExtension(DELETED_FILE_EXTENSION);
         Workspace ws = (Workspace) file.getWorkspace();
         if (ws.getResourceInfo(deleted, false, false) != null) {
-            ws.newResource(deleted, IResource.FILE).delete(true, null);
+            ws.newResource(deleted, IResource.FILE).delete(true, keepHistory, null);
         }
-        file.move(deleted, true, null);
+        file.move(deleted, true, keepHistory, null);
+        return deleted;
+    }
+
+    public static void unmarkAsDeleted(IFile file) throws CoreException {
+        if (DELETED_FILE_EXTENSION.equals(file.getFileExtension())) {
+            IPath undeleted = file.getFullPath().removeFileExtension();
+            Workspace ws = (Workspace) file.getWorkspace();
+            if (ws.getResourceInfo(undeleted, false, false) != null) {
+                ws.newResource(undeleted, IResource.FILE).delete(true, null);
+            }
+            if (file.exists()) {
+                file.move(undeleted, true, true, null);
+            } else {
+                IFileState[] fileStates = file.getHistory(null);
+                if (fileStates.length > 0) {
+                    file.create(fileStates[0].getContents(), true, null);
+                    unmarkAsDeleted(file);
+                }
+            }
+        }
     }
 
     public static void eraseDeletedFiles(IContainer folder) throws CoreException {
@@ -642,6 +679,9 @@ public class IOUtils {
     }
 
     public static void restoreDeletedFiles(IContainer folder) throws CoreException {
+        if (!folder.exists()) {
+            return;
+        }
         for (IResource member : folder.members()) {
             if (member instanceof IFile) {
                 if (((IFile) member).getFileExtension().equals(DELETED_FILE_EXTENSION)) {

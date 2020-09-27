@@ -1,11 +1,13 @@
 package ru.runa.gpd.lang.model;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.ListIterator;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.draw2d.geometry.Rectangle;
@@ -33,6 +35,10 @@ import ru.runa.gpd.property.DescribablePropertyDescriptor;
 import ru.runa.gpd.property.DurationPropertyDescriptor;
 import ru.runa.gpd.property.TimerActionPropertyDescriptor;
 import ru.runa.gpd.settings.CommonPreferencePage;
+import ru.runa.gpd.ui.enhancement.DialogEnhancement;
+import ru.runa.gpd.ui.enhancement.DocxDialogEnhancement;
+import ru.runa.gpd.ui.enhancement.DocxDialogEnhancementMode;
+import ru.runa.gpd.util.EmbeddedFileUtils;
 import ru.runa.gpd.util.EventSupport;
 import ru.runa.gpd.util.VariableUtils;
 
@@ -146,6 +152,26 @@ public abstract class GraphElement extends EventSupport
                     errors.add(ValidationError.createLocalizedError(this, "delegable.invalidConfigurationWithError", e));
                     PluginLogger.logErrorWithoutDialog("Script configuration '" + getDelegationConfiguration() + "' error: " + e);
                 }
+
+                if (delegationClassName.equals(DocxDialogEnhancementMode.DocxHandlerID)) {
+                    Object obj = DialogEnhancement.getConfigurationValue(delegable, DocxDialogEnhancementMode.InputPathId);
+                    String embeddedDocxTemplateFileName = null != obj && obj instanceof String ? (String) obj : "";
+                    if (!Strings.isNullOrEmpty(embeddedDocxTemplateFileName) && EmbeddedFileUtils.isProcessFile(embeddedDocxTemplateFileName)) {
+                        List<String> docxErrors = Lists.newArrayList();
+                        List<Delegable> docxErrorSources = Lists.newArrayList();
+                        DocxDialogEnhancement.checkScriptTaskParametersWithDocxTemplate(delegable,
+                                EmbeddedFileUtils.getProcessFileName(embeddedDocxTemplateFileName), docxErrors, docxErrorSources, null);
+                        if (docxErrors.size() > 0 && docxErrors.size() == docxErrorSources.size()) {
+                            ListIterator<String> iterator = docxErrors.listIterator();
+                            ListIterator<Delegable> iterator2 = docxErrorSources.listIterator();
+                            while (iterator.hasNext()) {
+                                Delegable delegable2 = iterator2.next();
+                                errors.add(ValidationError.createError(delegable2 instanceof GraphElement ? (GraphElement) delegable2 : this,
+                                        iterator.next()));
+                            }
+                        }
+                    }
+                }
             }
         }
         for (GraphElement element : children) {
@@ -202,12 +228,8 @@ public abstract class GraphElement extends EventSupport
         child.setDelegatedListener(delegatedListener);
         firePropertyChange(NODE_ADDED, null, child);
         firePropertyChange(PROPERTY_CHILDREN_CHANGED, null, child);
-        String nodeId = child.getId();
-        if (nodeId == null) {
-            nodeId = getProcessDefinition().getNextNodeId();
-            child.setId(nodeId);
-        } else {
-            getProcessDefinition().setNextNodeIdIfApplicable(nodeId);
+        if (child.getId() == null && !Variable.class.equals(child.getClass())) {
+            child.setId(getProcessDefinition().getNextNodeId());
         }
     }
 
@@ -303,8 +325,10 @@ public abstract class GraphElement extends EventSupport
 
     public void setDelegationClassName(String delegationClassName) {
         String old = getDelegationClassName();
-        this.delegationClassName = delegationClassName;
-        firePropertyChange(PropertyNames.PROPERTY_CLASS, old, this.delegationClassName);
+        if (!Objects.equal(old, delegationClassName)) {
+            this.delegationClassName = delegationClassName;
+            firePropertyChange(PropertyNames.PROPERTY_CLASS, old, this.delegationClassName);
+        }
     }
 
     public String getDelegationConfiguration() {
@@ -435,7 +459,9 @@ public abstract class GraphElement extends EventSupport
 
     public GraphElement makeCopy(GraphElement parent) {
         GraphElement copy = getTypeDefinition().createElement(parent, false);
-        copy.setId(parent.getProcessDefinition().getNextNodeId());
+        if (!Variable.class.equals(copy.getClass())) {
+            copy.setId(parent.getProcessDefinition().getNextNodeId());
+        }
         if (this instanceof Describable) {
             copy.setDescription(getDescription());
         }

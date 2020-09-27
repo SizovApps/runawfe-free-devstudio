@@ -9,7 +9,7 @@
    <extension-point id="formats" name="Variable formats" schema="schema/formats.exsd"/>
    <extension-point id="swimlaneElements" name="Swimlane elements" schema="schema/swimlaneElements.exsd"/>
    <extension-point id="validators" name="Variable validators" schema="schema/validators.exsd"/>
-   <extension-point id="wfeConnectors" name="wfeConnectors" schema="schema/wfeConnectors.exsd"/>
+   <extension-point id="wfeServerConnectors" name="wfeServerConnectors" schema="schema/wfeServerConnectors.exsd"/>
    <extension-point id="cssTemplates" name="form CSS templates" schema="schema/cssTemplates.exsd"/>
    <extension-point id="regulations" name="regulations" schema="schema/regulations.exsd"/>
    <extension-point id="groovyStuff" name="Groovy stuff" schema="schema/groovyStuff.exsd"/>
@@ -2168,7 +2168,7 @@
          </element>
       </element>
       <element
-            className="ru.runa.gpd.swimlane.ExecutorGroupSwimlaneElement"
+            className="ru.runa.gpd.swimlane.WfeServerGroupSwimlaneElement"
             name="SwimlaneElement.WFFunctionsGroupLabel">
          <param
                name="description"
@@ -2203,7 +2203,7 @@
             className="ru.runa.gpd.swimlane.GroupSwimlaneElement"
             name="SwimlaneElement.CustomFunctionsGroupLabel">
          <element
-               className="ru.runa.gpd.swimlane.ActiveDirectorySwimlaneElement"
+               className="ru.runa.gpd.swimlane.LdapServerExecutorSwimlaneElement"
                name="SwimlaneElement.ADExecutorsLabel">
          </element>
       </element>
@@ -2461,12 +2461,17 @@
              name="%pref.common">
        </page>
        <page
+             class="ru.runa.gpd.settings.BotsPreferencePage"
+             id="gpd.pref.bots"
+             name="%pref.bots">
+       </page>
+       <page
              class="ru.runa.gpd.settings.FormPreferencePage"
              id="gpd.pref.form"
              name="%pref.form">
        </page>
        <page
-       class="ru.runa.gpd.settings.EmptyPreferencePage"
+             class="ru.runa.gpd.settings.EmptyPreferencePage"
              id="gpd.pref.task.escalation"
              name="%pref.task.escalation">
        </page>
@@ -2478,23 +2483,17 @@
        </page>
        <page
              class="ru.runa.gpd.settings.EmptyPreferencePage"
-             id="gpd.pref.connection"
+             id="gpd.pref.connector"
              name="%pref.connection">
        </page>
        <page
-             category="gpd.pref.connection"
-             class="ru.runa.gpd.settings.WFEConnectionPreferencePage"
-             id="gpd.pref.connection.wfe"
-             name="%pref.connection.wfe">
-       </page>
-       <page
-             category="gpd.pref.connection"
-             class="ru.runa.gpd.ldap.LDAPConnectionPreferencePage"
-             id="gpd.pref.connection.ldap"
+             category="gpd.pref.connector"
+             class="ru.runa.gpd.sync.LdapServerConnectorPreferencePage"
+             id="gpd.pref.connector.ldap"
              name="%pref.connection.ldap">
        </page>
        <page
-       class="ru.runa.gpd.settings.EmptyPreferencePage"
+             class="ru.runa.gpd.settings.EmptyPreferencePage"
              id="gpd.pref.extensions"
              name="%pref.extensions">
        </page>
@@ -2908,6 +2907,12 @@
                label="%label.menu.exit"
                menubarPath="file/exit"
                style="push"/>
+         <action
+               class="ru.runa.gpd.ui.action.FindElementAction"
+               id="findElement"
+               label="%label.action.findElement"
+               menubarPath="view/additions"
+               style="push"/>
       </actionSet>
    </extension>
 
@@ -3237,6 +3242,9 @@
       </type>
       <method
             label="java.lang.Math.random()">
+      </method>
+      <method
+            label="validator.getValidatorContext().addFieldError(variableName, message)">
       </method>
       <constant
             label="null">

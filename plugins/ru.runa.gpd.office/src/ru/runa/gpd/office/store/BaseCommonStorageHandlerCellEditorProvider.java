@@ -33,7 +33,7 @@ import ru.runa.gpd.office.Messages;
 import ru.runa.gpd.ui.custom.LoggingHyperlinkAdapter;
 import ru.runa.gpd.ui.custom.LoggingModifyTextAdapter;
 import ru.runa.gpd.ui.custom.LoggingSelectionAdapter;
-import ru.runa.gpd.ui.custom.SWTUtils;
+import ru.runa.gpd.ui.custom.SwtUtils;
 import ru.runa.gpd.util.EmbeddedFileUtils;
 
 public abstract class BaseCommonStorageHandlerCellEditorProvider extends XmlBasedConstructorProvider<DataModel> {
@@ -147,7 +147,7 @@ public abstract class BaseCommonStorageHandlerCellEditorProvider extends XmlBase
                     new Label(this, SWT.NONE);
                 }
 
-                SWTUtils.createLink(this, Messages.getString("label.AddVar"), new LoggingHyperlinkAdapter() {
+                SwtUtils.createLink(this, Messages.getString("label.AddVar"), new LoggingHyperlinkAdapter() {
 
                     @Override
                     protected void onLinkActivated(HyperlinkEvent e) throws Exception {
@@ -161,7 +161,7 @@ public abstract class BaseCommonStorageHandlerCellEditorProvider extends XmlBase
                 warning.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
                 validateCondition();
                 model.getInOutModel().canWorkWithDataSource = true;
-                new InputOutputComposite(this, delegable, model.getInOutModel(), getMode(), "xlsx");
+                new InputOutputComposite(this, delegable, model.getInOutModel(), getMode(), "xlsx", null);
                 for (StorageConstraintsModel c : model.constraints) {
                     new ArrtibuteComposite(c);
                 }
@@ -242,7 +242,7 @@ public abstract class BaseCommonStorageHandlerCellEditorProvider extends XmlBase
                         cmodel.variableName = combo.getText();
                     }
                 });
-                SWTUtils.createLink(group, "[X]", new LoggingHyperlinkAdapter() {
+                SwtUtils.createLink(group, "[X]", new LoggingHyperlinkAdapter() {
 
                     @Override
                     protected void onLinkActivated(HyperlinkEvent e) throws Exception {

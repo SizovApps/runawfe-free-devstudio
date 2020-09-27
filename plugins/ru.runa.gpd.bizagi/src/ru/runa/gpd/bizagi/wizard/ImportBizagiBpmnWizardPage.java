@@ -6,6 +6,7 @@ import java.util.Arrays;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.jface.preference.FileFieldEditor;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.layout.GridData;
@@ -19,6 +20,7 @@ import ru.runa.gpd.bizagi.Activator;
 import ru.runa.gpd.bizagi.converter.BizagiBpmnImporter;
 import ru.runa.gpd.bizagi.resource.Messages;
 import ru.runa.gpd.ui.wizard.ImportWizardPage;
+import ru.runa.gpd.util.IOUtils;
 import ru.runa.gpd.util.WorkspaceOperations;
 
 public class ImportBizagiBpmnWizardPage extends ImportWizardPage {
@@ -29,7 +31,7 @@ public class ImportBizagiBpmnWizardPage extends ImportWizardPage {
     private BooleanFieldEditor ignoreBendPointsEditor;
 
     public ImportBizagiBpmnWizardPage(String pageName, IStructuredSelection selection) {
-        super(pageName, selection);
+        super(ImportBizagiBpmnWizardPage.class, selection);
         setTitle(Messages.getString("ImportBpmnWizardPage.page.title"));
         setImageDescriptor(SharedImages.getImageDescriptor(Activator.getDefault().getBundle(), "icons/process.png", false));
     }
@@ -41,7 +43,12 @@ public class ImportBizagiBpmnWizardPage extends ImportWizardPage {
         pageControl.setLayoutData(new GridData(GridData.FILL_BOTH));
         SashForm sashForm = new SashForm(pageControl, SWT.VERTICAL);
         sashForm.setLayoutData(new GridData(GridData.FILL_BOTH));
-        createProjectsGroup(sashForm);
+        createProjectsGroup(sashForm, IOUtils.getAllProcessContainers(), new LabelProvider() {
+            @Override
+            public String getText(Object element) {
+                return IOUtils.getProcessContainerName((IContainer) element);
+            }
+        });
         ((GridData) projectViewer.getControl().getLayoutData()).heightHint = 200;
         Group importGroup = new Group(sashForm, SWT.NONE);
         sashForm.setWeights(new int[] { 20, 20 });
@@ -67,7 +74,7 @@ public class ImportBizagiBpmnWizardPage extends ImportWizardPage {
 
     public boolean performFinish() {
         try {
-            IContainer container = getSelectedContainer();
+            IContainer container = getSelectedProject();
             String bpmnFileName = selectFileEditor.getStringValue();
             if (bpmnFileName == null || !new File(bpmnFileName).exists()) {
                 throw new Exception(Messages.getString("ImportBpmnWizardPage.error.selectFile"));
