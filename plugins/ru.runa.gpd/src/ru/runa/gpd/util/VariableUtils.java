@@ -134,6 +134,9 @@ public class VariableUtils {
      * @return variable or <code>null</code>
      */
     public static Variable getVariableByName(VariableContainer variableContainer, String name) {
+        if (null == variableContainer) {
+            return null;
+        }
         List<Variable> variables = variableContainer.getVariables(false, true);
         for (Variable variable : variables) {
             if (Objects.equal(variable.getName(), name)) {

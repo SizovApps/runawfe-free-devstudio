@@ -1,5 +1,6 @@
 package ru.runa.gpd.lang.model;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -146,7 +147,7 @@ public class VariableUserType extends EventSupport implements VariableContainer,
 
     @Override
     public String toString() {
-        return Objects.toStringHelper(getClass()).add("name", name).add("attributes", attributes).toString();
+        return MoreObjects.toStringHelper(getClass()).add("name", name).add("attributes", attributes).toString();
     }
 
     private VariableUserType getCopy(VariableUserType source) {
