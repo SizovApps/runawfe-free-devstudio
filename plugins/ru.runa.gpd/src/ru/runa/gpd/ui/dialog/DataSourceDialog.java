@@ -51,7 +51,6 @@ public class DataSourceDialog extends Dialog implements DataSourceStuff {
     private Combo cbType;
     private Text txtJndiName;
     private Text txtFilePath;
-    private Text txtFileName;
     private Combo cbDbType;
     private Text txtDbUrl;
     private Text txtDbHost;
@@ -149,11 +148,6 @@ public class DataSourceDialog extends Dialog implements DataSourceStuff {
         label.setText(Localization.getString("datasource.property.filePath") + colon);
         txtFilePath = new Text(pane, SWT.BORDER);
         txtFilePath.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        label = new Label(pane, SWT.NONE);
-        label.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
-        label.setText(Localization.getString("datasource.property.fileName") + colon);
-        txtFileName = new Text(pane, SWT.BORDER);
-        txtFileName.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         paneCache.put(DataSourceType.Excel, pane);
     }
 
@@ -331,7 +325,6 @@ public class DataSourceDialog extends Dialog implements DataSourceStuff {
                 switch (DataSourceType.valueOf(type)) {
                 case Excel:
                     txtFilePath.setText(root.element(ELEMENT_FILE_PATH).getText());
-                    txtFileName.setText(root.element(ELEMENT_FILE_NAME).getText());
                     break;
                 case JDBC:
                     String dbType = root.elementTextTrim(ELEMENT_DB_TYPE);
@@ -376,7 +369,6 @@ public class DataSourceDialog extends Dialog implements DataSourceStuff {
         switch (DataSourceType.valueOf(cbType.getText())) {
         case Excel:
             dataSource.addElement(ELEMENT_FILE_PATH).addText(txtFilePath.getText());
-            dataSource.addElement(ELEMENT_FILE_NAME).addText(txtFileName.getText());
             break;
         case JDBC:
             switch (subpaneState) {

@@ -1,11 +1,9 @@
 package ru.runa.gpd.lang.model;
 
-import java.util.List;
-
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-
+import java.util.List;
 import ru.runa.gpd.PropertyNames;
 import ru.runa.gpd.util.EventSupport;
 
@@ -152,12 +150,11 @@ public class VariableUserType extends EventSupport implements VariableContainer,
     }
 
     private VariableUserType getCopy(VariableUserType source) {
-        VariableUserType clone = new VariableUserType(source.getName());
-        clone.setStoreInExternalStorage(source.isStoreInExternalStorage());
+        VariableUserType clone = new VariableUserType(source.getName(), source.isStoreInExternalStorage());
         for (Variable attribute : source.getAttributes()) {
             if (attribute.isComplex()) {
-                clone.addAttribute(
-                        new Variable(attribute.getName(), attribute.getScriptingName(), attribute.getFormat(), getCopy(attribute.getUserType())));
+                clone.addAttribute(new Variable(attribute.getName(), attribute.getScriptingName(), attribute.getFormat(),
+                        getCopy(attribute.getUserType())));
             } else {
                 clone.addAttribute(new Variable(attribute));
             }

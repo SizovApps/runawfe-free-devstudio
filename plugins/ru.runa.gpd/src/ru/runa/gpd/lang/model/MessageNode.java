@@ -12,7 +12,7 @@ import ru.runa.gpd.util.VariableMapping;
 
 public abstract class MessageNode extends Node implements VariableMappingsValidator {
     protected final List<VariableMapping> variableMappings = new ArrayList<VariableMapping>();
-    private Duration ttlDuration = new Duration("1 days");
+    private Duration ttlDuration = new Duration("0 minutes");
 
     @Override
     public List<VariableMapping> getVariableMappings() {
