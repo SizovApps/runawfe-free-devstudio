@@ -14,7 +14,7 @@ import ru.runa.gpd.lang.model.bpmn.EndEventType;
 import ru.runa.gpd.util.Duration;
 import ru.runa.gpd.util.VariableMapping;
 
-public class EndTokenState extends AbstractEndTextDecorated implements VariableMappingsValidator {
+public class EndTokenState extends AbstractEndTextDecorated implements VariableMappingsValidator, TtlHolder {
 
     private EndTokenSubprocessDefinitionBehavior subprocessDefinitionBehavior = EndTokenSubprocessDefinitionBehavior.BACK_TO_BASE_PROCESS;
 
@@ -114,10 +114,12 @@ public class EndTokenState extends AbstractEndTextDecorated implements VariableM
 
     private Duration ttlDuration = new Duration("1 days");
 
+    @Override
     public Duration getTtlDuration() {
         return ttlDuration;
     }
 
+    @Override
     public void setTtlDuration(Duration ttlDuration) {
         Duration old = this.ttlDuration;
         this.ttlDuration = ttlDuration;

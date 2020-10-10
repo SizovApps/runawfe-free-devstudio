@@ -1,10 +1,17 @@
 package ru.runa.gpd.editor.graphiti.update;
 
+import com.google.common.base.Objects;
+import java.util.List;
 import org.eclipse.graphiti.features.context.ICustomContext;
 import org.eclipse.jface.window.Window;
+import org.eclipse.swt.widgets.Display;
+import ru.runa.gpd.editor.graphiti.ChangeTimerDefinitionFeature;
+import ru.runa.gpd.editor.graphiti.ChangeVariableMappingsFeature;
+import ru.runa.gpd.editor.graphiti.UndoRedoUtil;
 import ru.runa.gpd.lang.model.StartState;
 import ru.runa.gpd.ui.dialog.MessageNodeDialog;
 import ru.runa.gpd.ui.dialog.StartStateTimerDialog;
+import ru.runa.gpd.util.VariableMapping;
 
 public class DoubleClickStartNodeFeature extends DoubleClickFormNodeFeature {
 
@@ -20,13 +27,26 @@ public class DoubleClickStartNodeFeature extends DoubleClickFormNodeFeature {
             if (startNode.isStartByTimer()) {
                 String newTimerDefinition = new StartStateTimerDialog(startNode.getTimerEventDefinition()).openDialog();
                 if (newTimerDefinition != null) {
-                    startNode.setTimerEventDefinition(newTimerDefinition);
+                    Display.getDefault().asyncExec(new Runnable() {
+                        @Override
+                        public void run() {
+                            UndoRedoUtil.executeFeature(new ChangeTimerDefinitionFeature(startNode, newTimerDefinition));
+                        }
+                    });
                 }
             } else {
+                List<VariableMapping> oldMappings = startNode.getVariableMappings();
                 MessageNodeDialog dialog = new MessageNodeDialog(startNode.getProcessDefinition(), startNode.getVariableMappings(), false,
                         startNode.getName());
                 if (dialog.open() != Window.CANCEL) {
-                    startNode.setVariableMappings(dialog.getVariableMappings());
+                    if (!Objects.equal(dialog.getVariableMappings(), oldMappings)) {
+                        Display.getDefault().asyncExec(new Runnable() {
+                            @Override
+                            public void run() {
+                                UndoRedoUtil.executeFeature(new ChangeVariableMappingsFeature(startNode, dialog.getVariableMappings()));
+                            }
+                        });
+                    }
                 }
             }
         } else {

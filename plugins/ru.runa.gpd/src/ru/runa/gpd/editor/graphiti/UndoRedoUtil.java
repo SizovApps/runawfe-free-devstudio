@@ -10,10 +10,10 @@ import ru.runa.gpd.PropertyNames;
 import ru.runa.gpd.lang.model.Delegable;
 import ru.runa.gpd.lang.model.Describable;
 import ru.runa.gpd.lang.model.GraphElement;
-import ru.runa.gpd.lang.model.MessageNode;
 import ru.runa.gpd.lang.model.NamedGraphElement;
 import ru.runa.gpd.lang.model.Timer;
 import ru.runa.gpd.lang.model.TimerAction;
+import ru.runa.gpd.lang.model.TtlHolder;
 import ru.runa.gpd.util.Duration;
 
 public class UndoRedoUtil implements PropertyNames {
@@ -47,7 +47,7 @@ public class UndoRedoUtil implements PropertyNames {
                 executeFeature(new ChangeTimerActionFeature((Timer) source, (TimerAction) oldValue, (TimerAction) newValue));
                 break;
             case PROPERTY_TTL:
-                executeFeature(new ChangeTtlDurationFeature((MessageNode) source, (Duration) oldValue, (Duration) newValue));
+                executeFeature(new ChangeTtlDurationFeature((TtlHolder) source, (Duration) oldValue, (Duration) newValue));
                 break;
             }
         }
