@@ -36,8 +36,7 @@ public abstract class WfeServerConnectorDataImporter<T> {
     }
 
     public final void synchronize(final WfeServerConnectorSynchronizationCallback callback) {
-        if (!WfeServerConnector.getInstance().isServerSuitable()) {
-            Dialogs.warning(Localization.getString("wrong.server.product"));
+        if (!WfeServerConnector.getInstance().testConnection().visit(new DataImporterConnectionStatusVisitor(), null)) {
             return;
         }
         Shell shell = Display.getCurrent() != null ? Display.getCurrent().getActiveShell() : null;

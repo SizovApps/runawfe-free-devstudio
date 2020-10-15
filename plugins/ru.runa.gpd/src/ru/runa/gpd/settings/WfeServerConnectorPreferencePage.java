@@ -21,6 +21,7 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import ru.runa.gpd.Activator;
 import ru.runa.gpd.Localization;
+import ru.runa.gpd.sync.ConnectionStatus;
 import ru.runa.gpd.sync.WfeServerConnector;
 import ru.runa.gpd.sync.WfeServerConnectorSettings;
 import ru.runa.gpd.ui.custom.Dialogs;
@@ -118,7 +119,10 @@ public class WfeServerConnectorPreferencePage extends FieldEditorPreferencePage 
                     WfeServerConnectorsPreferenceNode wfeServerConnectorsNode = WfeServerConnectorsPreferenceNode.getInstance();
                     WfeServerConnectorPreferenceNode node = (WfeServerConnectorPreferenceNode) wfeServerConnectorsNode.findSubNode(id);
                     WfeServerConnector.getInstance().setSettings(WfeServerConnectorSettings.load(node.getIndex()));
-                    WfeServerConnector.getInstance().connect();
+                    final ConnectionStatus status = WfeServerConnector.getInstance().testConnection();
+                    status.visit(new WfeServerConnectionPreferencePageConnectionStatusVisitor(), () -> {
+                        WfeServerConnector.getInstance().connect();
+                    });
                     Dialogs.information(Localization.getString("test.Connection.Ok"));
                 } catch (Throwable th) {
                     Dialogs.error(Localization.getString("error.ConnectionFailed"), th);

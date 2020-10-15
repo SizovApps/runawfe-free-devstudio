@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.ws.soap.SOAPFaultException;
 import ru.runa.gpd.Localization;
+import ru.runa.gpd.sync.ConnectionStatus;
 import ru.runa.gpd.sync.WfeServerConnector;
 import ru.runa.wfe.bot.Bot;
 import ru.runa.wfe.bot.BotStation;
@@ -43,12 +44,14 @@ public abstract class AbstractWebServiceWfeServerConnector extends WfeServerConn
     private User user;
 
     @Override
-    public boolean isServerSuitable() {
+    public ConnectionStatus testConnection() {
         String url = getSettings().getUrl() + "/wfe/product";
         try (InputStreamReader reader = new InputStreamReader(new URL(url).openStream())) {
-            return CharStreams.toString(reader).toLowerCase().equals(Localization.getString("product.name").toLowerCase());
+            return CharStreams.toString(reader).toLowerCase().equals(Localization.getString("product.name").toLowerCase())
+                    ? ConnectionStatus.INDUSTRIAL_EDITION
+                    : ConnectionStatus.FREE_EDITION;
         } catch (Exception e) {
-            return false;
+            return ConnectionStatus.ESTABLISH_FAILED;
         }
     }
 

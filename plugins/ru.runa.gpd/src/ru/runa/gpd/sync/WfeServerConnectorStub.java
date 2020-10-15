@@ -112,7 +112,7 @@ public class WfeServerConnectorStub extends WfeServerConnector {
     }
 
     @Override
-    public boolean isServerSuitable() {
+    public ConnectionStatus testConnection() {
         throw new UnsupportedOperationException();
     }
 
