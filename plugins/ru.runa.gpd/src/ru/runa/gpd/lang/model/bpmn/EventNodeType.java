@@ -12,11 +12,16 @@ public enum EventNodeType {
     error;
 
     public String getImageName(boolean isCatch, boolean boundary) {
-        return getImageName(null, isCatch, boundary);
+        return getImageName(null, isCatch, boundary, true);
     }
 
-    public String getImageName(String style, boolean isCatch, boolean boundary) {
-        return (Strings.isNullOrEmpty(style) ? "" : style + "/") + (boundary ? "boundary_" : "") + (isCatch ? "catch" : "throw") + "_" + name() + ".png";
+    public String getImageName(boolean isCatch, boolean boundary, boolean interrupting) {
+        return getImageName(null, isCatch, boundary, interrupting);
+    }
+
+    public String getImageName(String style, boolean isCatch, boolean boundary, boolean interrupting) {
+        return (Strings.isNullOrEmpty(style) ? "" : style + "/") + (boundary ? "boundary_" : "") + (isCatch ? "catch" : "throw") + "_" + name()
+                + (interrupting ? "" : "_non_interrupting") + ".png";
     }
 
     private String label = Localization.getString("event.node.type." + name().toLowerCase());

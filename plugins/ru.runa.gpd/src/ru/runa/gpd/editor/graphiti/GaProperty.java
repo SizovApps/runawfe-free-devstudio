@@ -24,7 +24,6 @@ public class GaProperty extends PropertyImpl {
     public static final String ACTIVE = "active";
     public static final String TRUE = "true";
     public static final String FALSE = "false";
-    public static final String BOUNDARY_ELLIPSE = "boundaryEllipse";
     public static final String TRANSITION_COLOR_MARKER = "transitionColorMarker";
     public static final String TRANSITION_NUMBER = "transitionNumber";
 
