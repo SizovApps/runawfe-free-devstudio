@@ -3,18 +3,13 @@ package ru.runa.gpd.editor.graphiti.add;
 import org.eclipse.draw2d.geometry.Dimension;
 import org.eclipse.graphiti.features.context.IAddContext;
 import org.eclipse.graphiti.features.context.impl.LocationContext;
-import org.eclipse.graphiti.mm.algorithms.Ellipse;
 import org.eclipse.graphiti.mm.algorithms.Image;
 import org.eclipse.graphiti.mm.pictograms.ContainerShape;
 import org.eclipse.graphiti.mm.pictograms.PictogramElement;
-import org.eclipse.graphiti.mm.pictograms.Shape;
 import org.eclipse.graphiti.services.Graphiti;
 import org.eclipse.graphiti.services.IGaService;
 import org.eclipse.graphiti.services.IPeCreateService;
-
 import ru.runa.gpd.editor.GEFConstants;
-import ru.runa.gpd.editor.graphiti.GaProperty;
-import ru.runa.gpd.editor.graphiti.StyleUtil;
 import ru.runa.gpd.lang.model.GraphElement;
 import ru.runa.gpd.lang.model.Node;
 import ru.runa.gpd.lang.model.bpmn.CatchEventNode;
@@ -48,16 +43,9 @@ public class AddCatchEventNodeFeature extends AddEventNodeFeature implements GEF
             IGaService gaService = Graphiti.getGaService();
             ContainerShape containerShape = createService.createContainerShape(parentShape, true);
 
-            String imageId = "graph/" + catchEventNode.getEventNodeType().getImageName(true, true);
+            String imageId = "graph/" + catchEventNode.getEventNodeType().getImageName(true, true, catchEventNode.isInterruptingBoundaryEvent());
             Image image = gaService.createImage(containerShape, imageId);
             gaService.setLocationAndSize(image, context.getX(), context.getY(), bounds.width, bounds.height);
-
-            Shape ellipseShape = createService.createShape(containerShape, false);
-            Ellipse ellipse = Graphiti.getGaService().createPlainEllipse(ellipseShape);
-            ellipse.getProperties().add(new GaProperty(GaProperty.ID, GaProperty.BOUNDARY_ELLIPSE));
-            ellipse.setStyle(StyleUtil.getStateNodeBoundaryEventEllipseStyle(getDiagram(), catchEventNode));
-            ellipse.setLineVisible(!catchEventNode.isInterruptingBoundaryEvent());
-            Graphiti.getGaService().setLocationAndSize(ellipse, 0, 0, bounds.width, bounds.height);
 
             link(containerShape, catchEventNode);
             createService.createChopboxAnchor(containerShape);

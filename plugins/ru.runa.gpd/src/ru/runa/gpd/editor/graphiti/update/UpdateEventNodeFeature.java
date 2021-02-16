@@ -1,17 +1,15 @@
 package ru.runa.gpd.editor.graphiti.update;
 
+import com.google.common.base.Objects;
 import org.eclipse.graphiti.features.IReason;
 import org.eclipse.graphiti.features.context.IUpdateContext;
 import org.eclipse.graphiti.features.impl.Reason;
 import org.eclipse.graphiti.mm.algorithms.Image;
 import org.eclipse.graphiti.mm.pictograms.ContainerShape;
 import org.eclipse.graphiti.services.Graphiti;
-
 import ru.runa.gpd.lang.model.bpmn.AbstractEventNode;
 import ru.runa.gpd.lang.model.bpmn.CatchEventNode;
 import ru.runa.gpd.lang.model.bpmn.IBoundaryEventContainer;
-
-import com.google.common.base.Objects;
 
 public class UpdateEventNodeFeature extends UpdateFeature {
 
@@ -40,8 +38,9 @@ public class UpdateEventNodeFeature extends UpdateFeature {
         return true;
     }
 
-    private String getImageId(AbstractEventNode eventNode) {
+    protected String getImageId(AbstractEventNode eventNode) {
         boolean boundary = eventNode.getParent() instanceof IBoundaryEventContainer;
-        return "graph/" + eventNode.getEventNodeType().getImageName(eventNode instanceof CatchEventNode, boundary);
+        return "graph/"
+                + eventNode.getEventNodeType().getImageName(eventNode instanceof CatchEventNode, boundary, eventNode.isInterruptingBoundaryEvent());
     }
 }
