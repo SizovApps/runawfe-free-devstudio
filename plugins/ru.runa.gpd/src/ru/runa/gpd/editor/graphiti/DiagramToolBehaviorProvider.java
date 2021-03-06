@@ -5,6 +5,7 @@ import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+
 import org.eclipse.graphiti.dt.IDiagramTypeProvider;
 import org.eclipse.graphiti.features.ICreateConnectionFeature;
 import org.eclipse.graphiti.features.ICreateFeature;
@@ -52,6 +53,7 @@ import ru.runa.gpd.lang.model.MessageNode;
 import ru.runa.gpd.lang.model.Node;
 import ru.runa.gpd.lang.model.StartState;
 import ru.runa.gpd.lang.model.Subprocess;
+import ru.runa.gpd.lang.model.SubprocessDefinition;
 import ru.runa.gpd.lang.model.Swimlane;
 import ru.runa.gpd.lang.model.TaskState;
 import ru.runa.gpd.lang.model.Transition;
@@ -181,7 +183,8 @@ public class DiagramToolBehaviorProvider extends DefaultToolBehaviorProvider {
                 data.getDomainSpecificContextButtons().add(createTransitionButton.getDragAndDropFeatures().size(), createTransitionButton);
             }
         }
-        if (element instanceof StartState || element instanceof EndTokenState) {
+        if (((element instanceof StartState) && !(element.getProcessDefinition() instanceof SubprocessDefinition))
+                || element instanceof EndTokenState) {
             boolean startNode = element instanceof StartState;
             ContextButtonEntry changeEventTypeButton = new ContextButtonEntry(null, null);
             changeEventTypeButton.setText(Localization.getString("event.type.label"));
