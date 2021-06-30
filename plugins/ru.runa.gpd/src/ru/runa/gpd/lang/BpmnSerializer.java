@@ -19,6 +19,7 @@ import ru.runa.gpd.editor.graphiti.TransitionUtil;
 import ru.runa.gpd.lang.model.ActionImpl;
 import ru.runa.gpd.lang.model.Delegable;
 import ru.runa.gpd.lang.model.Describable;
+import ru.runa.gpd.lang.model.EmbeddedSubprocess;
 import ru.runa.gpd.lang.model.EndState;
 import ru.runa.gpd.lang.model.EndTokenState;
 import ru.runa.gpd.lang.model.EndTokenSubprocessDefinitionBehavior;
@@ -128,6 +129,7 @@ public class BpmnSerializer extends ProcessSerializer {
     private static final String TIME_CYCLE = "timeCycle";
     private static final String PROPERTY_USE_EXTERNAL_STORAGE_OUT = "useExternalStorageOut";
     private static final String PROPERTY_USE_EXTERNAL_STORAGE_IN = "useExternalStorageIn";
+    private static final String EMBEDDED = "embedded";
 
     @Override
     public boolean isSupported(Document document) {
@@ -263,6 +265,9 @@ public class BpmnSerializer extends ProcessSerializer {
             }
             if (subprocess.isValidateAtStart()) {
                 properties.put(VALIDATE_AT_START, true);
+            }
+            if (subprocess.isDisableCascadingSuspension()) {
+                properties.put(DISABLE_CASCADING_SUSPENSION, true);
             }
             if (subprocess.isAsync()) {
                 properties.put(ASYNC, Boolean.TRUE.toString());
@@ -459,7 +464,8 @@ public class BpmnSerializer extends ProcessSerializer {
         String bpmnElementName;
         if (graphElement instanceof EndTokenState) {
             bpmnElementName = END_EVENT;
-        } else if (graphElement instanceof MultiSubprocess) {
+        } else if (graphElement instanceof MultiSubprocess
+                || graphElement instanceof EmbeddedSubprocess) {
             bpmnElementName = SUBPROCESS;
         } else {
             bpmnElementName = graphElement.getTypeDefinition().getBpmnElementName();
@@ -639,6 +645,8 @@ public class BpmnSerializer extends ProcessSerializer {
             bpmnElementName = "endTokenEvent";
         } else if (properties.containsKey(MULTI_INSTANCE)) {
             bpmnElementName = "multiProcess";
+        } else if (properties.containsKey(EMBEDDED)) {
+            bpmnElementName = "embeddedProcess";
         } else {
             bpmnElementName = node.getName();
             if (SEND_TASK.equals(bpmnElementName)) {
@@ -883,6 +891,9 @@ public class BpmnSerializer extends ProcessSerializer {
             }
             if (properties.containsKey(VALIDATE_AT_START)) {
                 subprocess.setValidateAtStart(Boolean.parseBoolean(properties.get(VALIDATE_AT_START)));
+            }
+            if (properties.containsKey(DISABLE_CASCADING_SUSPENSION)) {
+                subprocess.setDisableCascadingSuspension(Boolean.parseBoolean(properties.get(DISABLE_CASCADING_SUSPENSION)));
             }
             String async = properties.get(ASYNC);
             if (async != null) {
