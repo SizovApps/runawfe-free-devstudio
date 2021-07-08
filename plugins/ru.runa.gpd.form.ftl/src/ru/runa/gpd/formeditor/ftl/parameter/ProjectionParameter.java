@@ -15,13 +15,14 @@ import ru.runa.gpd.PropertyNames;
 import ru.runa.gpd.formeditor.ftl.Component;
 import ru.runa.gpd.formeditor.ftl.ComponentParameter;
 import ru.runa.gpd.formeditor.ftl.ui.dialog.projection.ProjectionDataModel;
+import ru.runa.gpd.formeditor.ftl.ui.dialog.projection.ProjectionDialog;
 import ru.runa.gpd.formeditor.ftl.util.CdataWrapUtils;
 import ru.runa.gpd.formeditor.resources.Messages;
 import ru.runa.gpd.formeditor.wysiwyg.FormEditor;
 import ru.runa.gpd.lang.model.Delegable;
 import ru.runa.gpd.lang.model.ProcessDefinition;
 import ru.runa.gpd.lang.model.VariableUserType;
-import ru.runa.gpd.ui.enhancement.DialogEnhancement;
+import ru.runa.gpd.ui.enhancement.DialogEnhancementMode;
 
 public class ProjectionParameter extends ParameterType implements DependsOnDbVariableUserType {
     private ProjectionDelegable delegable;
@@ -50,8 +51,9 @@ public class ProjectionParameter extends ParameterType implements DependsOnDbVar
                 return;
             }
 
-            final String xml = DialogEnhancement.showConfigurationDialog(delegable);
-            ;
+            final ProjectionDialog provider = new ProjectionDialog(userType.get(), null);
+            final String xml = provider.showConfigurationDialog(delegable, new DialogEnhancementMode());
+
             if (xml == null) {
                 return;
             }
