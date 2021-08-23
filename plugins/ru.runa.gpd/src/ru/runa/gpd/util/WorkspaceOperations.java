@@ -1,9 +1,5 @@
 package ru.runa.gpd.util;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -13,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.io.SAXReader;
@@ -43,12 +40,19 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.FileEditorInput;
+
+import com.google.common.base.Charsets;
+import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+
 import ru.runa.gpd.BotCache;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.PluginLogger;
 import ru.runa.gpd.ProcessCache;
 import ru.runa.gpd.SubprocessMap;
 import ru.runa.gpd.editor.BotTaskEditor;
+import ru.runa.gpd.editor.DataTableEditor;
 import ru.runa.gpd.editor.ProcessEditorBase;
 import ru.runa.gpd.editor.ProcessSaveHistory;
 import ru.runa.gpd.editor.gef.GEFProcessEditor;
@@ -64,6 +68,7 @@ import ru.runa.gpd.lang.model.ProcessDefinition;
 import ru.runa.gpd.lang.model.Subprocess;
 import ru.runa.gpd.lang.model.SubprocessDefinition;
 import ru.runa.gpd.lang.model.TaskState;
+import ru.runa.gpd.lang.model.VariableUserType;
 import ru.runa.gpd.lang.par.ParContentProvider;
 import ru.runa.gpd.ui.custom.Dialogs;
 import ru.runa.gpd.ui.dialog.DataSourceDialog;
@@ -87,6 +92,7 @@ import ru.runa.gpd.ui.wizard.ImportParWizard;
 import ru.runa.gpd.ui.wizard.NewBotStationWizard;
 import ru.runa.gpd.ui.wizard.NewBotTaskWizard;
 import ru.runa.gpd.ui.wizard.NewBotWizard;
+import ru.runa.gpd.ui.wizard.NewDataTableWizard;
 import ru.runa.gpd.ui.wizard.NewFolderWizard;
 import ru.runa.gpd.ui.wizard.NewProcessDefinitionWizard;
 import ru.runa.gpd.ui.wizard.NewProcessProjectWizard;
@@ -469,6 +475,13 @@ public class WorkspaceOperations {
         dialog.open();
     }
 
+    public static void createDataTable(IStructuredSelection selection) {
+        NewDataTableWizard wizard = new NewDataTableWizard();
+        wizard.init(PlatformUI.getWorkbench(), selection);
+        WizardDialog dialog = new WizardDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), wizard);
+        dialog.open();
+    }
+
     public static void saveBotTask(IFile botTaskFile, BotTask botTask) {
         try {
             StringBuffer info = new StringBuffer();
@@ -490,6 +503,20 @@ public class WorkspaceOperations {
             infoStream.close();
         } catch (CoreException | IOException e) {
             throw new InternalApplicationException(e);
+        }
+    }
+
+    public static void saveDataTable(IFile file, VariableUserType dataTable) {
+        Document document = UserTypeXmlContentPorvider.save(file, dataTable);
+        if (document != null) {
+            byte[] contentBytes;
+            contentBytes = XmlUtil.writeXml(document);
+            InputStream content = new ByteArrayInputStream(contentBytes);
+            try {
+                IOUtils.createOrUpdateFile(file, content);
+            } catch (CoreException e) {
+                throw new InternalApplicationException(e);
+            }
         }
     }
 
@@ -707,6 +734,14 @@ public class WorkspaceOperations {
         }
     }
 
+    public static void openDataTable(IFile dataTableFile) {
+        try {
+            IDE.openEditor(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(), dataTableFile, DataTableEditor.ID, true);
+        } catch (PartInitException e) {
+            PluginLogger.logError("Unable open data table", e);
+        }
+    }
+
     public static void copyDataSource(IStructuredSelection selection) {
         IFile srcFile = (IFile) selection.getFirstElement();
         String srcDSName = srcFile.getName();
@@ -734,6 +769,10 @@ public class WorkspaceOperations {
         }
     }
 
+    public static void copyDataTable(IStructuredSelection selection) {
+        // TODO add functionality
+    }
+
     public static void deleteDataSources(List<IResource> resources) {
         for (IResource resource : resources) {
             try {
@@ -751,6 +790,10 @@ public class WorkspaceOperations {
                 PluginLogger.logError("Error deleting", e);
             }
         }
+    }
+
+    public static void deleteDataTable(List<IResource> resources) {
+        // TODO add functionality
     }
 
     public static void exportDataSource(IStructuredSelection selection) {

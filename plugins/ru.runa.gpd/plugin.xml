@@ -40,6 +40,12 @@
           id="ru.runa.gpd.editors.DiffEditor"
           name="Process Differences Editor">
     </editor>
+    <editor
+          class="ru.runa.gpd.editor.DataTableEditor"
+          icon="icons/data_tables.png"
+          id="ru.runa.gpd.editor.DataTableEditor"
+          name="data table editor">
+    </editor>
   </extension> 
     
   <extension
@@ -1555,10 +1561,26 @@
                ratio="0.2"
                relationship="stack"
                relative="ru.runa.gpd.botExplorerView"/>
+         <view
+               id="ru.runa.gpd.dataTablesExplorerView"
+               ratio="0.2"
+               relationship="stack"
+               relative="ru.runa.gpd.dataSourceExplorerView"/>
          <viewShortcut id="ru.runa.gpd.explorerView"/>
          <newWizardShortcut id="wizard.new.process.definition"/>
          <newWizardShortcut id="wizard.new.project"/>
-         <perspectiveShortcut id="ru.runa.gpd.perspective"/>
+         <perspectiveShortcut
+               id="ru.runa.gpd.perspective">
+         </perspectiveShortcut>
+         <view
+               id="ru.runa.gpd.views.SampleView"
+               ratio="0.5"
+               relationship="right"
+               relative="org.eclipse.ui.views.ProblemView">
+         </view>
+      </perspectiveExtension>
+      <perspectiveExtension
+            targetID="org.eclipse.jdt.ui.JavaPerspective">
       </perspectiveExtension>
    </extension>
    <extension
@@ -1615,6 +1637,13 @@
             icon="icons/data_sources.png"
             id="ru.runa.gpd.dataSourceExplorerView"
             name="%label.view.dataSourceDesignerExplorer">
+      </view>
+      <view
+            category="ru.runa.gpd.view.category"
+            class="ru.runa.gpd.ui.view.DataTablesExplorerTreeView"
+            icon="icons/data_tables.png"
+            id="ru.runa.gpd.dataTablesExplorerView"
+            name="%label.view.dataTablesDesignerExplorer">
       </view>
    </extension>
    <extension
@@ -2961,6 +2990,13 @@
                menubarPath="window/additions"
                style="push"/>
          <action
+               class="ru.runa.gpd.ui.action.OpenDataTablesExplorer"
+               icon="icons/data_tables.png"
+               id="ru.runa.gpd.ui.action.openDataTablesExplorer"
+               label="%label.view.dataTablesDesignerExplorer"
+               menubarPath="window/additions"
+               style="push"/>
+         <action
                class="ru.runa.gpd.ui.action.OpenValidationErrorsView"
                icon="icons/validation_error.gif"
                id="openValidationErrorsView"
@@ -3301,6 +3337,11 @@
 	         <run class="ru.runa.gpd.DataSourcesNature"></run>
 	      </runtime>
 	</extension>
+	<extension id="dataTablesNature" name="specific nature for data tables project" point="org.eclipse.core.resources.natures">
+	      <runtime>
+	         <run class="ru.runa.gpd.DataTablesNature"></run>
+	      </runtime>
+	</extension>
  <extension
        id="processNature"
        name="specific nature for process project (used since 4.1.0)"
@@ -3403,5 +3444,11 @@ for (java.util.Map map : LIST_VARIABLE) {
    map.put("ATTRIBUTE_NAME", VALUE);
 }      
       </statement>
+ </extension>
+ <extension
+       point="org.eclipse.help.contexts">
+    <contexts
+          file="contexts.xml">
+    </contexts>
  </extension>
 </plugin>
