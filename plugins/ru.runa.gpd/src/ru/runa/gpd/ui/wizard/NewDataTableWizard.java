@@ -23,6 +23,8 @@ public class NewDataTableWizard extends Wizard implements INewWizard {
     private NewDataTableWizardPage page;
     private IStructuredSelection selection;
     private IWorkbench workbench;
+    private static final String DATA_TABLES_PROJECT_NAME = "DataTables";
+    private static final String DATA_TABLE_FILE_EXTENSION = ".xml";
 
     public NewDataTableWizard() {
     }
@@ -42,8 +44,8 @@ public class NewDataTableWizard extends Wizard implements INewWizard {
                 public void run(IProgressMonitor monitor) throws InvocationTargetException {
                     try {
                         monitor.beginTask("processing", 4);
-                        IProject dtProject = ResourcesPlugin.getWorkspace().getRoot().getProject("DataTables");
-                        IFile dataTableFile = dtProject.getFile(page.getDataTableName() + ".xml");
+                        IProject dtProject = ResourcesPlugin.getWorkspace().getRoot().getProject(DATA_TABLES_PROJECT_NAME);
+                        IFile dataTableFile = dtProject.getFile(page.getDataTableName() + DATA_TABLE_FILE_EXTENSION);
                         VariableUserType dataTable = new VariableUserType(page.getDataTableName());
                         WorkspaceOperations.saveDataTable(dataTableFile, dataTable);
                         monitor.worked(1);

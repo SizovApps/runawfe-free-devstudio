@@ -52,6 +52,7 @@ import ru.runa.gpd.lang.model.VariableUserType;
 import ru.runa.gpd.ui.custom.LoggingSelectionAdapter;
 import ru.runa.gpd.ui.wizard.CompactWizardDialog;
 import ru.runa.gpd.ui.wizard.VariableWizard;
+import ru.runa.gpd.util.IOUtils;
 import ru.runa.gpd.util.WorkspaceOperations;
 
 public class DataTableEditor extends EditorPart implements ISelectionListener, IResourceChangeListener, PropertyChangeListener {
@@ -83,19 +84,19 @@ public class DataTableEditor extends EditorPart implements ISelectionListener, I
 
     @Override
     public void init(IEditorSite site, IEditorInput input) throws PartInitException {
-       setSite(site);
-       setInput(input);
-       FileEditorInput fileInput = (FileEditorInput) input;
-       dataTableFile = fileInput.getFile();
+        setSite(site);
+        setInput(input);
+        FileEditorInput fileInput = (FileEditorInput) input;
+        dataTableFile = fileInput.getFile();
         String dataTableFileNameWithoutExtension = dataTableFile.getName().substring(0, dataTableFile.getName().lastIndexOf('.'));
-       try {
+        try {
             dataTable = DataTableCache.getDataTable(dataTableFileNameWithoutExtension);
-       } catch (Exception e) {
-           throw new PartInitException("", e);
-       }
-       setPartName(dataTableFile.getName().substring(0, dataTableFile.getName().lastIndexOf('.')));
-       getSite().getPage().addSelectionListener(this);
-       ResourcesPlugin.getWorkspace().addResourceChangeListener(this, IResourceChangeEvent.POST_CHANGE);
+        } catch (Exception e) {
+            throw new PartInitException("", e);
+        }
+        setPartName(IOUtils.getWithoutExtension(dataTableFile.getName()));
+        getSite().getPage().addSelectionListener(this);
+        ResourcesPlugin.getWorkspace().addResourceChangeListener(this, IResourceChangeEvent.POST_CHANGE);
     }
 
     @Override

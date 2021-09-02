@@ -47,6 +47,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
 import ru.runa.gpd.BotCache;
+import ru.runa.gpd.DataTableCache;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.PluginLogger;
 import ru.runa.gpd.ProcessCache;
@@ -77,9 +78,11 @@ import ru.runa.gpd.ui.dialog.RenameBotDialog;
 import ru.runa.gpd.ui.dialog.RenameBotStationDialog;
 import ru.runa.gpd.ui.dialog.RenameBotTaskDialog;
 import ru.runa.gpd.ui.dialog.RenameProcessDefinitionDialog;
+import ru.runa.gpd.ui.dialog.RenameUserTypeDialog;
 import ru.runa.gpd.ui.wizard.CompactWizardDialog;
 import ru.runa.gpd.ui.wizard.CompareProcessDefinitionWizard;
 import ru.runa.gpd.ui.wizard.CopyBotTaskWizard;
+import ru.runa.gpd.ui.wizard.CopyDataTableWizard;
 import ru.runa.gpd.ui.wizard.CopyProcessDefinitionWizard;
 import ru.runa.gpd.ui.wizard.ExportBotElementWizardPage;
 import ru.runa.gpd.ui.wizard.ExportBotWizard;
@@ -192,6 +195,7 @@ public class WorkspaceOperations {
             refreshResource(resource);
         }
         BotCache.reload();
+        DataTableCache.reload();
     }
 
     public static void refreshResource(IResource resource) {
@@ -734,6 +738,25 @@ public class WorkspaceOperations {
         }
     }
 
+    public static void renameDataTable(IStructuredSelection selection) {
+        IFile srcFile = (IFile) selection.getFirstElement();
+        String srcFileName = IOUtils.getWithoutExtension(srcFile.getName());
+        String srcFileNameExtension = IOUtils.getExtension(srcFile.getName());
+        VariableUserType userType = DataTableCache.getDataTable(srcFileName);
+        RenameUserTypeDialog dialog = new RenameUserTypeDialog(new ProcessDefinition(null), userType);
+        dialog.open();
+        String newName = dialog.getName();
+        userType.setName(newName);
+        IFile newFile = srcFile.getProject().getFile(newName + "." + srcFileNameExtension);
+        try {
+            WorkspaceOperations.deleteDataTableFile(srcFile);
+        } catch (CoreException e) {
+            throw new InternalApplicationException(e);
+        }
+        WorkspaceOperations.saveDataTable(newFile, userType);
+        DataTableCache.reload();
+    }
+
     public static void openDataTable(IFile dataTableFile) {
         try {
             IDE.openEditor(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(), dataTableFile, DataTableEditor.ID, true);
@@ -770,7 +793,11 @@ public class WorkspaceOperations {
     }
 
     public static void copyDataTable(IStructuredSelection selection) {
-        // TODO add functionality
+        CopyDataTableWizard wizard = new CopyDataTableWizard();
+        wizard.init(PlatformUI.getWorkbench(), selection);
+        CompactWizardDialog dialog = new CompactWizardDialog(wizard);
+        dialog.open();
+        DataTableCache.reload();
     }
 
     public static void deleteDataSources(List<IResource> resources) {
@@ -792,8 +819,20 @@ public class WorkspaceOperations {
         }
     }
 
-    public static void deleteDataTable(List<IResource> resources) {
-        // TODO add functionality
+    public static void deleteDataTable(IStructuredSelection selection) {
+        try {
+            IFile selectedDataTable = (IFile) selection.getFirstElement();
+            if (Dialogs.confirm(Localization.getString("Delete.dataTable.message", IOUtils.getWithoutExtension(selectedDataTable.getName())))) {
+                deleteDataTableFile(selectedDataTable);
+            }
+        } catch (CoreException e) {
+            PluginLogger.logError("Error deleting", e);
+        }
+        DataTableCache.reload();
+    }
+
+    private static void deleteDataTableFile(IFile file) throws CoreException {
+        file.delete(true, null);
     }
 
     public static void exportDataSource(IStructuredSelection selection) {

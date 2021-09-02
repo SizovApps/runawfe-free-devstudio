@@ -125,17 +125,37 @@ public class DataTablesExplorerTreeView extends ViewPart implements ISelectionLi
                 WorkspaceOperations.createDataTable(selection);
             }
         });
+
+        if (dtSelected) {
+            manager.add(
+                    new Action(Localization.getString("DTExplorerTreeView.menu.label.renameDT"),
+                            SharedImages.getImageDescriptor("icons/rename.gif")) {
+                        @Override
+                        public void run() {
+                            WorkspaceOperations.renameDataTable(selection);
+                        }
+                    });
+            manager.add(
+                    new Action(Localization.getString("DTExplorerTreeView.menu.label.copyDT"), SharedImages.getImageDescriptor("icons/copy.gif")) {
+                        @Override
+                        public void run() {
+                            WorkspaceOperations.copyDataTable(selection);
+                        }
+                    });
+        }
+
         if (!selection.isEmpty()) {
-            manager.add(new Action(Localization.getString("ExplorerTreeView.menu.label.refresh"), SharedImages.getImageDescriptor("icons/refresh.gif")) {
-                @Override
-                public void run() {
-                    WorkspaceOperations.refreshResources(resources);
-                }
+            manager.add(
+                    new Action(Localization.getString("ExplorerTreeView.menu.label.refresh"), SharedImages.getImageDescriptor("icons/refresh.gif")) {
+                        @Override
+                        public void run() {
+                            WorkspaceOperations.refreshResources(resources);
+                        }
             });
             manager.add(new Action(Localization.getString("button.delete"), SharedImages.getImageDescriptor("icons/delete.gif")) {
                 @Override
                 public void run() {
-                    WorkspaceOperations.deleteDataTable(resources);
+                    WorkspaceOperations.deleteDataTable(selection);
                 }
             });
         }

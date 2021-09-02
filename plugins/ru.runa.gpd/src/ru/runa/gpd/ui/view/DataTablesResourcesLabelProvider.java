@@ -5,6 +5,7 @@ import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.graphics.Image;
 
 import ru.runa.gpd.SharedImages;
+import ru.runa.gpd.util.IOUtils;
 
 
 public class DataTablesResourcesLabelProvider extends LabelProvider {
@@ -13,7 +14,7 @@ public class DataTablesResourcesLabelProvider extends LabelProvider {
     public String getText(Object element) {
         if (element instanceof IResource) {
             String name = ((IResource) element).getName(); 
-            return name.substring(0, name.lastIndexOf('.'));
+            return IOUtils.getWithoutExtension(name);
         }
         return super.getText(element);
     }
