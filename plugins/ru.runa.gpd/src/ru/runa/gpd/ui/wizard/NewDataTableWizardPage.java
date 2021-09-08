@@ -1,5 +1,6 @@
 package ru.runa.gpd.ui.wizard;
 
+import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.WizardPage;
@@ -93,5 +94,9 @@ public class NewDataTableWizardPage extends WizardPage {
 
     private boolean isDataTableNameValid() {
         return FileNameChecker.isValid(nameText.getText());
+    }
+
+    public IStructuredSelection setSelection(IResource resource) {
+        return selection;
     }
 }

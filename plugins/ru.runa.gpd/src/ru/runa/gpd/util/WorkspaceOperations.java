@@ -87,6 +87,7 @@ import ru.runa.gpd.ui.wizard.CopyProcessDefinitionWizard;
 import ru.runa.gpd.ui.wizard.ExportBotElementWizardPage;
 import ru.runa.gpd.ui.wizard.ExportBotWizard;
 import ru.runa.gpd.ui.wizard.ExportDataSourceWizard;
+import ru.runa.gpd.ui.wizard.ExportDataTableWizard;
 import ru.runa.gpd.ui.wizard.ExportParWizard;
 import ru.runa.gpd.ui.wizard.ImportBotElementWizardPage;
 import ru.runa.gpd.ui.wizard.ImportBotWizard;
@@ -522,6 +523,7 @@ public class WorkspaceOperations {
                 throw new InternalApplicationException(e);
             }
         }
+        DataTableCache.reload();
     }
 
     public static void deleteBotTask(IFile botTaskFile, BotTask botTask) {
@@ -859,6 +861,14 @@ public class WorkspaceOperations {
         };
         job.setUser(true);
         job.schedule();
+    }
+
+    public static void exportDataTable(IStructuredSelection selection) {
+        ExportDataTableWizard wizard = new ExportDataTableWizard();
+        wizard.init(PlatformUI.getWorkbench(), selection);
+        CompactWizardDialog dialog = new CompactWizardDialog(wizard);
+        dialog.open();
+
     }
 
 }

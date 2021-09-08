@@ -1,9 +1,5 @@
 package ru.runa.gpd.connector.wfe.ws;
 
-import com.google.common.base.Throwables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.io.CharStreams;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -12,6 +8,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Map;
+
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
@@ -20,6 +17,12 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.soap.SOAPFaultException;
+
+import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.io.CharStreams;
+
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.sync.ConnectionStatus;
 import ru.runa.gpd.sync.WfeServerConnector;
@@ -225,6 +228,11 @@ public class WebServiceWfeServerConnector extends WfeServerConnector {
     }
 
     @Override
+    public void deployDataTable(byte[] archive) {
+        getDataTableService().importDataTable(getUser(), archive, true);
+    }
+
+    @Override
     public List<BotStation> getBotStations() {
         return BotStationAdapter.toDTOs(getBotService().getBotStations());
     }
@@ -388,4 +396,7 @@ public class WebServiceWfeServerConnector extends WfeServerConnector {
         return api;
     }
 
+    private DataTableAPI getDataTableService() {
+        return new DataTableWebService(getUrl("System")).getSystemAPIPort();
+    }
 }

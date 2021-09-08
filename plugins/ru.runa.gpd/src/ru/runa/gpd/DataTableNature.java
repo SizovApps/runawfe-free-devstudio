@@ -4,9 +4,9 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.runtime.CoreException;
 
-public class DataTablesNature implements IProjectNature {
+public class DataTableNature implements IProjectNature {
     
-    public static final String NATURE_ID = "ru.runa.gpd.dataTablesNature";
+    public static final String NATURE_ID = "ru.runa.gpd.dataTableNature";
     private IProject project;
 
     @Override

@@ -4,7 +4,6 @@ import java.lang.reflect.InvocationTargetException;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -17,14 +16,13 @@ import org.eclipse.ui.ide.IDE;
 import ru.runa.gpd.PluginLogger;
 import ru.runa.gpd.editor.DataTableEditor;
 import ru.runa.gpd.lang.model.VariableUserType;
+import ru.runa.gpd.util.DataTableUtils;
 import ru.runa.gpd.util.WorkspaceOperations;
 
 public class NewDataTableWizard extends Wizard implements INewWizard {
     private NewDataTableWizardPage page;
     private IStructuredSelection selection;
     private IWorkbench workbench;
-    private static final String DATA_TABLES_PROJECT_NAME = "DataTables";
-    private static final String DATA_TABLE_FILE_EXTENSION = ".xml";
 
     public NewDataTableWizard() {
     }
@@ -44,8 +42,8 @@ public class NewDataTableWizard extends Wizard implements INewWizard {
                 public void run(IProgressMonitor monitor) throws InvocationTargetException {
                     try {
                         monitor.beginTask("processing", 4);
-                        IProject dtProject = ResourcesPlugin.getWorkspace().getRoot().getProject(DATA_TABLES_PROJECT_NAME);
-                        IFile dataTableFile = dtProject.getFile(page.getDataTableName() + DATA_TABLE_FILE_EXTENSION);
+                        IProject dtProject = DataTableUtils.getDataTableProject();
+                        IFile dataTableFile = dtProject.getFile(page.getDataTableName() + DataTableUtils.DATA_TABLE_FILE_EXTENSION);
                         VariableUserType dataTable = new VariableUserType(page.getDataTableName());
                         WorkspaceOperations.saveDataTable(dataTableFile, dataTable);
                         monitor.worked(1);

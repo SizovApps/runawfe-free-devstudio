@@ -30,7 +30,7 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
 
-import ru.runa.gpd.DataTablesNature;
+import ru.runa.gpd.DataTableNature;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.SharedImages;
 import ru.runa.gpd.ui.custom.LoggingDoubleClickAdapter;
@@ -38,7 +38,7 @@ import ru.runa.gpd.util.UiUtil;
 import ru.runa.gpd.util.WorkspaceOperations;
 import ru.runa.wfe.InternalApplicationException;
 
-public class DataTablesExplorerTreeView extends ViewPart implements ISelectionListener {
+public class DataTableExplorerTreeView extends ViewPart implements ISelectionListener {
     private TreeViewer viewer;
 
     @Override
@@ -50,7 +50,7 @@ public class DataTablesExplorerTreeView extends ViewPart implements ISelectionLi
             IProject dtProject = ResourcesPlugin.getWorkspace().getRoot().getProject("DataTables");
             if (!dtProject.exists()) {
                 IProjectDescription description = ResourcesPlugin.getWorkspace().newProjectDescription(dtProject.getName());
-                description.setNatureIds(new String[] { DataTablesNature.NATURE_ID });
+                description.setNatureIds(new String[] { DataTableNature.NATURE_ID });
                 dtProject.create(description, null);
                 dtProject.open(IResource.BACKGROUND_REFRESH, null);
                 dtProject.refreshLocal(IResource.DEPTH_ONE, null);
@@ -70,7 +70,7 @@ public class DataTablesExplorerTreeView extends ViewPart implements ISelectionLi
     public void createPartControl(Composite parent) {
         UiUtil.hideToolBar(getViewSite());
         viewer = new TreeViewer(parent, SWT.NONE);
-        viewer.setContentProvider(new DataTablesTreeContentProvider());
+        viewer.setContentProvider(new DataTableTreeContentProvider());
         viewer.setLabelProvider(new DataTablesResourcesLabelProvider());
         viewer.setInput(new Object());
         ResourcesPlugin.getWorkspace().addResourceChangeListener(new IResourceChangeListener() {
@@ -107,7 +107,7 @@ public class DataTablesExplorerTreeView extends ViewPart implements ISelectionLi
         menuMgr.addMenuListener(new IMenuListener() {
             @Override
             public void menuAboutToShow(IMenuManager manager) {
-                DataTablesExplorerTreeView.this.fillContextMenu(manager);
+                DataTableExplorerTreeView.this.fillContextMenu(manager);
             }
         });
         viewer.getControl().setMenu(menu);
@@ -142,6 +142,13 @@ public class DataTablesExplorerTreeView extends ViewPart implements ISelectionLi
                             WorkspaceOperations.copyDataTable(selection);
                         }
                     });
+            manager.add(new Action(Localization.getString("DTExplorerTreeView.menu.label.exportDT"),
+                    SharedImages.getImageDescriptor("icons/export_dt.gif")) {
+                @Override
+                public void run() {
+                    WorkspaceOperations.exportDataTable(selection);
+                }
+            });
         }
 
         if (!selection.isEmpty()) {

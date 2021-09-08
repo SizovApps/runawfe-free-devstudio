@@ -1640,7 +1640,7 @@
       </view>
       <view
             category="ru.runa.gpd.view.category"
-            class="ru.runa.gpd.ui.view.DataTablesExplorerTreeView"
+            class="ru.runa.gpd.ui.view.DataTableExplorerTreeView"
             icon="icons/data_tables.png"
             id="ru.runa.gpd.dataTablesExplorerView"
             name="%label.view.dataTablesDesignerExplorer">
@@ -2990,9 +2990,9 @@
                menubarPath="window/additions"
                style="push"/>
          <action
-               class="ru.runa.gpd.ui.action.OpenDataTablesExplorer"
+               class="ru.runa.gpd.ui.action.OpenDataTableExplorer"
                icon="icons/data_tables.png"
-               id="ru.runa.gpd.ui.action.openDataTablesExplorer"
+               id="ru.runa.gpd.ui.action.openDataTableExplorer"
                label="%label.view.dataTablesDesignerExplorer"
                menubarPath="window/additions"
                style="push"/>
@@ -3339,7 +3339,7 @@
 	</extension>
 	<extension id="dataTablesNature" name="specific nature for data tables project" point="org.eclipse.core.resources.natures">
 	      <runtime>
-	         <run class="ru.runa.gpd.DataTablesNature"></run>
+	         <run class="ru.runa.gpd.DataTableNature"></run>
 	      </runtime>
 	</extension>
  <extension

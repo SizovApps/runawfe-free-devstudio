@@ -12,9 +12,9 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
-import ru.runa.gpd.DataTablesNature;
+import ru.runa.gpd.DataTableNature;
 
-public class DataTablesTreeContentProvider implements ITreeContentProvider {
+public class DataTableTreeContentProvider implements ITreeContentProvider {
 
     @Override
     public Object[] getChildren(Object element) {
@@ -37,7 +37,7 @@ public class DataTablesTreeContentProvider implements ITreeContentProvider {
         IWorkspace workspace = ResourcesPlugin.getWorkspace();
         try {
             for (IResource resource : workspace.getRoot().members()) {
-                if (resource instanceof IProject && ((IProject) resource).getNature(DataTablesNature.NATURE_ID) != null) {
+                if (resource instanceof IProject && ((IProject) resource).getNature(DataTableNature.NATURE_ID) != null) {
                     for (IResource dtResource : ((IProject) resource).members()) {
                         if (dtResource instanceof IFile && ((IFile) dtResource).getFileExtension().equalsIgnoreCase("xml")) {
                             returnList.add(dtResource);

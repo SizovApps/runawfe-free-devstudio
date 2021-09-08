@@ -10,17 +10,18 @@ import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.LabelProvider;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
@@ -43,16 +44,22 @@ import org.eclipse.ui.forms.widgets.Section;
 import org.eclipse.ui.part.EditorPart;
 import org.eclipse.ui.part.FileEditorInput;
 
+import com.google.common.base.Strings;
+
 import ru.runa.gpd.DataTableCache;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.PluginLogger;
+import ru.runa.gpd.editor.clipboard.VariableTransfer;
 import ru.runa.gpd.lang.model.ProcessDefinition;
 import ru.runa.gpd.lang.model.Variable;
 import ru.runa.gpd.lang.model.VariableUserType;
 import ru.runa.gpd.ui.custom.LoggingSelectionAdapter;
+import ru.runa.gpd.ui.dialog.UpdateVariableNameDialog;
 import ru.runa.gpd.ui.wizard.CompactWizardDialog;
 import ru.runa.gpd.ui.wizard.VariableWizard;
+import ru.runa.gpd.util.EditorUtils;
 import ru.runa.gpd.util.IOUtils;
+import ru.runa.gpd.util.VariableUtils;
 import ru.runa.gpd.util.WorkspaceOperations;
 
 public class DataTableEditor extends EditorPart implements ISelectionListener, IResourceChangeListener, PropertyChangeListener {
@@ -64,10 +71,6 @@ public class DataTableEditor extends EditorPart implements ISelectionListener, I
     private IFile dataTableFile;
     private VariableUserType dataTable;
     private FormToolkit toolkit;
-    private Button createAttributeButton;
-    private Button changeAttributeButton;
-    private Button renameAttributeButton;
-    private Button deleteAttributeButton;
 
     @Override
     public void createPartControl(Composite parent) {
@@ -110,9 +113,8 @@ public class DataTableEditor extends EditorPart implements ISelectionListener, I
     }
 
     @Override
-    public void resourceChanged(IResourceChangeEvent arg0) {
-        // TODO Auto-generated method stub
-        
+    public void resourceChanged(IResourceChangeEvent event) {
+        EditorUtils.closeEditorIfRequired(event, dataTableFile, this);
     }
 
     @Override
@@ -160,12 +162,7 @@ public class DataTableEditor extends EditorPart implements ISelectionListener, I
         tableViewer.getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
         tableViewer.setContentProvider(new ArrayContentProvider());
         tableViewer.setLabelProvider(new TableLabelProvider());
-        tableViewer.addSelectionChangedListener(new ISelectionChangedListener() {
-            @Override
-            public void selectionChanged(SelectionChangedEvent event) {
-                // updateUI();
-            }
-        });
+
         getSite().setSelectionProvider(tableViewer);
         Table table = tableViewer.getTable();
         table.setHeaderVisible(true);
@@ -185,7 +182,7 @@ public class DataTableEditor extends EditorPart implements ISelectionListener, I
                 String[] attr = new String[] { userTypeAttribute.getName(), userTypeAttribute.getFormatLabel(), userTypeAttribute.getDefaultValue() };
                 userTypeAttributes.add(attr);
             }
-            tableViewer.setInput(userTypeAttributes);
+            tableViewer.setInput(dataTable.getAttributes());
         } else {
             tableViewer.setInput(new Object[0]);
         }
@@ -199,17 +196,33 @@ public class DataTableEditor extends EditorPart implements ISelectionListener, I
         gridData.verticalAlignment = SWT.TOP;
         gridData.grabExcessVerticalSpace = true;
         buttonsBar.setLayoutData(gridData);
-        createAttributeButton = addButton(buttonsBar, "button.create", new CreateAttributeSelectionListener(), false);
-        changeAttributeButton = addButton(buttonsBar, "button.change", new ChangeAttributeSelectionListener(), false);
-        renameAttributeButton = addButton(buttonsBar, "button.rename", new RenameAttributeSelectionListener(), false);
-        deleteAttributeButton = addButton(buttonsBar, "button.delete", new DeleteAttributeSelectionListener(), false);
+        addButton(buttonsBar, "button.create", new CreateAttributeSelectionListener(), false);
+        addButton(buttonsBar, "button.change", new ChangeAttributeSelectionListener(), false);
+        addButton(buttonsBar, "button.rename", new RenameAttributeSelectionListener(), false);
+        addButton(buttonsBar, "button.delete", new DeleteAttributeSelectionListener(), false);
+        addButton(buttonsBar, "button.copy", new CopyAttributeSelectionListener(), true);
+        addButton(buttonsBar, "button.paste", new PasteAttributeSelectionListener(), true);
     }
 
     private static class TableLabelProvider extends LabelProvider implements ITableLabelProvider {
         @Override
         public String getColumnText(Object element, int index) {
-            String[] data = (String[]) element;
-            return data[index];
+            Variable variable = (Variable) element;
+            switch (index) {
+            case 0:
+                return variable.getName();
+            case 1:
+                return variable.getFormatLabel();
+            case 2:
+                return Strings.nullToEmpty(variable.getDefaultValue());
+            default:
+                return "unknown " + index;
+            }
+        }
+
+        @Override
+        public String getText(Object element) {
+            return getColumnText(element, 0);
         }
 
         @Override
@@ -239,16 +252,52 @@ public class DataTableEditor extends EditorPart implements ISelectionListener, I
         return tableViewer == null ? null : (T) ((IStructuredSelection) tableViewer.getSelection()).getFirstElement();
     }
 
-    private class DeleteAttributeSelectionListener extends SelectionAdapter {
-
+    private class DeleteAttributeSelectionListener extends LoggingSelectionAdapter {
+        @Override
+        protected void onSelection(SelectionEvent e) throws Exception {
+            @SuppressWarnings("unchecked")
+            List<Variable> attributes = ((IStructuredSelection) tableViewer.getSelection()).toList();
+            for (Variable attribute : attributes) {
+                dataTable.removeAttribute(attribute);
+            }
+            WorkspaceOperations.saveDataTable(dataTableFile, dataTable);
+            rebuildView(editorComposite);
+        }
     }
 
-    private class RenameAttributeSelectionListener extends SelectionAdapter {
-
+    private class RenameAttributeSelectionListener extends LoggingSelectionAdapter {
+        @Override
+        protected void onSelection(SelectionEvent e) throws Exception {
+            Variable attribute = getSelection();
+            UpdateVariableNameDialog dialog = new UpdateVariableNameDialog(dataTable, attribute);
+            int result = dialog.open();
+            if (result != IDialogConstants.OK_ID) {
+                return;
+            }
+            String newAttributeName = dialog.getName();
+            String newAttributeScriptingName = dialog.getScriptingName();
+            attribute.setName(newAttributeName);
+            attribute.setScriptingName(newAttributeScriptingName);
+            WorkspaceOperations.saveDataTable(dataTableFile, dataTable);
+            rebuildView(editorComposite);
+        }
     }
 
-    private class ChangeAttributeSelectionListener extends SelectionAdapter {
-
+    private class ChangeAttributeSelectionListener extends LoggingSelectionAdapter {
+        @Override
+        protected void onSelection(SelectionEvent e) throws Exception {
+            Variable variable = getSelection();
+            VariableWizard wizard = new VariableWizard(new ProcessDefinition(null), dataTable, variable, false, true, false);
+            CompactWizardDialog dialog = new CompactWizardDialog(wizard);
+            if (dialog.open() == Window.OK) {
+                variable.setFormat(wizard.getVariable().getFormat());
+                variable.setUserType(wizard.getVariable().getUserType());
+                variable.setDefaultValue(wizard.getVariable().getDefaultValue());
+                variable.setStoreType(wizard.getVariable().getStoreType());
+                WorkspaceOperations.saveDataTable(dataTableFile, dataTable);
+                rebuildView(editorComposite);
+            }
+        }
     }
 
     private class CreateAttributeSelectionListener extends LoggingSelectionAdapter {
@@ -265,4 +314,53 @@ public class DataTableEditor extends EditorPart implements ISelectionListener, I
             }
         }
     }
+
+    private class CopyAttributeSelectionListener extends LoggingSelectionAdapter {
+        @Override
+        protected void onSelection(SelectionEvent e) throws Exception {
+            Clipboard clipboard = new Clipboard(getDisplay());
+            @SuppressWarnings("unchecked")
+            List<Variable> list = ((IStructuredSelection) tableViewer.getSelection()).toList();
+            clipboard.setContents(new Object[] { list }, new Transfer[] { VariableTransfer.getInstance() });
+        }
+    }
+
+    private class PasteAttributeSelectionListener extends LoggingSelectionAdapter {
+        @Override
+        protected void onSelection(SelectionEvent e) throws Exception {
+            Clipboard clipboard = new Clipboard(getDisplay());
+            @SuppressWarnings("unchecked")
+            List<Variable> data = (List<Variable>) clipboard.getContents(VariableTransfer.getInstance());
+            if (data != null) {
+                for (Variable variable : data) {
+                    boolean nameAllowed = true;
+                    Variable newVariable = VariableUtils.getVariableByName(dataTable, variable.getName());
+                    if (newVariable == null) {
+                        newVariable = new Variable(variable);
+                    } else {
+                        UpdateVariableNameDialog dialog = new UpdateVariableNameDialog(dataTable, newVariable);
+                        nameAllowed = dialog.open() == Window.OK;
+                        if (nameAllowed) {
+                            newVariable = new Variable(variable);
+                            newVariable.setName(dialog.getName());
+                            newVariable.setScriptingName(dialog.getScriptingName());
+                        }
+                    }
+                    dataTable.addAttribute(newVariable);
+                    tableViewer.setSelection(new StructuredSelection(variable));
+                    WorkspaceOperations.saveDataTable(dataTableFile, dataTable);
+                }
+            }
+            clipboard.dispose();
+        }
+    }
+
+    protected Display getDisplay() {
+        Display result = Display.getCurrent();
+        if (result == null) {
+            result = Display.getDefault();
+        }
+        return result;
+    }
+
 }
