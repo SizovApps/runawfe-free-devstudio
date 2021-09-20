@@ -1,9 +1,5 @@
 package ru.runa.gpd.ui.wizard;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
-import com.google.common.collect.Lists;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -16,6 +12,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -38,17 +35,20 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
+
+import com.google.common.base.Charsets;
+import com.google.common.base.Strings;
+import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
+
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.PluginLogger;
 import ru.runa.gpd.sync.WfeServerConnector;
 import ru.runa.gpd.sync.WfeServerConnectorComposite;
-import ru.runa.gpd.sync.WfeServerDataTableImporter;
 import ru.runa.gpd.sync.WfeServerProcessDefinitionImporter;
-import ru.runa.gpd.ui.custom.Dialogs;
 import ru.runa.gpd.ui.custom.LoggingSelectionAdapter;
 import ru.runa.gpd.util.DataTableUtils;
 import ru.runa.gpd.util.IOUtils;
-import ru.runa.wfe.datasource.DataTableStuff;
 
 public class ExportDataTableWizardPage extends ExportWizardPage {
     private final Map<String, IFile> dataTableNameFileMap;
@@ -74,7 +74,7 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
             Object selectedElement = selection.getFirstElement();
             if (selectedElement instanceof IAdaptable) {
                 IAdaptable adaptable = (IAdaptable) selectedElement;
-                IResource resource = (IResource) adaptable.getAdapter(IResource.class);
+                IResource resource = adaptable.getAdapter(IResource.class);
                 return resource;
             }
         }
@@ -108,7 +108,6 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
         createDestinationDirectoryGroup(exportGroup);
         exportToServerButton = new Button(exportGroup, SWT.RADIO);
         exportToServerButton.setText(Localization.getString("button.exportToServer"));
-        //TODO Importer
         serverConnectorComposite = new WfeServerConnectorComposite(exportGroup, WfeServerProcessDefinitionImporter.getInstance(), null);
         setControl(pageControl);
         if (exportResource != null) {

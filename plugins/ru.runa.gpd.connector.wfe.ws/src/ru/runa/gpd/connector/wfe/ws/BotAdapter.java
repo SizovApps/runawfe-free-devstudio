@@ -12,7 +12,7 @@ public class BotAdapter {
         Bot result = new Bot();
         result.setId(bot.getId());
         result.setCreateDate(DateAdapter.toDTO(bot.getCreateDate()));
-        result.setPassword(bot.getPassword());
+//        result.setPassword(bot.getPassword());
         result.setUsername(bot.getUsername());
         result.setVersion(bot.getVersion());
         return result;
@@ -30,7 +30,7 @@ public class BotAdapter {
         ru.runa.wfe.webservice.Bot result = new ru.runa.wfe.webservice.Bot();
         result.setId(bot.getId());
         result.setCreateDate(DateAdapter.toJAXB(bot.getCreateDate()));
-        result.setPassword(bot.getPassword());
+//        result.setPassword(bot.getPassword());
         result.setUsername(bot.getUsername());
         result.setVersion(bot.getVersion());
         return result;

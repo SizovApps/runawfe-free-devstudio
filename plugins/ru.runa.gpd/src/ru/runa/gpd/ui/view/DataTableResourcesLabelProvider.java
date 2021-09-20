@@ -8,7 +8,7 @@ import ru.runa.gpd.SharedImages;
 import ru.runa.gpd.util.IOUtils;
 
 
-public class DataTablesResourcesLabelProvider extends LabelProvider {
+public class DataTableResourcesLabelProvider extends LabelProvider {
 
     @Override
     public String getText(Object element) {

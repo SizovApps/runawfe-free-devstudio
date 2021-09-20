@@ -71,7 +71,7 @@ public class DataTableExplorerTreeView extends ViewPart implements ISelectionLis
         UiUtil.hideToolBar(getViewSite());
         viewer = new TreeViewer(parent, SWT.NONE);
         viewer.setContentProvider(new DataTableTreeContentProvider());
-        viewer.setLabelProvider(new DataTablesResourcesLabelProvider());
+        viewer.setLabelProvider(new DataTableResourcesLabelProvider());
         viewer.setInput(new Object());
         ResourcesPlugin.getWorkspace().addResourceChangeListener(new IResourceChangeListener() {
             @Override

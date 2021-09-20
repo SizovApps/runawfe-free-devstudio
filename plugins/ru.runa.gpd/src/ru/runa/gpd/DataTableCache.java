@@ -6,13 +6,13 @@ import org.dom4j.Document;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.ui.PlatformUI;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
 
 import ru.runa.gpd.lang.model.VariableUserType;
+import ru.runa.gpd.util.DataTableUtils;
 import ru.runa.gpd.util.UserTypeXmlContentPorvider;
 import ru.runa.gpd.util.XmlUtil;
 
@@ -29,7 +29,7 @@ public class DataTableCache {
         try {
             DATA_TABLES_FILES.clear();
             DATA_TABLES.clear();
-            IProject dtProject = ResourcesPlugin.getWorkspace().getRoot().getProject("DataTables");
+            IProject dtProject = DataTableUtils.getDataTableProject();
             for (IResource resource : dtProject.members()) {
                 if (!(resource instanceof IFile)) {
                     continue;

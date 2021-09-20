@@ -1,9 +1,11 @@
 package ru.runa.gpd.sync;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import java.util.List;
 import java.util.Map;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+
 import ru.runa.wfe.bot.Bot;
 import ru.runa.wfe.bot.BotStation;
 import ru.runa.wfe.bot.BotTask;
@@ -113,6 +115,11 @@ public class WfeServerConnectorStub extends WfeServerConnector {
 
     @Override
     public ConnectionStatus testConnection() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void deployDataTable(byte[] archive) {
         throw new UnsupportedOperationException();
     }
 

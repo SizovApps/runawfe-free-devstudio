@@ -6,13 +6,11 @@ import java.util.List;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IWorkspace;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
-import ru.runa.gpd.DataTableNature;
+import ru.runa.gpd.util.DataTableUtils;
 
 public class DataTableTreeContentProvider implements ITreeContentProvider {
 
@@ -34,15 +32,11 @@ public class DataTableTreeContentProvider implements ITreeContentProvider {
     @Override
     public Object[] getElements(Object inputElement) {
         List<Object> returnList = new ArrayList<Object>();
-        IWorkspace workspace = ResourcesPlugin.getWorkspace();
+        IProject dataTablesProject = DataTableUtils.getDataTableProject();
         try {
-            for (IResource resource : workspace.getRoot().members()) {
-                if (resource instanceof IProject && ((IProject) resource).getNature(DataTableNature.NATURE_ID) != null) {
-                    for (IResource dtResource : ((IProject) resource).members()) {
-                        if (dtResource instanceof IFile && ((IFile) dtResource).getFileExtension().equalsIgnoreCase("xml")) {
-                            returnList.add(dtResource);
-                        }
-                    }
+            for (IResource resource : dataTablesProject.members()) {
+                if (resource instanceof IFile && ((IFile) resource).getName().endsWith(DataTableUtils.DATA_TABLE_FILE_EXTENSION)) {
+                    returnList.add(resource);
                 }
             }
             return returnList.toArray();
