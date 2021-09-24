@@ -5,9 +5,20 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.CharStreams;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Map;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLHandshakeException;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.xml.ws.BindingProvider;
 import javax.xml.ws.soap.SOAPFaultException;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.sync.ConnectionStatus;
@@ -40,7 +51,7 @@ import ru.runa.wfe.webservice.SystemWebService;
 import ru.runa.wfe.webservice.User;
 import ru.runa.wfe.webservice.WfExecutor;
 
-public abstract class AbstractWebServiceWfeServerConnector extends WfeServerConnector {
+public class WebServiceWfeServerConnector extends WfeServerConnector {
     private User user;
 
     @Override
@@ -57,15 +68,15 @@ public abstract class AbstractWebServiceWfeServerConnector extends WfeServerConn
 
     @Override
     public void connect() {
-        AuthenticationAPI authenticationAPI = new AuthenticationWebService(getUrl("Authentication")).getAuthenticationAPIPort();
+        AuthenticationAPI api = getAuthenticationService();
         if (AUTHENTICATION_TYPE_LOGIN_PASSWORD.equals(settings.getAuthenticationType())) {
             String password = settings.getPassword();
             if (password == null) {
                 return;
             }
-            user = authenticationAPI.authenticateByLoginPassword(settings.getLogin(), password);
+            user = api.authenticateByLoginPassword(settings.getLogin(), password);
         } else {
-            user = authenticationAPI.authenticateByKerberos(getKerberosToken());
+            user = api.authenticateByKerberos(getKerberosToken());
         }
     }
 
@@ -91,7 +102,7 @@ public abstract class AbstractWebServiceWfeServerConnector extends WfeServerConn
 
     @Override
     public List<String> getRelationNames() {
-        RelationAPI api = new RelationWebService(getUrl("Relation")).getRelationAPIPort();
+        RelationAPI api = getRelationService();
         List<Relation> relations = api.getRelations(getUser(), null);
         List<String> result = Lists.newArrayListWithExpectedSize(relations.size());
         for (Relation relation : relations) {
@@ -233,13 +244,67 @@ public abstract class AbstractWebServiceWfeServerConnector extends WfeServerConn
         return getDataSourceService().getNames();
     }
 
-    protected abstract URL getUrl(String serviceName);
+    private String getServiceUrl(String serviceName) {
+        String version = getVersion();
+        return settings.getUrl() + "/wfe-service-" + version + "/" + serviceName + "WebService/" + serviceName + "API";
+    }
 
-    protected String getVersion() {
+    private void setApiEndpointAddress(Object api, String serviceUrl) {
+        BindingProvider bindingProvider = (BindingProvider) api;
+        bindingProvider.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, serviceUrl);
+    }
+
+    private URL getWsdlUrl(String serviceUrl) {
+        try {
+            return new URL(serviceUrl + "?wsdl");
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private String getVersion() {
         String version = settings.getVersion();
         if (version == null) {
             String url = settings.getUrl() + "/wfe/version";
             try {
+                if ("https".equals(settings.getProtocol())) {
+                    SSLContext sslContext = SSLContext.getInstance("SSL");
+                    if (settings.isAllowSslInsecure()) {
+                        TrustManager[] tr = new TrustManager[] { new javax.net.ssl.X509TrustManager() {
+
+                            @Override
+                            public void checkClientTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {
+                            }
+
+                            @Override
+                            public void checkServerTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {
+                            }
+
+                            @Override
+                            public X509Certificate[] getAcceptedIssuers() {
+                                return null;
+                            }
+
+                        } };
+                        sslContext.init(null, tr, new SecureRandom());
+
+                        HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
+                            @Override
+                            public boolean verify(String hostname, SSLSession session) {
+                                return true;
+                            }
+                        });
+                    } else {
+                        sslContext.init(null, null, new SecureRandom());
+                        HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
+                            @Override
+                            public boolean verify(String hostname, SSLSession session) {
+                                return false;
+                            }
+                        });
+                    }
+                    HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
+                }
                 InputStreamReader reader = new InputStreamReader(new URL(url).openStream());
                 version = CharStreams.toString(reader);
                 int colonIndex = version.indexOf(":");
@@ -247,8 +312,10 @@ public abstract class AbstractWebServiceWfeServerConnector extends WfeServerConn
                     version = version.substring(colonIndex + 1);
                 }
                 reader.close();
+            }catch (SSLHandshakeException sslEx){
+                throw new RuntimeException("Ssl certificate is invalid for " + url);
             } catch (Exception e) {
-                throw new RuntimeException("Unable to acquire version using " + url);
+                throw new RuntimeException("Unable to acquire version using " + url, e);
             }
             settings.setVersion(version);
         }
@@ -272,24 +339,53 @@ public abstract class AbstractWebServiceWfeServerConnector extends WfeServerConn
         return user;
     }
 
+    private AuthenticationAPI getAuthenticationService() {
+        String serviceUrl = getServiceUrl("Authentication");
+        AuthenticationAPI api = new AuthenticationWebService(getWsdlUrl(serviceUrl)).getAuthenticationAPIPort();
+        setApiEndpointAddress(api, serviceUrl);
+        return api;
+    }
+
     private ExecutorAPI getExecutorService() {
-        return new ExecutorWebService(getUrl("Executor")).getExecutorAPIPort();
+        String serviceUrl = getServiceUrl("Executor");
+        ExecutorAPI api = new ExecutorWebService(getWsdlUrl(serviceUrl)).getExecutorAPIPort();
+        setApiEndpointAddress(api, serviceUrl);
+        return api;
     }
 
     private DefinitionAPI getDefinitionService() {
-        return new DefinitionWebService(getUrl("Definition")).getDefinitionAPIPort();
+        String serviceUrl = getServiceUrl("Definition");
+        DefinitionAPI api = new DefinitionWebService(getWsdlUrl(serviceUrl)).getDefinitionAPIPort();
+        setApiEndpointAddress(api, serviceUrl);
+        return api;
     }
 
     private BotAPI getBotService() {
-        return new BotWebService(getUrl("Bot")).getBotAPIPort();
+        String serviceUrl = getServiceUrl("Bot");
+        BotAPI api = new BotWebService(getWsdlUrl(serviceUrl)).getBotAPIPort();
+        setApiEndpointAddress(api, serviceUrl);
+        return api;
     }
 
     private DataSourceAPI getDataSourceService() {
-        return new DataSourceWebService(getUrl("DataSource")).getDataSourceAPIPort();
+        String serviceUrl = getServiceUrl("DataSource");
+        DataSourceAPI api = new DataSourceWebService(getWsdlUrl(serviceUrl)).getDataSourceAPIPort();
+        setApiEndpointAddress(api, serviceUrl);
+        return api;
     }
 
     private SystemAPI getSystemService() {
-        return new SystemWebService(getUrl("System")).getSystemAPIPort();
+        String serviceUrl = getServiceUrl("System");
+        SystemAPI api = new SystemWebService(getWsdlUrl(serviceUrl)).getSystemAPIPort();
+        setApiEndpointAddress(api, serviceUrl);
+        return api;
+    }
+
+    private RelationAPI getRelationService() {
+        String serviceUrl = getServiceUrl("Relation");
+        RelationAPI api = new RelationWebService(getWsdlUrl(serviceUrl)).getRelationAPIPort();
+        setApiEndpointAddress(api, serviceUrl);
+        return api;
     }
 
 }
