@@ -22,12 +22,12 @@ public class UserTypeXmlContentPorvider {
         Document document = XmlUtil.createDocument(ROOT_TAG);
         Element root = document.getRootElement();
         root.addAttribute(TAG_NAME_ATTRIBUTE, file.getName().substring(0, file.getName().lastIndexOf('.')));
-        for (Variable userType : dataTable.getAttributes()) {
+        for (Variable variable : dataTable.getAttributes()) {
             Element newUserTypeAttribute = root.addElement(USERTYPE_ATTRIBUTE_TAG_NAME);
-            newUserTypeAttribute.addAttribute(TAG_NAME_ATTRIBUTE, userType.getName());
-            newUserTypeAttribute.addAttribute(TAG_SCRIPTING_NAME_ATTRIBUTE, userType.getScriptingName());
-            newUserTypeAttribute.addAttribute(TAG_FORMAT_ATTRIBUTE, userType.getFormat());
-            newUserTypeAttribute.addAttribute(TAG_DEFAULT_ATTRIBUTE, userType.getDefaultValue());
+            newUserTypeAttribute.addAttribute(TAG_NAME_ATTRIBUTE, variable.getName());
+            newUserTypeAttribute.addAttribute(TAG_SCRIPTING_NAME_ATTRIBUTE, variable.getScriptingName());
+            newUserTypeAttribute.addAttribute(TAG_FORMAT_ATTRIBUTE, variable.getFormat());
+            newUserTypeAttribute.addAttribute(TAG_DEFAULT_ATTRIBUTE, variable.getDefaultValue());
         }
         return document;
     }

@@ -1562,7 +1562,7 @@
                relationship="stack"
                relative="ru.runa.gpd.botExplorerView"/>
          <view
-               id="ru.runa.gpd.dataTablesExplorerView"
+               id="ru.runa.gpd.dataTableExplorerView"
                ratio="0.2"
                relationship="stack"
                relative="ru.runa.gpd.dataSourceExplorerView"/>
@@ -1642,8 +1642,8 @@
             category="ru.runa.gpd.view.category"
             class="ru.runa.gpd.ui.view.DataTableExplorerTreeView"
             icon="icons/data_tables.png"
-            id="ru.runa.gpd.dataTablesExplorerView"
-            name="%label.view.dataTablesDesignerExplorer">
+            id="ru.runa.gpd.dataTableExplorerView"
+            name="%label.view.dataTableDesignerExplorer">
       </view>
    </extension>
    <extension
@@ -2993,7 +2993,7 @@
                class="ru.runa.gpd.ui.action.OpenDataTableExplorer"
                icon="icons/data_tables.png"
                id="ru.runa.gpd.ui.action.openDataTableExplorer"
-               label="%label.view.dataTablesDesignerExplorer"
+               label="%label.view.dataTableDesignerExplorer"
                menubarPath="window/additions"
                style="push"/>
          <action
