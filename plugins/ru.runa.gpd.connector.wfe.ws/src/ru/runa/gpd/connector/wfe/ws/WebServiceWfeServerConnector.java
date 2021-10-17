@@ -28,6 +28,9 @@ import ru.runa.gpd.sync.WfeServerConnector;
 import ru.runa.wfe.bot.BotStationDoesNotExistException;
 import ru.runa.wfe.definition.DefinitionAlreadyExistException;
 import ru.runa.wfe.definition.DefinitionNameMismatchException;
+import ru.runa.wfe.definition.dto.WfDefinition;
+import ru.runa.wfe.user.Group;
+import ru.runa.wfe.var.UserType;
 import ru.runa.wfe.webservice.Actor;
 import ru.runa.wfe.webservice.AuthenticationAPI;
 import ru.runa.wfe.webservice.AuthenticationWebService;
@@ -52,7 +55,6 @@ import ru.runa.wfe.webservice.RelationWebService;
 import ru.runa.wfe.webservice.SystemAPI;
 import ru.runa.wfe.webservice.SystemWebService;
 import ru.runa.wfe.webservice.User;
-import ru.runa.wfe.webservice.WfDefinition;
 import ru.runa.wfe.webservice.WfExecutor;
 
 public class WebServiceWfeServerConnector extends WfeServerConnector {
@@ -229,11 +231,6 @@ public class WebServiceWfeServerConnector extends WfeServerConnector {
     }
 
     @Override
-    public void deployDataTable(byte[] archive) {
-        getDataTableService().importDataTable(getUser(), archive);
-    }
-
-    @Override
     public List<BotStation> getBotStations() {
         return BotStationAdapter.toDTOs(getBotService().getBotStations());
     }
@@ -251,6 +248,21 @@ public class WebServiceWfeServerConnector extends WfeServerConnector {
     @Override
     public List<String> getDataSourceNames() {
         return getDataSourceService().getNames();
+    }
+
+    @Override
+    public void deployDataTable(byte[] archive) {
+        getDataTableService().importDataTable(getUser(), archive);
+    }
+
+    @Override
+    public List<String> getDataTableNames() {
+        return getDataTableService().getDataTables(getUser());
+    }
+
+    @Override
+    public UserType getDataTable(String name) {
+        return DataTableAdapter.toDTO(getDataTableService().getDataTable(getUser(), name));
     }
 
     private String getServiceUrl(String serviceName) {

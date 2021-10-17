@@ -91,7 +91,7 @@ public class DataTableEditor extends EditorPart implements ISelectionListener, I
         setInput(input);
         FileEditorInput fileInput = (FileEditorInput) input;
         dataTableFile = fileInput.getFile();
-        String dataTableFileNameWithoutExtension = dataTableFile.getName().substring(0, dataTableFile.getName().lastIndexOf('.'));
+        String dataTableFileNameWithoutExtension = IOUtils.getWithoutExtension(dataTableFile.getName());
         try {
             dataTable = DataTableCache.getDataTable(dataTableFileNameWithoutExtension);
         } catch (Exception e) {

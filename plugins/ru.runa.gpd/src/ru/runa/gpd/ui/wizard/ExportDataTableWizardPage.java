@@ -35,6 +35,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.ui.PlatformUI;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
@@ -56,6 +58,7 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
     protected final IResource exportResource;
     private Button exportToFileButton;
     private Button exportToServerButton;
+    private Button exportToProcessButton;
     private WfeServerConnectorComposite serverConnectorComposite;
 
     protected ExportDataTableWizardPage(IStructuredSelection selection) {
@@ -98,7 +101,6 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
         exportGroup.setLayoutData(new GridData(GridData.FILL_BOTH));
         exportToFileButton = new Button(exportGroup, SWT.RADIO);
         exportToFileButton.setText(Localization.getString("button.exportToFile"));
-        exportToFileButton.setSelection(true);
         exportToFileButton.addSelectionListener(new LoggingSelectionAdapter() {
             @Override
             protected void onSelection(SelectionEvent e) throws Exception {
@@ -108,7 +110,11 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
         createDestinationDirectoryGroup(exportGroup);
         exportToServerButton = new Button(exportGroup, SWT.RADIO);
         exportToServerButton.setText(Localization.getString("button.exportToServer"));
+        exportToServerButton.setSelection(true);
         serverConnectorComposite = new WfeServerConnectorComposite(exportGroup, WfeServerProcessDefinitionImporter.getInstance(), null);
+        new Label(parent, SWT.NONE); // vertical spacer
+        exportToProcessButton = new Button(exportGroup, SWT.RADIO);
+        exportToProcessButton.setText(Localization.getString("button.exportToProcess"));
         setControl(pageControl);
         if (exportResource != null) {
             dataTableListViewer.setSelection(new StructuredSelection(IOUtils.getWithoutExtension(exportResource.getName())));
@@ -161,6 +167,7 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
 
     public boolean finish() {
         boolean exportToFile = exportToFileButton.getSelection();
+        boolean exportToProcess = exportToProcessButton.getSelection();
         String selected = getSelection();
         if (selected == null) {
             setErrorMessage("select");
@@ -179,6 +186,8 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
             exportResource.refreshLocal(IResource.DEPTH_ONE, null);
             if (exportToFile) {
                 exportToZipFile(exportResource);
+            } else if (exportToProcess) {
+                exportToProcess(exportResource);
             } else {
                 deployToServer(exportResource);
             }
@@ -197,6 +206,10 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
     protected void deployToServer(IResource exportResource) throws Exception {
         new DataTableDeployOperation(Lists.newArrayList((IFile) exportResource)).run(null);
     }
+
+    protected void exportToProcess(IResource exportResource) throws Exception {
+        new DataTableExportToProcessOperation((IFile) exportResource).run(null);
+    };
 
     private static class DataTableExportOperation implements IRunnableWithProgress {
         
@@ -261,6 +274,24 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
                 throw new InvocationTargetException(e);
             }
         }
+    }
+
+    private static class DataTableExportToProcessOperation implements IRunnableWithProgress {
+
+        protected final IFile resourceToExport;
+
+        public DataTableExportToProcessOperation(IFile resourceToExport) {
+            this.resourceToExport = resourceToExport;
+        }
+        @Override
+        public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+            ExportDataTableToProcessWizard wizard = new ExportDataTableToProcessWizard(resourceToExport);
+            wizard.init(PlatformUI.getWorkbench(), null);
+            CompactWizardDialog dialog = new CompactWizardDialog(wizard);
+            dialog.setMinimumPageSize(850, 200);
+            dialog.open();
+        }
+
     }
 
     private static class DataTableFileExporter {

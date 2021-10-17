@@ -92,6 +92,7 @@ import ru.runa.gpd.ui.wizard.ExportParWizard;
 import ru.runa.gpd.ui.wizard.ImportBotElementWizardPage;
 import ru.runa.gpd.ui.wizard.ImportBotWizard;
 import ru.runa.gpd.ui.wizard.ImportDataSourceWizard;
+import ru.runa.gpd.ui.wizard.ImportDataTableWizard;
 import ru.runa.gpd.ui.wizard.ImportParWizard;
 import ru.runa.gpd.ui.wizard.NewBotStationWizard;
 import ru.runa.gpd.ui.wizard.NewBotTaskWizard;
@@ -868,7 +869,14 @@ public class WorkspaceOperations {
         wizard.init(PlatformUI.getWorkbench(), selection);
         CompactWizardDialog dialog = new CompactWizardDialog(wizard);
         dialog.open();
-
     }
+
+    public static void importDataTable(IStructuredSelection selection) {
+        ImportDataTableWizard wizard = new ImportDataTableWizard();
+        wizard.init(PlatformUI.getWorkbench(), selection);
+        CompactWizardDialog dialog = new CompactWizardDialog(wizard);
+        dialog.open();
+    }
+
 
 }

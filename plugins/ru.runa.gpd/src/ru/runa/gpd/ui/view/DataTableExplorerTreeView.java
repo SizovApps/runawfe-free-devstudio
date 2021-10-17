@@ -152,6 +152,13 @@ public class DataTableExplorerTreeView extends ViewPart implements ISelectionLis
         }
 
         if (!selection.isEmpty()) {
+            manager.add(new Action(Localization.getString("DTExplorerTreeView.menu.label.importDT"),
+                    SharedImages.getImageDescriptor("icons/import_dt.gif")) {
+                @Override
+                public void run() {
+                    WorkspaceOperations.importDataTable(selection);
+                }
+            });
             manager.add(
                     new Action(Localization.getString("ExplorerTreeView.menu.label.refresh"), SharedImages.getImageDescriptor("icons/refresh.gif")) {
                         @Override

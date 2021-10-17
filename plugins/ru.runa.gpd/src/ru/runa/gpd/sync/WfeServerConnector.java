@@ -19,6 +19,7 @@ import ru.runa.wfe.bot.Bot;
 import ru.runa.wfe.bot.BotStation;
 import ru.runa.wfe.bot.BotTask;
 import ru.runa.wfe.definition.dto.WfDefinition;
+import ru.runa.wfe.var.UserType;
 
 public abstract class WfeServerConnector implements Connector, PrefConstants {
     private static WfeServerConnector instance = WfeServerConnectorRegistry.createConnector();
@@ -108,4 +109,8 @@ public abstract class WfeServerConnector implements Connector, PrefConstants {
     public abstract ConnectionStatus testConnection();
 
     public abstract void deployDataTable(byte[] archive);
+
+    public abstract List<String> getDataTableNames();
+
+    public abstract UserType getDataTable(String name);
 }
