@@ -38,6 +38,7 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.PlatformUI;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Iterables;
@@ -168,7 +169,7 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
     }
 
     public boolean finish() {
-        boolean exportToFile = exportToFileButton.getSelection();
+        boolean exportToFile = false;
         boolean exportToProcess = exportToProcessButton.getSelection();
         String selected = getSelection();
         if (selected == null) {
@@ -314,8 +315,8 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
         private final ZipOutputStream outputStream;
 
         public DataTableFileExporter(OutputStream outputStream) throws IOException {
-            // TODO implement export to a file (xml, csv and json)
-            this.outputStream = null;
+            this.outputStream = new ZipOutputStream(outputStream, Charsets.UTF_8);
+
         }
 
         public void finished() throws IOException {
