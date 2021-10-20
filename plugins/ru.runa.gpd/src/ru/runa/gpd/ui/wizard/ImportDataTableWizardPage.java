@@ -44,7 +44,7 @@ public class ImportDataTableWizardPage extends ImportWizardPage {
 
     public ImportDataTableWizardPage(IStructuredSelection selection) {
         super(ImportDataTableWizardPage.class, selection);
-        setTitle(Localization.getString("ImportDataSourceWizardPage.page.title"));
+        setTitle(Localization.getString("ImportDataTableWizardPage.page.title"));
     }
 
     @Override
@@ -95,7 +95,7 @@ public class ImportDataTableWizardPage extends ImportWizardPage {
         serverDataTableViewer.setInput(new Object());
     }
 
-    public boolean performFinish() {
+    public boolean finish() {
         try {
             for (TreeItem treeItem : serverDataTableViewer.getTree().getSelection()) {
                 IFile dsFile = DataTableUtils.getDataTableProject().getFile(treeItem.getText() + DataTableUtils.DATA_TABLE_FILE_EXTENSION);
@@ -160,5 +160,4 @@ public class ImportDataTableWizardPage extends ImportWizardPage {
     private IWorkbenchPage getActivePage() {
         return workbench.getActiveWorkbenchWindow().getActivePage();
     }
-
 }

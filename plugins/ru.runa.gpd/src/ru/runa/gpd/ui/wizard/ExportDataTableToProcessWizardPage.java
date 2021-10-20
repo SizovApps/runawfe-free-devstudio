@@ -31,6 +31,7 @@ import ru.runa.gpd.lang.model.SubprocessDefinition;
 import ru.runa.gpd.lang.model.VariableUserType;
 import ru.runa.gpd.util.IOUtils;
 import ru.runa.gpd.util.WorkspaceOperations;
+import ru.runa.wfe.InternalApplicationException;
 
 public class ExportDataTableToProcessWizardPage extends ExportWizardPage {
     private final Map<String, IFile> definitionNameFileMap;
@@ -117,7 +118,7 @@ public class ExportDataTableToProcessWizardPage extends ExportWizardPage {
                 Set<String> userTypeNamesInProcess = processDefinition.getVariableUserTypes().stream().map(VariableUserType::getName)
                         .collect(Collectors.toSet());
                 if (userTypeNamesInProcess.contains(dataTable.getName())) {
-                    throw new Exception(Localization.getString("ExportDataTableToProcessWizardPage.error.usertype.already.exists",
+                    throw new InternalApplicationException(Localization.getString("ExportDataTableToProcessWizardPage.error.usertype.already.exists",
                             dataTable.getName(), processDefinition.getName()));
                 } else {
                     dataTable.setStoreInExternalStorage(true);
@@ -126,22 +127,11 @@ public class ExportDataTableToProcessWizardPage extends ExportWizardPage {
                 }
             } catch (Throwable th) {
                 PluginLogger.logErrorWithoutDialog(Localization.getString("ExportParWizardPage.error.export"), th);
-                setErrorMessage(stripSoapTrash(Throwables.getRootCause(th).getMessage()));
+                setErrorMessage(Throwables.getRootCause(th).getMessage());
                 return false;
             }
         }
         return result;
-    }
-
-    private String stripSoapTrash(String trash) {
-        final String head = "exception:";
-        final String tail = "please see the server log to find more detail regarding exact cause of the failure.";
-        int index = trash.toLowerCase().lastIndexOf(head);
-        String tag = (index > 0 ? trash.substring(index + head.length()) : trash);
-        if (tag.toLowerCase().endsWith(tail)) {
-            tag = tag.substring(0, tag.length() - tail.length());
-        }
-        return tag.trim();
     }
 
 }

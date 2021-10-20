@@ -25,6 +25,9 @@ import com.google.common.io.CharStreams;
 
 import ru.runa.gpd.sync.ConnectionStatus;
 import ru.runa.gpd.sync.WfeServerConnector;
+import ru.runa.wfe.InternalApplicationException;
+import ru.runa.wfe.bot.Bot;
+import ru.runa.wfe.bot.BotStation;
 import ru.runa.wfe.bot.BotStationDoesNotExistException;
 import ru.runa.wfe.definition.DefinitionAlreadyExistException;
 import ru.runa.wfe.definition.DefinitionNameMismatchException;
@@ -34,9 +37,7 @@ import ru.runa.wfe.var.UserType;
 import ru.runa.wfe.webservice.Actor;
 import ru.runa.wfe.webservice.AuthenticationAPI;
 import ru.runa.wfe.webservice.AuthenticationWebService;
-import ru.runa.wfe.webservice.Bot;
 import ru.runa.wfe.webservice.BotAPI;
-import ru.runa.wfe.webservice.BotStation;
 import ru.runa.wfe.webservice.BotTask;
 import ru.runa.wfe.webservice.BotWebService;
 import ru.runa.wfe.webservice.DataSourceAPI;
@@ -252,7 +253,14 @@ public class WebServiceWfeServerConnector extends WfeServerConnector {
 
     @Override
     public void deployDataTable(byte[] archive) {
-        getDataTableService().importDataTable(getUser(), archive);
+    	try {
+            getDataTableService().importDataTable(getUser(), archive);
+    	} catch (Exception e) {
+            if (e.getMessage() != null && e.getMessage().contains("DataTableAlreadyExistsException")) {
+                throw new InternalApplicationException("DataTableAlreadyExistsException");
+            }
+            throw Throwables.propagate(e);
+    	}
     }
 
     @Override

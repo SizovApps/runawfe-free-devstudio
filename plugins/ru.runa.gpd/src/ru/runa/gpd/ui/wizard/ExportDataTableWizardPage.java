@@ -10,6 +10,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -27,7 +28,6 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -38,9 +38,9 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.PlatformUI;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 import ru.runa.gpd.Localization;
@@ -48,9 +48,9 @@ import ru.runa.gpd.PluginLogger;
 import ru.runa.gpd.sync.WfeServerConnector;
 import ru.runa.gpd.sync.WfeServerConnectorComposite;
 import ru.runa.gpd.sync.WfeServerProcessDefinitionImporter;
-import ru.runa.gpd.ui.custom.LoggingSelectionAdapter;
 import ru.runa.gpd.util.DataTableUtils;
 import ru.runa.gpd.util.IOUtils;
+import ru.runa.wfe.InternalApplicationException;
 
 public class ExportDataTableWizardPage extends ExportWizardPage {
     private final Map<String, IFile> dataTableNameFileMap;
@@ -99,15 +99,16 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
         Group exportGroup = new Group(sashForm, SWT.NONE);
         exportGroup.setLayout(new GridLayout(1, false));
         exportGroup.setLayoutData(new GridData(GridData.FILL_BOTH));
-        exportToFileButton = new Button(exportGroup, SWT.RADIO);
-        exportToFileButton.setText(Localization.getString("button.exportToFile"));
-        exportToFileButton.addSelectionListener(new LoggingSelectionAdapter() {
-            @Override
-            protected void onSelection(SelectionEvent e) throws Exception {
-                onExportModeChanged();
-            }
-        });
-        createDestinationDirectoryGroup(exportGroup);
+        // TODO implement export to a file (xml, csv and json)
+        // exportToFileButton = new Button(exportGroup, SWT.RADIO);
+        // exportToFileButton.setText(Localization.getString("button.exportToFile"));
+        // exportToFileButton.addSelectionListener(new LoggingSelectionAdapter() {
+        // @Override
+        // protected void onSelection(SelectionEvent e) throws Exception {
+        // onExportModeChanged();
+        // }
+        // });
+        // createDestinationDirectoryGroup(exportGroup);
         exportToServerButton = new Button(exportGroup, SWT.RADIO);
         exportToServerButton.setText(Localization.getString("button.exportToServer"));
         exportToServerButton.setSelection(true);
@@ -119,7 +120,8 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
         if (exportResource != null) {
             dataTableListViewer.setSelection(new StructuredSelection(IOUtils.getWithoutExtension(exportResource.getName())));
         }
-        onExportModeChanged();
+        // TODO implement export to a file (xml, csv and json)
+        // onExportModeChanged();
     }
 
     private void onExportModeChanged() {
@@ -185,7 +187,7 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
         try {
             exportResource.refreshLocal(IResource.DEPTH_ONE, null);
             if (exportToFile) {
-                exportToZipFile(exportResource);
+                exportToFile(exportResource);
             } else if (exportToProcess) {
                 exportToProcess(exportResource);
             } else {
@@ -199,7 +201,7 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
         }
     }
 
-    protected void exportToZipFile(IResource exportResource) throws Exception {
+    protected void exportToFile(IResource exportResource) throws Exception {
         new DataTableExportOperation(Lists.newArrayList((IFile) exportResource), new FileOutputStream(getDestinationValue())).run(null);
     }
 
@@ -216,7 +218,7 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
         protected final OutputStream outputStream;
         protected final List<IFile> resourcesToExport;
 
-        public DataTableExportOperation(List<IFile> resourcesToExport, OutputStream outputStream) {
+        public DataTableExportOperation(List<IFile> resourcesToExport, OutputStream outputStream) throws Exception {
             this.outputStream = outputStream;
             this.resourcesToExport = resourcesToExport;
         }
@@ -255,7 +257,7 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
 
     private class DataTableDeployOperation extends DataTableExportOperation {
         
-        public DataTableDeployOperation(List<IFile> resourcesToExport) {
+        public DataTableDeployOperation(List<IFile> resourcesToExport) throws Exception {
             super(resourcesToExport, new ByteArrayOutputStream());
         }
 
@@ -264,13 +266,26 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
             exportResources(progressMonitor);
             final ByteArrayOutputStream baos = (ByteArrayOutputStream) outputStream;
             try {
-                Display.getDefault().syncExec(new Runnable() {
+                Display display = Display.getDefault();
+                // default handler doesn't rethrow any exception thus we set custom one
+                display.setRuntimeExceptionHandler(new Consumer<RuntimeException>() {
+                    @Override
+                    public void accept(RuntimeException t) {
+                        throw new InternalApplicationException(t);
+                    }
+                });
+                display.syncExec(new Runnable() {
                     @Override
                     public void run() {
                         WfeServerConnector.getInstance().deployDataTable(baos.toByteArray());
                     }
                 });
             } catch (Exception e) {
+                if (e.getMessage().contains("DataTableAlreadyExistsException")) {
+                    String dataTableName = IOUtils.getWithoutExtension(Iterables.getOnlyElement(resourcesToExport).getName());
+                    throw new RuntimeException(
+                            Localization.getString("ExportDataTableToProcessWizardPage.error.dataTable.already.exists", dataTableName));
+                }
                 throw new InvocationTargetException(e);
             }
         }
@@ -299,7 +314,8 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
         private final ZipOutputStream outputStream;
 
         public DataTableFileExporter(OutputStream outputStream) throws IOException {
-            this.outputStream = new ZipOutputStream(outputStream, Charsets.UTF_8);
+            // TODO implement export to a file (xml, csv and json)
+            this.outputStream = null;
         }
 
         public void finished() throws IOException {

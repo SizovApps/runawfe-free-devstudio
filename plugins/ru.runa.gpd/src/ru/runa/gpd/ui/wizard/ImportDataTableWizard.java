@@ -13,7 +13,7 @@ public class ImportDataTableWizard extends Wizard implements IImportWizard {
 
     @Override
     public boolean performFinish() {
-        return mainPage.performFinish();
+        return mainPage.finish();
     }
 
     @Override
