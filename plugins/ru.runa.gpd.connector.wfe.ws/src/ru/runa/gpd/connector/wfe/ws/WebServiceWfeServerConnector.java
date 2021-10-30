@@ -23,13 +23,16 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.CharStreams;
 
+import ru.runa.gpd.Localization;
 import ru.runa.gpd.sync.ConnectionStatus;
 import ru.runa.gpd.sync.WfeServerConnector;
 import ru.runa.wfe.InternalApplicationException;
 import ru.runa.wfe.bot.Bot;
 import ru.runa.wfe.bot.BotStation;
 import ru.runa.wfe.bot.BotStationDoesNotExistException;
+import ru.runa.wfe.bot.BotTask;
 import ru.runa.wfe.definition.DefinitionAlreadyExistException;
+import ru.runa.wfe.definition.DefinitionDoesNotExistException;
 import ru.runa.wfe.definition.DefinitionNameMismatchException;
 import ru.runa.wfe.definition.dto.WfDefinition;
 import ru.runa.wfe.user.Group;
@@ -38,18 +41,15 @@ import ru.runa.wfe.webservice.Actor;
 import ru.runa.wfe.webservice.AuthenticationAPI;
 import ru.runa.wfe.webservice.AuthenticationWebService;
 import ru.runa.wfe.webservice.BotAPI;
-import ru.runa.wfe.webservice.BotTask;
 import ru.runa.wfe.webservice.BotWebService;
 import ru.runa.wfe.webservice.DataSourceAPI;
 import ru.runa.wfe.webservice.DataSourceWebService;
 import ru.runa.wfe.webservice.DataTableAPI;
 import ru.runa.wfe.webservice.DataTableWebService;
 import ru.runa.wfe.webservice.DefinitionAPI;
-import ru.runa.wfe.webservice.DefinitionDoesNotExistException;
 import ru.runa.wfe.webservice.DefinitionWebService;
 import ru.runa.wfe.webservice.ExecutorAPI;
 import ru.runa.wfe.webservice.ExecutorWebService;
-import ru.runa.wfe.webservice.Localization;
 import ru.runa.wfe.webservice.Relation;
 import ru.runa.wfe.webservice.RelationAPI;
 import ru.runa.wfe.webservice.RelationWebService;
@@ -265,12 +265,12 @@ public class WebServiceWfeServerConnector extends WfeServerConnector {
 
     @Override
     public List<String> getDataTableNames() {
-        return getDataTableService().getDataTables(getUser());
+        return getDataTableService().getDataTablesNames(getUser());
     }
 
     @Override
     public UserType getDataTable(String name) {
-        return DataTableAdapter.toDTO(getDataTableService().getDataTable(getUser(), name));
+        return DataTableAdapter.toDTO(getDataTableService().getDataTableWithoutValues(getUser(), name));
     }
 
     private String getServiceUrl(String serviceName) {
