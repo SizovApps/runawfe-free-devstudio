@@ -1,15 +1,18 @@
 package ru.runa.gpd.ui.view;
 
+import java.util.ArrayList;
 import java.util.List;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
+import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
@@ -18,6 +21,7 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
@@ -29,7 +33,6 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
-
 import ru.runa.gpd.DataTableNature;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.SharedImages;
@@ -40,6 +43,7 @@ import ru.runa.wfe.InternalApplicationException;
 
 public class DataTableExplorerTreeView extends ViewPart implements ISelectionListener {
     private TreeViewer viewer;
+    private static final String PROJECT_NAME = "DataTables";
 
     @Override
     public void init(IViewSite site) throws PartInitException {
@@ -47,7 +51,7 @@ public class DataTableExplorerTreeView extends ViewPart implements ISelectionLis
         getSite().getWorkbenchWindow().getSelectionService().addSelectionListener(this);
         
         try {
-            IProject dtProject = ResourcesPlugin.getWorkspace().getRoot().getProject("DataTables");
+            IProject dtProject = ResourcesPlugin.getWorkspace().getRoot().getProject(PROJECT_NAME);
             if (!dtProject.exists()) {
                 IProjectDescription description = ResourcesPlugin.getWorkspace().newProjectDescription(dtProject.getName());
                 description.setNatureIds(new String[] { DataTableNature.NATURE_ID });
@@ -76,12 +80,35 @@ public class DataTableExplorerTreeView extends ViewPart implements ISelectionLis
         ResourcesPlugin.getWorkspace().addResourceChangeListener(new IResourceChangeListener() {
             @Override
             public void resourceChanged(IResourceChangeEvent event) {
+                if (event.getType() != IResourceChangeEvent.POST_CHANGE) {
+                    return;
+                }
+                IResourceDelta rootDelta = event.getDelta();
+                IResourceDelta projectDelta = rootDelta.findMember(new Path(PROJECT_NAME));
+                if (projectDelta == null) {
+                    return;
+                }
+                final List<IResource> changedResources = new ArrayList<IResource>();
+                IResourceDeltaVisitor visitor = new IResourceDeltaVisitor() {
+                    @Override
+                    public boolean visit(IResourceDelta delta) {
+                        IResource resource = delta.getResource();
+                        if (resource.getType() == IResource.FILE) {
+                            changedResources.add(resource);
+                        }
+                        return true;
+                    }
+                };
+
                 try {
+                    projectDelta.accept(visitor);
                     PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
                         @Override
                         public void run() {
                             if (!viewer.getControl().isDisposed()) {
                                 viewer.refresh();
+                                StructuredSelection selection = new StructuredSelection(changedResources.get(0));
+                                viewer.setSelection(selection);
                             }
                         }
                     });
@@ -169,7 +196,7 @@ public class DataTableExplorerTreeView extends ViewPart implements ISelectionLis
             manager.add(new Action(Localization.getString("button.delete"), SharedImages.getImageDescriptor("icons/delete.gif")) {
                 @Override
                 public void run() {
-                    WorkspaceOperations.deleteDataTable(selection);
+                    WorkspaceOperations.deleteDataTable(resources);
                 }
             });
         }

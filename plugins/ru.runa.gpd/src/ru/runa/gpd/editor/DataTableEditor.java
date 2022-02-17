@@ -1,10 +1,8 @@
 package ru.runa.gpd.editor;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
+import com.google.common.base.Strings;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
@@ -12,10 +10,11 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.ArrayContentProvider;
-import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.window.Window;
@@ -24,6 +23,7 @@ import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -31,24 +31,24 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
-import org.eclipse.ui.ISelectionListener;
-import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.forms.widgets.ExpandableComposite;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.Section;
 import org.eclipse.ui.part.EditorPart;
 import org.eclipse.ui.part.FileEditorInput;
-
-import com.google.common.base.Strings;
-
 import ru.runa.gpd.DataTableCache;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.PluginLogger;
+import ru.runa.gpd.editor.EditorPartBase.DataViewerComparator;
+import ru.runa.gpd.editor.EditorPartBase.TableColumnDescription;
+import ru.runa.gpd.editor.EditorPartBase.ValueComparator;
 import ru.runa.gpd.editor.clipboard.VariableTransfer;
 import ru.runa.gpd.lang.model.ProcessDefinition;
 import ru.runa.gpd.lang.model.Variable;
@@ -62,7 +62,7 @@ import ru.runa.gpd.util.IOUtils;
 import ru.runa.gpd.util.VariableUtils;
 import ru.runa.gpd.util.WorkspaceOperations;
 
-public class DataTableEditor extends EditorPart implements ISelectionListener, IResourceChangeListener, PropertyChangeListener {
+public class DataTableEditor extends EditorPart implements IResourceChangeListener, ISelectionChangedListener {
 
     public static final String ID = "ru.runa.gpd.editor.DataTableEditor";
 
@@ -71,6 +71,10 @@ public class DataTableEditor extends EditorPart implements ISelectionListener, I
     private IFile dataTableFile;
     private VariableUserType dataTable;
     private FormToolkit toolkit;
+    private Button editTypeButton;
+    private Button renameTypeButton;
+    private Button deleteTypeButton;
+    private Menu menu;
 
     @Override
     public void createPartControl(Composite parent) {
@@ -98,7 +102,6 @@ public class DataTableEditor extends EditorPart implements ISelectionListener, I
             throw new PartInitException("", e);
         }
         setPartName(IOUtils.getWithoutExtension(dataTableFile.getName()));
-        getSite().getPage().addSelectionListener(this);
         ResourcesPlugin.getWorkspace().addResourceChangeListener(this, IResourceChangeEvent.POST_CHANGE);
     }
 
@@ -107,20 +110,16 @@ public class DataTableEditor extends EditorPart implements ISelectionListener, I
     }
 
     @Override
-    public void propertyChange(PropertyChangeEvent evt) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
     public void resourceChanged(IResourceChangeEvent event) {
         EditorUtils.closeEditorIfRequired(event, dataTableFile, this);
     }
 
     @Override
-    public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-        // TODO Auto-generated method stub
-        
+    public void selectionChanged(SelectionChangedEvent event) {
+        enableAction(editTypeButton, !event.getSelection().isEmpty());
+        enableAction(deleteTypeButton, !event.getSelection().isEmpty());
+        enableAction(renameTypeButton, !event.getSelection().isEmpty());
+
     }
 
     @Override
@@ -133,17 +132,13 @@ public class DataTableEditor extends EditorPart implements ISelectionListener, I
     }
     @Override
     public void doSaveAs() {
-        // TODO Auto-generated method stub
-        
     }
     @Override
     public boolean isDirty() {
-        // TODO Auto-generated method stub
         return false;
     }
     @Override
     public boolean isSaveAsAllowed() {
-        // TODO Auto-generated method stub
         return false;
     }
 
@@ -154,7 +149,6 @@ public class DataTableEditor extends EditorPart implements ISelectionListener, I
         createAttributeTableViewer(composite);
         createButtonsBar(composite);
         composite.layout(true, true);
-
     }
 
     private void createAttributeTableViewer(Composite composite) {
@@ -162,20 +156,23 @@ public class DataTableEditor extends EditorPart implements ISelectionListener, I
         tableViewer.getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
         tableViewer.setContentProvider(new ArrayContentProvider());
         tableViewer.setLabelProvider(new TableLabelProvider());
+        tableViewer.addSelectionChangedListener(this);
 
         getSite().setSelectionProvider(tableViewer);
-        Table table = tableViewer.getTable();
-        table.setHeaderVisible(true);
-        table.setLinesVisible(true);
-        String[] columnNames = new String[] { Localization.getString("property.name"), Localization.getString("Variable.property.format"),
-                Localization.getString("Variable.property.defaultValue") };
-        int[] columnWidths = new int[] { 400, 200, 200 };
-        int[] columnAlignments = new int[] { SWT.LEFT, SWT.LEFT, SWT.LEFT };
-        for (int i = 0; i < columnNames.length; i++) {
-            TableColumn tableColumn = new TableColumn(table, columnAlignments[i]);
-            tableColumn.setText(columnNames[i]);
-            tableColumn.setWidth(columnWidths[i]);
-        }
+        createTable(new DataViewerComparator<>(new ValueComparator<Variable>() {
+            @Override
+            public int compare(Variable o1, Variable o2) {
+                int result = 0;
+                switch (getColumn()) {
+                case 0:
+                    result = o1.getName().compareTo(o2.getName());
+                    break;
+                case 1:
+                    result = o1.getFormatLabel().compareTo(o2.getFormatLabel());
+                }
+                return result;
+            }
+        }));
         List<String[]> userTypeAttributes = new ArrayList<>();
         if (dataTable != null) {
             for (Variable userTypeAttribute : dataTable.getAttributes()) {
@@ -186,6 +183,7 @@ public class DataTableEditor extends EditorPart implements ISelectionListener, I
         } else {
             tableViewer.setInput(new Object[0]);
         }
+        createContextMenu(tableViewer.getControl());
     }
 
     private void createButtonsBar(Composite composite) {
@@ -196,12 +194,12 @@ public class DataTableEditor extends EditorPart implements ISelectionListener, I
         gridData.verticalAlignment = SWT.TOP;
         gridData.grabExcessVerticalSpace = true;
         buttonsBar.setLayoutData(gridData);
-        addButton(buttonsBar, "button.create", new CreateAttributeSelectionListener(), false);
-        addButton(buttonsBar, "button.change", new ChangeAttributeSelectionListener(), false);
-        addButton(buttonsBar, "button.rename", new RenameAttributeSelectionListener(), false);
-        addButton(buttonsBar, "button.delete", new DeleteAttributeSelectionListener(), false);
-        addButton(buttonsBar, "button.copy", new CopyAttributeSelectionListener(), true);
-        addButton(buttonsBar, "button.paste", new PasteAttributeSelectionListener(), true);
+        addButton(buttonsBar, "button.create", new CreateAttributeSelectionListener(), true, true);
+        editTypeButton = addButton(buttonsBar, "button.change", new ChangeAttributeSelectionListener(), true, false);
+        renameTypeButton = addButton(buttonsBar, "button.rename", new RenameAttributeSelectionListener(), true, false);
+        deleteTypeButton = addButton(buttonsBar, "button.delete", new DeleteAttributeSelectionListener(), true, false);
+        addButton(buttonsBar, "button.copy", new CopyAttributeSelectionListener(), true, true);
+        addButton(buttonsBar, "button.paste", new PasteAttributeSelectionListener(), true, true);
     }
 
     private static class TableLabelProvider extends LabelProvider implements ITableLabelProvider {
@@ -231,12 +229,20 @@ public class DataTableEditor extends EditorPart implements ISelectionListener, I
         }
     }
 
-    private Button addButton(Composite parent, String buttonKey, SelectionAdapter selectionListener, boolean addToMenu) {
+    private Button addButton(Composite parent, String buttonKey, SelectionAdapter selectionListener, boolean addToMenu, boolean enabled) {
         String title = Localization.getString(buttonKey);
         GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
         Button button = getToolkit().createButton(parent, title, SWT.PUSH);
         button.setLayoutData(gridData);
         button.addSelectionListener(selectionListener);
+        button.setEnabled(enabled);
+        if (addToMenu) {
+            MenuItem item = new MenuItem(menu, SWT.NONE);
+            item.setText(title);
+            item.addSelectionListener(selectionListener);
+            item.setEnabled(enabled);
+            button.setData("menuItem", item);
+        }
         return button;
     }
 
@@ -248,8 +254,63 @@ public class DataTableEditor extends EditorPart implements ISelectionListener, I
     }
 
     @SuppressWarnings("unchecked")
-    protected <T> T getSelection() {
+    private <T> T getSelection() {
         return tableViewer == null ? null : (T) ((IStructuredSelection) tableViewer.getSelection()).getFirstElement();
+    }
+
+    private void createContextMenu(Control control) {
+        menu = new Menu(control.getShell(), SWT.POP_UP);
+        control.setMenu(menu);
+    }
+
+    private Display getDisplay() {
+        Display result = Display.getCurrent();
+        if (result == null) {
+            result = Display.getDefault();
+        }
+        return result;
+    }
+
+    private void enableAction(Button button, boolean enabled) {
+        button.setEnabled(enabled);
+        MenuItem menuItem = ((MenuItem) button.getData("menuItem"));
+        if (menuItem != null) {
+            menuItem.setEnabled(enabled);
+        }
+    }
+
+    private <S> void createTable(DataViewerComparator<S> comparator) {
+        tableViewer.setComparator(comparator);
+        Table table = tableViewer.getTable();
+        table.setHeaderVisible(true);
+        table.setLinesVisible(true);
+        TableColumnDescription[] columnDescriptions = { new TableColumnDescription("property.name", 200, SWT.LEFT),
+                new TableColumnDescription("Variable.property.format", 200, SWT.LEFT),
+                new TableColumnDescription("Variable.property.defaultValue", 200, SWT.LEFT, false) };
+        int index = 0;
+        for (TableColumnDescription col : columnDescriptions) {
+            TableColumn tableColumn = new TableColumn(table, col.getStyle());
+            tableColumn.setText(Localization.getString(col.getTitleKey()));
+            tableColumn.setWidth(col.getWidth());
+            if (col.isSort()) {
+                tableColumn.addSelectionListener(createSelectionListener(tableViewer, comparator, tableColumn, index));
+            }
+            index++;
+        }
+    }
+
+    private <S> SelectionListener createSelectionListener(final TableViewer viewer, final DataViewerComparator<S> comparator,
+            final TableColumn column, final int index) {
+        SelectionAdapter selectionAdapter = new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                comparator.setColumn(index);
+                viewer.getTable().setSortDirection(comparator.getDirection());
+                viewer.getTable().setSortColumn(column);
+                viewer.refresh();
+            }
+        };
+        return selectionAdapter;
     }
 
     private class DeleteAttributeSelectionListener extends LoggingSelectionAdapter {
@@ -337,6 +398,8 @@ public class DataTableEditor extends EditorPart implements ISelectionListener, I
                     Variable newVariable = VariableUtils.getVariableByName(dataTable, variable.getName());
                     if (newVariable == null) {
                         newVariable = new Variable(variable);
+                        dataTable.addAttribute(newVariable);
+                        WorkspaceOperations.saveDataTable(dataTableFile, dataTable);
                     } else {
                         UpdateVariableNameDialog dialog = new UpdateVariableNameDialog(dataTable, newVariable);
                         nameAllowed = dialog.open() == Window.OK;
@@ -344,23 +407,15 @@ public class DataTableEditor extends EditorPart implements ISelectionListener, I
                             newVariable = new Variable(variable);
                             newVariable.setName(dialog.getName());
                             newVariable.setScriptingName(dialog.getScriptingName());
+                            dataTable.addAttribute(newVariable);
+                            tableViewer.setSelection(new StructuredSelection(variable));
+                            WorkspaceOperations.saveDataTable(dataTableFile, dataTable);
                         }
                     }
-                    dataTable.addAttribute(newVariable);
-                    tableViewer.setSelection(new StructuredSelection(variable));
-                    WorkspaceOperations.saveDataTable(dataTableFile, dataTable);
+                    rebuildView(editorComposite);
                 }
             }
             clipboard.dispose();
         }
     }
-
-    protected Display getDisplay() {
-        Display result = Display.getCurrent();
-        if (result == null) {
-            result = Display.getDefault();
-        }
-        return result;
-    }
-
 }

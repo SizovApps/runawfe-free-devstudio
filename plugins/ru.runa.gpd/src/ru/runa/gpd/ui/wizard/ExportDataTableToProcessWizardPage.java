@@ -1,11 +1,11 @@
 package ru.runa.gpd.ui.wizard;
 
+import com.google.common.base.Throwables;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.viewers.ArrayContentProvider;
@@ -19,9 +19,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
-
-import com.google.common.base.Throwables;
-
 import ru.runa.gpd.DataTableCache;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.PluginLogger;
@@ -118,7 +115,7 @@ public class ExportDataTableToProcessWizardPage extends ExportWizardPage {
                 Set<String> userTypeNamesInProcess = processDefinition.getVariableUserTypes().stream().map(VariableUserType::getName)
                         .collect(Collectors.toSet());
                 if (userTypeNamesInProcess.contains(dataTable.getName())) {
-                    throw new InternalApplicationException(Localization.getString("ExportDataTableToProcessWizardPage.error.usertype.already.exists",
+                    throw new InternalApplicationException(Localization.getString("ExportDataTableToProcessWizardPage.error.usertype_already_exists",
                             dataTable.getName(), processDefinition.getName()));
                 } else {
                     dataTable.setStoreInExternalStorage(true);

@@ -1,5 +1,11 @@
 package ru.runa.gpd.ui.wizard;
 
+import com.google.common.base.Charsets;
+import com.google.common.base.Strings;
+import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -9,11 +15,11 @@ import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -37,19 +43,14 @@ import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.PlatformUI;
-
-import com.google.common.base.Charsets;
-import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-
+import ru.runa.gpd.DataTableCache;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.PluginLogger;
+import ru.runa.gpd.lang.model.VariableUserType;
 import ru.runa.gpd.sync.WfeServerConnector;
 import ru.runa.gpd.sync.WfeServerConnectorComposite;
 import ru.runa.gpd.sync.WfeServerProcessDefinitionImporter;
-import ru.runa.gpd.util.DataTableUtils;
+import ru.runa.gpd.ui.custom.Dialogs;
 import ru.runa.gpd.util.IOUtils;
 import ru.runa.wfe.InternalApplicationException;
 
@@ -62,12 +63,16 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
     private Button exportToProcessButton;
     private WfeServerConnectorComposite serverConnectorComposite;
 
+    private static final Set<String> FORBIDDEN_VARIABLE_FORMATS = ImmutableSet.of("ru.runa.wfe.var.format.HiddenFormat",
+            "ru.runa.wfe.var.format.ListFormat",
+            "ru.runa.wfe.var.format.MapFormat", "ru.runa.wfe.var.format.FileFormat", "usertype");
+
     protected ExportDataTableWizardPage(IStructuredSelection selection) {
         super(ExportDataTableWizardPage.class);
         setTitle(Localization.getString("ExportDataTableWizard.wizard.title"));
         setDescription(Localization.getString("ExportDataTableWizardPage.page.description"));
         dataTableNameFileMap = new TreeMap<String, IFile>();
-        for (IFile dataTableFile : DataTableUtils.getAllDataTables()) {
+        for (IFile dataTableFile : DataTableCache.getAllFiles()) {
             dataTableNameFileMap.put(IOUtils.getWithoutExtension(dataTableFile.getName()), dataTableFile);
         }
         exportResource = getInitialElement(selection);
@@ -121,8 +126,6 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
         if (exportResource != null) {
             dataTableListViewer.setSelection(new StructuredSelection(IOUtils.getWithoutExtension(exportResource.getName())));
         }
-        // TODO implement export to a file (xml, csv and json)
-        // onExportModeChanged();
     }
 
     private void onExportModeChanged() {
@@ -207,7 +210,16 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
     }
 
     protected void deployToServer(IResource exportResource) throws Exception {
-        new DataTableDeployOperation(Lists.newArrayList((IFile) exportResource)).run(null);
+        VariableUserType dataTable = DataTableCache.getDataTable(IOUtils.getWithoutExtension(exportResource.getName()));
+        boolean hasUnsupportedFormats = dataTable.getAttributes().stream()
+                .anyMatch(var -> FORBIDDEN_VARIABLE_FORMATS.contains(var.getFormat().split("\\(|:")[0]));
+        if (hasUnsupportedFormats) {
+            Dialogs.information(Localization.getString("ExportDataTableWizardPage.dialog.dataTable_export_forbidden_by_formats"));
+        } else if (dataTable.getAttributes().isEmpty()) {
+            Dialogs.information(Localization.getString("ExportDataTableWizardPage.dialog.dataTable_export_forbidden_without_variables"));
+        } else {
+            new DataTableDeployOperation(Lists.newArrayList((IFile) exportResource)).run(null);
+        }
     }
 
     protected void exportToProcess(IResource exportResource) throws Exception {
@@ -285,7 +297,7 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
                 if (e.getMessage().contains("DataTableAlreadyExistsException")) {
                     String dataTableName = IOUtils.getWithoutExtension(Iterables.getOnlyElement(resourcesToExport).getName());
                     throw new RuntimeException(
-                            Localization.getString("ExportDataTableToProcessWizardPage.error.dataTable.already.exists", dataTableName));
+                            Localization.getString("ExportDataTableWizardPage.error.dataTable_already_exists", dataTableName));
                 }
                 throw new InvocationTargetException(e);
             }

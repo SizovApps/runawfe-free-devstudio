@@ -3337,7 +3337,7 @@
 	         <run class="ru.runa.gpd.DataSourcesNature"></run>
 	      </runtime>
 	</extension>
-	<extension id="dataTablesNature" name="specific nature for data tables project" point="org.eclipse.core.resources.natures">
+	<extension id="dataTableNature" name="specific nature for data tables project" point="org.eclipse.core.resources.natures">
 	      <runtime>
 	         <run class="ru.runa.gpd.DataTableNature"></run>
 	      </runtime>

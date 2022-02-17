@@ -1,7 +1,6 @@
 package ru.runa.gpd.ui.wizard;
 
 import java.lang.reflect.InvocationTargetException;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -12,7 +11,6 @@ import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.ide.IDE;
-
 import ru.runa.gpd.PluginLogger;
 import ru.runa.gpd.editor.DataTableEditor;
 import ru.runa.gpd.lang.model.VariableUserType;

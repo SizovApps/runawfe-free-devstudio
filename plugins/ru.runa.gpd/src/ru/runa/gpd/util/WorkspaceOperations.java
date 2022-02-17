@@ -1,5 +1,9 @@
 package ru.runa.gpd.util;
 
+import com.google.common.base.Charsets;
+import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -9,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
-
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.io.SAXReader;
@@ -40,12 +43,6 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.FileEditorInput;
-
-import com.google.common.base.Charsets;
-import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
-
 import ru.runa.gpd.BotCache;
 import ru.runa.gpd.DataTableCache;
 import ru.runa.gpd.Localization;
@@ -822,14 +819,24 @@ public class WorkspaceOperations {
         }
     }
 
-    public static void deleteDataTable(IStructuredSelection selection) {
-        try {
-            IFile selectedDataTable = (IFile) selection.getFirstElement();
-            if (Dialogs.confirm(Localization.getString("Delete.dataTable.message", IOUtils.getWithoutExtension(selectedDataTable.getName())))) {
-                deleteDataTableFile(selectedDataTable);
+    public static void deleteDataTable(List<IResource> resources) {
+        for (IResource resource : resources) {
+            try {
+                resource.refreshLocal(IResource.DEPTH_INFINITE, null);
+                if (Dialogs.confirm(Localization.getString("Delete.dataTable.message", IOUtils.getWithoutExtension(resource.getName())))) {
+                    if (resource instanceof IFile) {
+                        IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+                        IFile selectedDataTableFile = (IFile) resource;
+                        IEditorPart editor = page.findEditor(new FileEditorInput(selectedDataTableFile));
+                        if (editor != null) {
+                            page.closeEditor(editor, false);
+                        }
+                        deleteDataTableFile(selectedDataTableFile);
+                    }
+                }
+            } catch (CoreException e) {
+                PluginLogger.logError("Error deleting", e);
             }
-        } catch (CoreException e) {
-            PluginLogger.logError("Error deleting", e);
         }
         DataTableCache.reload();
     }
@@ -877,6 +884,4 @@ public class WorkspaceOperations {
         CompactWizardDialog dialog = new CompactWizardDialog(wizard);
         dialog.open();
     }
-
-
 }

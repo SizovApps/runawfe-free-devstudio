@@ -1,19 +1,17 @@
 package ru.runa.gpd.editor.clipboard;
 
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.List;
-
 import ru.runa.gpd.lang.model.ProcessDefinition;
 import ru.runa.gpd.lang.model.Swimlane;
 import ru.runa.gpd.lang.model.Variable;
 import ru.runa.gpd.lang.model.VariableStoreType;
 import ru.runa.gpd.lang.model.VariableUserType;
 import ru.runa.gpd.util.VariableUtils;
-
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 
 /**
  * Recursive serialization for {@link org.eclipse.swt.dnd.Clipboard}.
@@ -84,7 +82,7 @@ final class Serializator {
         variable.setPrimaryKey(in.readBoolean());
         variable.setAutoincrement(in.readBoolean());
         String label = (String) in.readObject();
-        if (!label.isEmpty()) {
+        if (!label.isEmpty() && processDefinition != null) {
             variable.setUserType(processDefinition.getVariableUserType(label));
         }
         if (in.readBoolean()) {
