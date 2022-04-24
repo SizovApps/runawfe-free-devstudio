@@ -205,7 +205,7 @@ public class BizagiBpmnImporter implements GEFConstants {
                 try {
                     String elementName = element.getName();
                     String id = element.attributeValue(ID);
-                    String name = element.attributeValue(NAME);
+                    String name = (element.attributeValue(NAME) == null) ? "" : element.attributeValue(NAME);
                     String documentation = element.elementText(DOCUMENTATION);
                     defaultIds.add(element.attributeValue(DEFAULT));
                     switch (elementName) {
