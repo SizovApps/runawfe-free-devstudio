@@ -201,11 +201,13 @@ public class BizagiBpmnImporter implements GEFConstants {
             defaultIds.clear();
             List<Element> sequenceFlows = new ArrayList<>();
             List<Element> elements = processElement.elements();
+            int n= - 1; 
+            
             for (Element element : elements) {
                 try {
                     String elementName = element.getName();
                     String id = element.attributeValue(ID);
-                    String name = (Strings.isNullOrEmpty(element.attributeValue(NAME))) ? id : element.attributeValue(NAME);
+                    String name = (Strings.isNullOrEmpty(element.attributeValue(NAME))) ? "N" + n++ : element.attributeValue(NAME);
                     String documentation = element.elementText(DOCUMENTATION);
                     defaultIds.add(element.attributeValue(DEFAULT));
                     switch (elementName) {
