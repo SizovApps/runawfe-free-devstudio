@@ -74,6 +74,7 @@ public class DataTableEditor extends EditorPart implements IResourceChangeListen
     private Button editTypeButton;
     private Button renameTypeButton;
     private Button deleteTypeButton;
+    private Button copyTypeButton;
     private Menu menu;
 
     @Override
@@ -119,6 +120,7 @@ public class DataTableEditor extends EditorPart implements IResourceChangeListen
         enableAction(editTypeButton, !event.getSelection().isEmpty());
         enableAction(deleteTypeButton, !event.getSelection().isEmpty());
         enableAction(renameTypeButton, !event.getSelection().isEmpty());
+        enableAction(copyTypeButton, !event.getSelection().isEmpty());
 
     }
 
@@ -198,7 +200,7 @@ public class DataTableEditor extends EditorPart implements IResourceChangeListen
         editTypeButton = addButton(buttonsBar, "button.change", new ChangeAttributeSelectionListener(), true, false);
         renameTypeButton = addButton(buttonsBar, "button.rename", new RenameAttributeSelectionListener(), true, false);
         deleteTypeButton = addButton(buttonsBar, "button.delete", new DeleteAttributeSelectionListener(), true, false);
-        addButton(buttonsBar, "button.copy", new CopyAttributeSelectionListener(), true, true);
+        copyTypeButton = addButton(buttonsBar, "button.copy", new CopyAttributeSelectionListener(), true, false);
         addButton(buttonsBar, "button.paste", new PasteAttributeSelectionListener(), true, true);
     }
 
@@ -251,6 +253,10 @@ public class DataTableEditor extends EditorPart implements IResourceChangeListen
             toolkit = new FormToolkit(Display.getDefault());
         }
         return toolkit;
+    }
+
+    public IFile getDataTableFile() {
+        return dataTableFile;
     }
 
     @SuppressWarnings("unchecked")

@@ -36,6 +36,7 @@ import org.eclipse.ui.part.ViewPart;
 import ru.runa.gpd.DataTableNature;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.SharedImages;
+import ru.runa.gpd.editor.DataTableEditor;
 import ru.runa.gpd.ui.custom.LoggingDoubleClickAdapter;
 import ru.runa.gpd.util.UiUtil;
 import ru.runa.gpd.util.WorkspaceOperations;
@@ -208,5 +209,9 @@ public class DataTableExplorerTreeView extends ViewPart implements ISelectionLis
 
     @Override
     public void selectionChanged(IWorkbenchPart part, ISelection selection) {
+        if (part instanceof DataTableEditor) {
+            IFile dataTableFile = ((DataTableEditor) part).getDataTableFile();
+            viewer.setSelection(new StructuredSelection(dataTableFile), true);
+        }
     }
 }
