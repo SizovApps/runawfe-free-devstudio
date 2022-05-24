@@ -350,7 +350,7 @@ public abstract class ProcessEditorBase extends MultiPageEditorPart implements I
         return imageFile.getRawLocation().toOSString();
     }
 
-    private void fetchUsedFormFiles(Set<String> usedFormFiles, ProcessDefinition processDefinition) throws CoreException {
+    protected void fetchUsedFormFiles(Set<String> usedFormFiles, ProcessDefinition processDefinition) throws CoreException {
         if (isDirty()) {
             usedFormFiles.addAll(FormsXmlContentProvider.getFormFiles(processDefinition));
         } else {
@@ -372,7 +372,7 @@ public abstract class ProcessEditorBase extends MultiPageEditorPart implements I
         }
     }
 
-    private <T extends IEditorPart> T addNewPage(T editorPart, String title) throws PartInitException {
+    protected <T extends IEditorPart> T addNewPage(T editorPart, String title) throws PartInitException {
         int pageIndex = addPage(editorPart, getEditorInput());
         setPageText(pageIndex, Localization.getString(title));
         return editorPart;

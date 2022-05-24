@@ -219,7 +219,7 @@ public class BizagiBpmnImporter implements GEFConstants {
                         Swimlane swimlane = swimlane(start);
                         start.setSwimlane(swimlane);
                         if (showSwimlanes && swimlane != null) {
-                            start.setParentContainer(swimlane);
+                            start.setUiParentContainer(swimlane);
                             start.getConstraint().translate(swimlane.getConstraint().getTopLeft().negate());
                         }
                         definition.addChild(start);
@@ -238,7 +238,7 @@ public class BizagiBpmnImporter implements GEFConstants {
                         Swimlane swimlane = swimlane(task);
                         task.setSwimlane(swimlane);
                         if (showSwimlanes && swimlane != null) {
-                            task.setParentContainer(swimlane);
+                            task.setUiParentContainer(swimlane);
                             task.getConstraint().translate(swimlane.getConstraint().getTopLeft().negate());
                         }
                         definition.addChild(task);
@@ -353,7 +353,7 @@ public class BizagiBpmnImporter implements GEFConstants {
                         GraphElement parent = geMap.get(attachedToRefId);
                         parent.addChild(event);
                         event.setParent(parent);
-                        event.setParentContainer(parent);
+                        event.setUiParentContainer(parent);
                         if (element.element(ERROR_EVENT_DEFINITION) != null) {
                             event.setEventNodeType(EventNodeType.error);
                         } else if (element.element(MESSAGE_EVENT_DEFINITION) != null) {
@@ -426,11 +426,11 @@ public class BizagiBpmnImporter implements GEFConstants {
                             Rectangle sourceBounds = source.getConstraint().getCopy();
                             Rectangle targetBounds = target.getConstraint().getCopy();
                             if (showSwimlanes) {
-                                if (source.getParentContainer() != null) {
-                                    sourceBounds.translate(source.getParentContainer().getConstraint().getTopLeft());
+                                if (source.getUiParentContainer() != null) {
+                                    sourceBounds.translate(source.getUiParentContainer().getConstraint().getTopLeft());
                                 }
-                                if (target.getParentContainer() != null) {
-                                    targetBounds.translate(target.getParentContainer().getConstraint().getTopLeft());
+                                if (target.getUiParentContainer() != null) {
+                                    targetBounds.translate(target.getUiParentContainer().getConstraint().getTopLeft());
                                 }
                             }
                             transition.setBendpoints(waypoints(id, sourceBounds, targetBounds));

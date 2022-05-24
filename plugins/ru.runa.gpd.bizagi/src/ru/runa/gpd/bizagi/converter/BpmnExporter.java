@@ -410,9 +410,9 @@ public class BpmnExporter implements GEFConstants {
             Rectangle parentBound = null;
             Point startPoint = null;
             Rectangle startBound = null;
-            if (transition.getSource().getParentContainer() instanceof IBoundaryEventContainer) {
-                Rectangle laneConstraints = parentBound(transition.getSource().getParentContainer()).getCopy();
-                parentBound = transition.getSource().getParentContainer().getConstraint().getCopy();
+            if (transition.getSource().getUiParentContainer() instanceof IBoundaryEventContainer) {
+                Rectangle laneConstraints = parentBound(transition.getSource().getUiParentContainer()).getCopy();
+                parentBound = transition.getSource().getUiParentContainer().getConstraint().getCopy();
                 parentBound.translate(laneConstraints.getTopLeft());
                 startBound = transition.getSource().getConstraint().getCopy().translate(parentBound.getTopLeft());
                 startBound.setSize(startBound.width / 2, startBound.height / 2);
@@ -422,8 +422,8 @@ public class BpmnExporter implements GEFConstants {
                     startBound.setLocation(parentBound.x + parentBound.width - startBound.width,
                             parentBound.y + parentBound.height - startBound.height);
                 }
-            } else if (transition.getSource().getParentContainer() instanceof Swimlane) {
-                parentBound = transition.getSource().getParentContainer().getConstraint().getCopy();
+            } else if (transition.getSource().getUiParentContainer() instanceof Swimlane) {
+                parentBound = transition.getSource().getUiParentContainer().getConstraint().getCopy();
                 startBound = transition.getSource().getConstraint().getCopy().translate(parentBound.getTopLeft());
             } else { // ProcessDefinition
                 startBound = bound(transition.getSource());
@@ -439,8 +439,8 @@ public class BpmnExporter implements GEFConstants {
             }
 
             Rectangle endBound = null;
-            if (transition.getTarget().getParentContainer() != null) {
-                parentBound = transition.getTarget().getParentContainer().getConstraint().getCopy();
+            if (transition.getTarget().getUiParentContainer() != null) {
+                parentBound = transition.getTarget().getUiParentContainer().getConstraint().getCopy();
                 endBound = transition.getTarget().getConstraint().getCopy().translate(parentBound.getTopLeft());
             } else { // ProcessDefinition
                 endBound = bound(transition.getTarget());
@@ -587,8 +587,8 @@ public class BpmnExporter implements GEFConstants {
     private void shape(GraphElement graphElement) {
         if (graphElement.getConstraint() != null) {
             Rectangle constraints = graphElement.getConstraint().getCopy();
-            if (graphElement.getParentContainer() != null) {
-                GraphElement parent = graphElement.getParentContainer();
+            if (graphElement.getUiParentContainer() != null) {
+                GraphElement parent = graphElement.getUiParentContainer();
                 Rectangle parentConstraints = parent.getConstraint().getCopy();
                 if (parent instanceof IBoundaryEventContainer) {
                     Rectangle laneConstraints = parentBound(parent).getCopy();
@@ -625,7 +625,7 @@ public class BpmnExporter implements GEFConstants {
     }
 
     private Rectangle parentBound(GraphElement element) {
-        GraphElement parentContainer = element.getParentContainer();
+        GraphElement parentContainer = element.getUiParentContainer();
         if (parentContainer == null) {
             if (participantConstraint != null) {
                 return participantConstraint;
