@@ -88,7 +88,7 @@ public class VariableFormatPage extends DynaContentWizardPage {
 
     @Override
     protected void createContent(Composite composite) {
-        final Combo combo = createTypeCombo(composite);
+        final Combo combo = createTypeCombo(composite, false, false);
         combo.setEnabled(editFormat);
         combo.setText(userType != null ? userType.getName() : type.getLabel());
         combo.addSelectionListener(new LoggingSelectionAdapter() {
@@ -147,12 +147,15 @@ public class VariableFormatPage extends DynaContentWizardPage {
         }
     }
 
-    private Combo createTypeCombo(Composite composite) {
+    private Combo createTypeCombo(Composite composite, boolean disableListFormat, boolean disableMapFormat) {
         final Combo combo = new Combo(composite, SWT.BORDER | SWT.READ_ONLY);
         for (VariableFormatArtifact artifact : VariableFormatRegistry.getInstance().getAll()) {
-            if (UserTypeFormat.class.getName().equals(artifact.getName())) {
+            if (UserTypeFormat.class.getName().equals(artifact.getName())
+                    || disableListFormat && ListFormat.class.getName().equals(artifact.getName())
+                    || disableMapFormat && MapFormat.class.getName().equals(artifact.getName())) {
                 continue;
             }
+
             if (artifact.isEnabled()) {
                 combo.add(artifact.getLabel());
             }
@@ -176,7 +179,7 @@ public class VariableFormatPage extends DynaContentWizardPage {
             for (int i = 0; i < labels.length; i++) {
                 Label label = new Label(dynaComposite, SWT.NONE);
                 label.setText(labels[i]);
-                final Combo combo = createTypeCombo(dynaComposite);
+                final Combo combo = createTypeCombo(dynaComposite, true, true);
                 combo.setData(i);
                 VariableFormatArtifact artifact = VariableFormatRegistry.getInstance().getArtifact(componentClassNames[i]);
                 combo.setText(artifact != null ? artifact.getLabel() : componentClassNames[i]);

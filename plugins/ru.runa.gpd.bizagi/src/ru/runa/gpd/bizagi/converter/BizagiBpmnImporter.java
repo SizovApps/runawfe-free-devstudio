@@ -47,7 +47,9 @@ import ru.runa.gpd.lang.model.SwimlanedNode;
 import ru.runa.gpd.lang.model.TaskState;
 import ru.runa.gpd.lang.model.Timer;
 import ru.runa.gpd.lang.model.Transition;
+import ru.runa.gpd.lang.model.Variable;
 import ru.runa.gpd.lang.model.bpmn.CatchEventNode;
+import ru.runa.gpd.lang.model.bpmn.DataStore;
 import ru.runa.gpd.lang.model.bpmn.EventNodeType;
 import ru.runa.gpd.lang.model.bpmn.ExclusiveGateway;
 import ru.runa.gpd.lang.model.bpmn.ParallelGateway;
@@ -105,7 +107,6 @@ public class BizagiBpmnImporter implements GEFConstants {
     private static final String BIZAGI_PROPERTY = "BizagiProperty";
     private static final String BIZAGI_PROPERTIES = "BizagiProperties";
     private static final String BIZAGI_EXTENSIONS = "BizagiExtensions";
-
     private static final Dimension MINIMIZED_NODE_SIZE = new Dimension(3 * GRID_SIZE, 3 * GRID_SIZE);
 
     private static Map<String, Element> planeMap = new HashMap<>();
@@ -114,8 +115,7 @@ public class BizagiBpmnImporter implements GEFConstants {
     private static Set<Subprocess> embeddedSubprocesses = new HashSet<>();
     private static Set<String> defaultIds = new HashSet<>();
 
-    public static void go(IContainer dstFolder, String srcFileName, boolean showSwimlanes, boolean ignoreBendPoints)
-            throws Exception {
+    public static void go(IContainer dstFolder, String srcFileName, boolean showSwimlanes, boolean ignoreBendPoints) throws Exception {
         try (InputStream is = new FileInputStream(new File(srcFileName))) {
             Document bpmnDocument = XmlUtil.parseWithoutValidation(is);
             Element definitionsElement = bpmnDocument.getRootElement();
@@ -133,8 +133,7 @@ public class BizagiBpmnImporter implements GEFConstants {
             SwimlaneDisplayMode swimlaneDisplayMode = SwimlaneDisplayMode.none;
             Element collaborationElement = definitionsElement.element(COLLABORATION);
             String processName = collaborationElement.attributeValue(NAME);
-            nextParticipant:
-            for (Element participant : (List<Element>) collaborationElement.elements(PARTICIPANT)) {
+            nextParticipant: for (Element participant : (List<Element>) collaborationElement.elements(PARTICIPANT)) {
                 if (Strings.isNullOrEmpty(processName)) {
                     processName = participant.attributeValue(NAME);
                 }
@@ -169,6 +168,7 @@ public class BizagiBpmnImporter implements GEFConstants {
                 }
                 break;
             }
+
             IFolder folder = IOUtils.getProcessFolder(dstFolder, processName);
             folder.create(true, true, null);
             IFile definitionFile = IOUtils.getProcessDefinitionFile(folder);
@@ -201,8 +201,8 @@ public class BizagiBpmnImporter implements GEFConstants {
             defaultIds.clear();
             List<Element> sequenceFlows = new ArrayList<>();
             List<Element> elements = processElement.elements();
-            int n= - 1; 
-            
+            int n = -1;
+
             for (Element element : elements) {
                 try {
                     String elementName = element.getName();
@@ -219,7 +219,7 @@ public class BizagiBpmnImporter implements GEFConstants {
                         Swimlane swimlane = swimlane(start);
                         start.setSwimlane(swimlane);
                         if (showSwimlanes && swimlane != null) {
-                            start.setParentContainer(swimlane);
+                            start.setUiParentContainer(swimlane);
                             start.getConstraint().translate(swimlane.getConstraint().getTopLeft().negate());
                         }
                         definition.addChild(start);
@@ -238,7 +238,7 @@ public class BizagiBpmnImporter implements GEFConstants {
                         Swimlane swimlane = swimlane(task);
                         task.setSwimlane(swimlane);
                         if (showSwimlanes && swimlane != null) {
-                            task.setParentContainer(swimlane);
+                            task.setUiParentContainer(swimlane);
                             task.getConstraint().translate(swimlane.getConstraint().getTopLeft().negate());
                         }
                         definition.addChild(task);
@@ -353,7 +353,7 @@ public class BizagiBpmnImporter implements GEFConstants {
                         GraphElement parent = geMap.get(attachedToRefId);
                         parent.addChild(event);
                         event.setParent(parent);
-                        event.setParentContainer(parent);
+                        event.setUiParentContainer(parent);
                         if (element.element(ERROR_EVENT_DEFINITION) != null) {
                             event.setEventNodeType(EventNodeType.error);
                         } else if (element.element(MESSAGE_EVENT_DEFINITION) != null) {
@@ -382,6 +382,16 @@ public class BizagiBpmnImporter implements GEFConstants {
                     }
                     case "sequenceFlow": {
                         sequenceFlows.add(element);
+                        break;
+                    }
+                    case "dataStoreReference": {
+                        DataStore store = new DataStore();
+                        store.setName(name);
+                        store.setDescription(documentation);
+                        store.setConstraint(bounds(id));
+                        adjustMinimized(store);
+                        definition.addChild(store);
+                        geMap.put(id, store);
                         break;
                     }
                     case DOCUMENTATION:
@@ -426,11 +436,11 @@ public class BizagiBpmnImporter implements GEFConstants {
                             Rectangle sourceBounds = source.getConstraint().getCopy();
                             Rectangle targetBounds = target.getConstraint().getCopy();
                             if (showSwimlanes) {
-                                if (source.getParentContainer() != null) {
-                                    sourceBounds.translate(source.getParentContainer().getConstraint().getTopLeft());
+                                if (source.getUiParentContainer() != null) {
+                                    sourceBounds.translate(source.getUiParentContainer().getConstraint().getTopLeft());
                                 }
-                                if (target.getParentContainer() != null) {
-                                    targetBounds.translate(target.getParentContainer().getConstraint().getTopLeft());
+                                if (target.getUiParentContainer() != null) {
+                                    targetBounds.translate(target.getUiParentContainer().getConstraint().getTopLeft());
                                 }
                             }
                             transition.setBendpoints(waypoints(id, sourceBounds, targetBounds));
@@ -440,6 +450,55 @@ public class BizagiBpmnImporter implements GEFConstants {
                     PluginLogger.logErrorWithoutDialog(e.getMessage(), e);
                 }
             }
+
+            Element varElement = definitionsElement.element(COLLABORATION);
+            if (varElement != null) {
+                varElement = varElement.element(EXTENSION_ELEMENTS);
+                if (varElement != null) {
+                    varElement = varElement.element(QName.get(BIZAGI_EXTENSIONS, BIZAGI_NAMESPACE));
+                    if (varElement != null) {
+                        varElement = varElement.element(QName.get("BizagiExtendedAttributeDefinitions", BIZAGI_NAMESPACE));
+                        for (Element element : (List<Element>) varElement
+                                .elements(QName.get("BizagiExtendedAttributeDefinition", BIZAGI_NAMESPACE))) {
+                            String type = element.attributeValue("Type");
+                            String name = element.element(QName.get("Name", BIZAGI_NAMESPACE)).getText();
+                            String description = element.element(QName.get("Description", BIZAGI_NAMESPACE)).getText();
+                            Variable variable = new Variable();
+                            variable.setName(name);
+                            switch (type) {
+                            case "Text": {
+                                variable.setFormat("ru.runa.wfe.var.format.StringFormat");
+                                break;
+                            }
+                            case "LongText": {
+                                variable.setFormat("ru.runa.wfe.var.format.TextFormat");
+                                break;
+                            }
+
+                            case "Date": {
+                                variable.setFormat("ru.runa.wfe.var.format.DateFormat");
+                                break;
+                            }
+
+                            case "Number": {
+                                variable.setFormat("ru.runa.wfe.var.format.DoubleFormat");
+                                break;
+                            }
+                            case "FileLinked": {
+                                variable.setFormat("ru.runa.wfe.var.format.FileFormat");
+                                break;
+                            }
+                            default: {
+                                variable.setFormat("ru.runa.wfe.var.format.StringFormat");
+                            }
+                            }
+                            variable.setDescription(description);
+                            definition.addChild(variable);
+                        }
+                    }
+                }
+            }
+
             WorkspaceOperations.saveProcessDefinition(definition);
             ProcessCache.newProcessDefinitionWasCreated(definitionFile);
             WorkspaceOperations.openProcessDefinition(definitionFile);
