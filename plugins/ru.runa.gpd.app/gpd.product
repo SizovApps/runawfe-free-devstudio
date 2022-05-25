@@ -42,10 +42,60 @@
    </plugins>
 
    <features>
-      <feature id="ru.runa.gpd.eclipse.feature" version="4.4.0.qualifier"/>
-      <feature id="ru.runa.gpd.babel.nls_p2_ru.feature" version="4.4.0.qualifier"/>
-      <feature id="ru.runa.gpd.feature" version="4.4.0.qualifier"/>
-      <feature id="ru.runa.gpd.form.quick.feature" version="4.4.0.qualifier"/>
+      <feature id="org.aspectj" version="1.9.2.201908131520"/>
+      <feature id="org.eclipse.babel.nls_eclipse_ru" version="4.10.0.v20200113113258"/>
+      <feature id="org.eclipse.babel.nls_modeling.graphiti_ru" version="4.10.0.v20200113113258"/>
+      <feature id="org.eclipse.babel.nls_tools.gef_ru" version="4.10.0.v20200113113258"/>
+      <feature id="org.eclipse.draw2d" version="3.10.100.201606061308"/>
+      <feature id="org.eclipse.e4.rcp" version="1.6.200.v20180906-1121"/>
+      <feature id="org.eclipse.ecf.core.feature" version="1.5.1.v20180810-0833"/>
+      <feature id="org.eclipse.ecf.core.ssl.feature" version="1.1.100.v20180301-0201"/>
+      <feature id="org.eclipse.ecf.filetransfer.feature" version="3.14.2.v20180801-2237"/>
+      <feature id="org.eclipse.ecf.filetransfer.httpclient4.feature" version="3.14.2.v20180801-2237"/>
+      <feature id="org.eclipse.ecf.filetransfer.httpclient4.ssl.feature" version="1.1.100.v20180301-0132"/>
+      <feature id="org.eclipse.ecf.filetransfer.ssl.feature" version="1.1.100.v20180301-0132"/>
+      <feature id="org.eclipse.emf" version="2.15.0.v20180905-1732"/>
+      <feature id="org.eclipse.emf.codegen" version="2.14.0.v20180706-1146"/>
+      <feature id="org.eclipse.emf.codegen.ecore" version="2.15.0.v20180905-1732"/>
+      <feature id="org.eclipse.emf.codegen.ecore.ui" version="2.15.0.v20180905-1732"/>
+      <feature id="org.eclipse.emf.codegen.ui" version="2.10.0.v20180706-1146"/>
+      <feature id="org.eclipse.emf.common" version="2.15.0.v20180723-1316"/>
+      <feature id="org.eclipse.emf.common.ui" version="2.14.0.v20180706-1146"/>
+      <feature id="org.eclipse.emf.converter" version="2.14.0.v20180706-1146"/>
+      <feature id="org.eclipse.emf.databinding" version="1.6.0.v20180706-1146"/>
+      <feature id="org.eclipse.emf.databinding.edit" version="1.6.0.v20180823-0456"/>
+      <feature id="org.eclipse.emf.ecore" version="2.15.0.v20180722-1159"/>
+      <feature id="org.eclipse.emf.ecore.edit" version="2.11.0.v20180823-0905"/>
+      <feature id="org.eclipse.emf.ecore.editor" version="2.15.0.v20180823-0905"/>
+      <feature id="org.eclipse.emf.edit" version="2.14.0.v20180823-0456"/>
+      <feature id="org.eclipse.emf.edit.ui" version="2.15.0.v20180823-0914"/>
+      <feature id="org.eclipse.emf.mapping" version="2.11.0.v20180706-1146"/>
+      <feature id="org.eclipse.emf.mapping.ecore" version="2.11.0.v20180706-1146"/>
+      <feature id="org.eclipse.emf.mapping.ecore.editor" version="2.12.0.v20180706-1146"/>
+      <feature id="org.eclipse.emf.mapping.ui" version="2.11.0.v20180706-1146"/>
+      <feature id="org.eclipse.emf.transaction" version="1.12.0.201805140824"/>
+      <feature id="org.eclipse.emf.validation" version="1.12.0.201805030717"/>
+      <feature id="org.eclipse.emf.workspace" version="1.12.0.201805140824"/>
+      <feature id="org.eclipse.equinox.core.sdk" version="3.15.0.v20180827-1536"/>
+      <feature id="org.eclipse.equinox.executable" version="3.8.100.v20180827-1352"/>
+      <feature id="org.eclipse.equinox.p2.core.feature" version="1.5.100.v20180829-1443"/>
+      <feature id="org.eclipse.equinox.p2.core.feature.source" version="1.5.100.v20180829-1443"/>
+      <feature id="org.eclipse.equinox.p2.extras.feature" version="1.4.100.v20180829-1443"/>
+      <feature id="org.eclipse.equinox.p2.extras.feature.source" version="1.4.100.v20180829-1443"/>
+      <feature id="org.eclipse.equinox.p2.rcp.feature" version="1.4.100.v20180829-1443"/>
+      <feature id="org.eclipse.equinox.p2.user.ui" version="2.4.100.v20180829-1443"/>
+      <feature id="org.eclipse.equinox.weaving.sdk" version="1.2.0.201908131520"/>
+      <feature id="org.eclipse.gef" version="3.11.0.201606061308"/>
+      <feature id="org.eclipse.graphiti.feature" version="0.15.0.201806050830"/>
+      <feature id="org.eclipse.help" version="2.2.300.v20180906-0745"/>
+      <feature id="org.eclipse.jdt" version="3.15.0.v20180906-0745"/>
+      <feature id="org.eclipse.pde" version="3.13.200.v20180906-0745"/>
+      <feature id="org.eclipse.platform" version="4.9.0.v20180906-1121"/>
+      <feature id="org.eclipse.rcp" version="4.9.0.v20180906-1121"/>
+      <feature id="ru.runa.gpd.babel.nls_p2_ru.feature" version="4.4.2.qualifier"/>
+      <feature id="ru.runa.gpd.eclipse.feature" version="4.4.2.qualifier"/>
+      <feature id="ru.runa.gpd.feature" version="4.4.2.qualifier"/>
+      <feature id="ru.runa.gpd.form.quick.feature" version="4.4.2.qualifier"/>
    </features>
 
    <configurations>

@@ -76,51 +76,28 @@ public abstract class BaseActionDelegate implements IWorkbenchWindowActionDelega
         return null;
     }
 
-
     protected boolean isBotStructuredSelection() {
-        IResource resource = getSelectedResource();
-        if (resource != null) {
-            try {
-                return resource.exists() && resource.getProject().getNature(BotStationNature.NATURE_ID) != null;
-            } catch (CoreException e) {
-                PluginLogger.logError(e);
-            }
-        }
-        return getActiveEditor() instanceof BotTaskEditor;
+        return isStructuredSelection(BotStationNature.NATURE_ID, getActiveEditor() instanceof BotTaskEditor);
     }
 
     protected boolean isDataSourceStructuredSelection() {
-        IResource resource = getSelectedResource();
-        if (resource != null) {
-            try {
-                return resource.exists() && resource.getProject().getNature(DataSourcesNature.NATURE_ID) != null;
-            } catch (CoreException e) {
-                PluginLogger.logError(e);
-            }
-        }
-        return false;
+        return isStructuredSelection(DataSourcesNature.NATURE_ID, false);
     }
 
     protected boolean isDataTableStructuredSelection() {
-        IResource resource = getSelectedResource();
-        if (resource != null) {
+        return isStructuredSelection(DataTableNature.NATURE_ID, false);
+    }
+
+    private boolean isStructuredSelection(String natureId, boolean defaultValue) {
+        IStructuredSelection selection = getStructuredSelection();
+        if (selection != null && selection.getFirstElement() instanceof IResource) {
+            IResource resource = (IResource) selection.getFirstElement();
             try {
-                return resource.exists() && resource.getProject().getNature(DataTableNature.NATURE_ID) != null;
+                return resource.exists() && resource.getProject().getNature(natureId) != null;
             } catch (CoreException e) {
                 PluginLogger.logError(e);
             }
         }
-        return false;
-    }
-
-    private IResource getSelectedResource() {
-        IStructuredSelection selection = getStructuredSelection();
-        if (selection != null) {
-            Object selectedObject = selection.getFirstElement();
-            if (selectedObject instanceof IResource) {
-                return (IResource) selectedObject;
-            }
-        }
-        return null;
+        return defaultValue;
     }
 }

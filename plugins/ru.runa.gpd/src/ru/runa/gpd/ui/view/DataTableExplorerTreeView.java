@@ -7,14 +7,12 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
-import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.action.Action;
-import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
@@ -43,8 +41,8 @@ import ru.runa.gpd.util.WorkspaceOperations;
 import ru.runa.wfe.InternalApplicationException;
 
 public class DataTableExplorerTreeView extends ViewPart implements ISelectionListener {
-    private TreeViewer viewer;
     private static final String PROJECT_NAME = "DataTables";
+    private TreeViewer viewer;
 
     @Override
     public void init(IViewSite site) throws PartInitException {
@@ -78,44 +76,33 @@ public class DataTableExplorerTreeView extends ViewPart implements ISelectionLis
         viewer.setContentProvider(new DataTableTreeContentProvider());
         viewer.setLabelProvider(new DataTableResourcesLabelProvider());
         viewer.setInput(new Object());
-        ResourcesPlugin.getWorkspace().addResourceChangeListener(new IResourceChangeListener() {
-            @Override
-            public void resourceChanged(IResourceChangeEvent event) {
-                if (event.getType() != IResourceChangeEvent.POST_CHANGE) {
-                    return;
+        ResourcesPlugin.getWorkspace().addResourceChangeListener(event -> {
+            if (event.getType() != IResourceChangeEvent.POST_CHANGE) {
+                return;
+            }
+            IResourceDelta rootDelta = event.getDelta();
+            IResourceDelta projectDelta = rootDelta.findMember(new Path(PROJECT_NAME));
+            if (projectDelta == null) {
+                return;
+            }
+            final List<IResource> changedResources = new ArrayList<>();
+            IResourceDeltaVisitor visitor = delta -> {
+                IResource resource = delta.getResource();
+                if (resource.getType() == IResource.FILE) {
+                    changedResources.add(resource);
                 }
-                IResourceDelta rootDelta = event.getDelta();
-                IResourceDelta projectDelta = rootDelta.findMember(new Path(PROJECT_NAME));
-                if (projectDelta == null) {
-                    return;
-                }
-                final List<IResource> changedResources = new ArrayList<IResource>();
-                IResourceDeltaVisitor visitor = new IResourceDeltaVisitor() {
-                    @Override
-                    public boolean visit(IResourceDelta delta) {
-                        IResource resource = delta.getResource();
-                        if (resource.getType() == IResource.FILE) {
-                            changedResources.add(resource);
-                        }
-                        return true;
-                    }
-                };
+                return true;
+            };
 
-                try {
-                    projectDelta.accept(visitor);
-                    PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (!viewer.getControl().isDisposed()) {
-                                viewer.refresh();
-                                StructuredSelection selection = new StructuredSelection(changedResources.get(0));
-                                viewer.setSelection(selection);
-                            }
-                        }
-                    });
-                } catch (Exception e) {
-                    // disposed
-                }
+            try {
+                projectDelta.accept(visitor);
+                PlatformUI.getWorkbench().getDisplay().asyncExec(() -> {
+                    if (!viewer.getControl().isDisposed()) {
+                        viewer.refresh();
+                        viewer.setSelection(new StructuredSelection(changedResources.get(0)));
+                    }
+                });
+            } catch (Exception disposed) {
             }
         });
         viewer.addDoubleClickListener(new LoggingDoubleClickAdapter() {
@@ -128,16 +115,11 @@ public class DataTableExplorerTreeView extends ViewPart implements ISelectionLis
             }
         });
         getSite().setSelectionProvider(viewer);
-        MenuManager menuMgr = new MenuManager();
-        Menu menu = menuMgr.createContextMenu(viewer.getControl());
-        menuMgr.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
-        menuMgr.setRemoveAllWhenShown(true);
-        menuMgr.addMenuListener(new IMenuListener() {
-            @Override
-            public void menuAboutToShow(IMenuManager manager) {
-                DataTableExplorerTreeView.this.fillContextMenu(manager);
-            }
-        });
+        MenuManager menuManager = new MenuManager();
+        Menu menu = menuManager.createContextMenu(viewer.getControl());
+        menuManager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
+        menuManager.setRemoveAllWhenShown(true);
+        menuManager.addMenuListener(DataTableExplorerTreeView.this::fillContextMenu);
         viewer.getControl().setMenu(menu);
     }
 
@@ -146,7 +128,7 @@ public class DataTableExplorerTreeView extends ViewPart implements ISelectionLis
         final IStructuredSelection selection = (IStructuredSelection) viewer.getSelection();
         final Object selectedObject = selection.getFirstElement();
         final List<IResource> resources = selection.toList();
-        final boolean dtSelected = selectedObject instanceof IFile;
+        final boolean isDataTableSelected = selectedObject instanceof IFile;
         manager.add(new Action(Localization.getString("DTExplorerTreeView.menu.label.addDT"), SharedImages.getImageDescriptor("icons/add_obj.gif")) {
             @Override
             public void run() {
@@ -161,7 +143,7 @@ public class DataTableExplorerTreeView extends ViewPart implements ISelectionLis
                     }
                 });
 
-        if (dtSelected) {
+        if (isDataTableSelected) {
             manager.add(
                     new Action(Localization.getString("DTExplorerTreeView.menu.label.renameDT"),
                             SharedImages.getImageDescriptor("icons/rename.gif")) {

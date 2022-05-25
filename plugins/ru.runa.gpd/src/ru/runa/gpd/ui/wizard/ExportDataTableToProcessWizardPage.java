@@ -9,10 +9,8 @@ import java.util.stream.Collectors;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.viewers.ArrayContentProvider;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ListViewer;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.layout.GridData;
@@ -33,16 +31,14 @@ import ru.runa.wfe.InternalApplicationException;
 public class ExportDataTableToProcessWizardPage extends ExportWizardPage {
     private final Map<String, IFile> definitionNameFileMap;
     private ListViewer definitionListViewer;
-    private IFile dataTableFile;
-    private IStructuredSelection selection;
+    private String dataTableFileName;
 
     protected ExportDataTableToProcessWizardPage(IStructuredSelection selection, IFile dataTableFile) {
         super(ExportDataTableToProcessWizardPage.class);
-        this.dataTableFile = dataTableFile;
-        this.selection = selection;
+        this.dataTableFileName = IOUtils.getWithoutExtension(dataTableFile.getName());
         setTitle(Localization.getString("ExportDataTableToProcessWizardPage.page.title"));
         setDescription(Localization.getString("ExportDataTableToProcessWizardPage.page.description"));
-        this.definitionNameFileMap = new TreeMap<String, IFile>();
+        this.definitionNameFileMap = new TreeMap<>();
         for (IFile file : ProcessCache.getAllProcessDefinitionsMap().keySet()) {
             ProcessDefinition definition = ProcessCache.getProcessDefinition(file);
             if (definition != null && !(definition instanceof SubprocessDefinition)) {
@@ -63,9 +59,7 @@ public class ExportDataTableToProcessWizardPage extends ExportWizardPage {
         processListGroup.setLayoutData(new GridData(GridData.FILL_BOTH));
         processListGroup.setText(Localization.getString("label.process"));
         createViewer(processListGroup);
-
         setControl(pageControl);
-
     }
 
     @Override
@@ -78,12 +72,7 @@ public class ExportDataTableToProcessWizardPage extends ExportWizardPage {
         definitionListViewer.getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
         definitionListViewer.setContentProvider(new ArrayContentProvider());
         definitionListViewer.setInput(definitionNameFileMap.keySet());
-        definitionListViewer.addSelectionChangedListener(new ISelectionChangedListener() {
-            @Override
-            public void selectionChanged(SelectionChangedEvent event) {
-                setPageComplete(!event.getSelection().isEmpty());
-            }
-        });
+        definitionListViewer.addSelectionChangedListener(event -> setPageComplete(!event.getSelection().isEmpty()));
     }
 
     private String getKey(IFile definitionFile, ProcessDefinition definition) {
@@ -106,16 +95,15 @@ public class ExportDataTableToProcessWizardPage extends ExportWizardPage {
             setErrorMessage(Localization.getString("ExportDataTableToProcessWizardPage.error.selectProcess"));
             return false;
         }
-        boolean result = true;
         for (final String selectedDefinitionName : selectedDefinitionNames) {
             try {
-                VariableUserType dataTable = DataTableCache.getDataTable(IOUtils.getWithoutExtension(dataTableFile.getName()));
+                VariableUserType dataTable = DataTableCache.getDataTable(dataTableFileName);
                 final IFile definitionFile = definitionNameFileMap.get(selectedDefinitionName);
                 ProcessDefinition processDefinition = ProcessCache.getProcessDefinition(definitionFile);
                 Set<String> userTypeNamesInProcess = processDefinition.getVariableUserTypes().stream().map(VariableUserType::getName)
                         .collect(Collectors.toSet());
                 if (userTypeNamesInProcess.contains(dataTable.getName())) {
-                    throw new InternalApplicationException(Localization.getString("ExportDataTableToProcessWizardPage.error.usertype_already_exists",
+                    throw new InternalApplicationException(Localization.getString("ExportDataTableToProcessWizardPage.error.usertype.already.exists",
                             dataTable.getName(), processDefinition.getName()));
                 } else {
                     dataTable.setStoreInExternalStorage(true);
@@ -128,7 +116,7 @@ public class ExportDataTableToProcessWizardPage extends ExportWizardPage {
                 return false;
             }
         }
-        return result;
+        return true;
     }
 
 }

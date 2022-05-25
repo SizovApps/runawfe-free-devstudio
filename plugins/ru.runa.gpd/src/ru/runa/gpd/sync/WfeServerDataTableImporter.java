@@ -1,7 +1,6 @@
 package ru.runa.gpd.sync;
 
 import java.util.List;
-
 import ru.runa.wfe.var.UserType;
 
 public class WfeServerDataTableImporter extends WfeServerConnectorDataImporter<List<String>> {

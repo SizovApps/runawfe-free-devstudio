@@ -5,7 +5,6 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.ui.IExportWizard;
 import org.eclipse.ui.IWorkbench;
-
 import ru.runa.gpd.Localization;
 
 public class ExportDataTableToProcessWizard extends Wizard implements IExportWizard {

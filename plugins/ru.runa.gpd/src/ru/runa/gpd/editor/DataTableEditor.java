@@ -1,14 +1,12 @@
 package ru.runa.gpd.editor;
 
 import com.google.common.base.Strings;
-import java.util.ArrayList;
 import java.util.List;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -65,16 +63,19 @@ import ru.runa.gpd.util.WorkspaceOperations;
 public class DataTableEditor extends EditorPart implements IResourceChangeListener, ISelectionChangedListener {
 
     public static final String ID = "ru.runa.gpd.editor.DataTableEditor";
+    private static final int NAME_INDEX = 0;
+    private static final int FORMAT_LABEL_INDEX = 1;
+    private static final int VARIABLE_VALUE_INDEX = 2;
 
     private Composite editorComposite;
     private TableViewer tableViewer;
     private IFile dataTableFile;
     private VariableUserType dataTable;
     private FormToolkit toolkit;
-    private Button editTypeButton;
-    private Button renameTypeButton;
-    private Button deleteTypeButton;
-    private Button copyTypeButton;
+    private Button editButton;
+    private Button renameButton;
+    private Button deleteButton;
+    private Button copyButton;
     private Menu menu;
 
     @Override
@@ -102,7 +103,7 @@ public class DataTableEditor extends EditorPart implements IResourceChangeListen
         } catch (Exception e) {
             throw new PartInitException("", e);
         }
-        setPartName(IOUtils.getWithoutExtension(dataTableFile.getName()));
+        setPartName(dataTableFileNameWithoutExtension);
         ResourcesPlugin.getWorkspace().addResourceChangeListener(this, IResourceChangeEvent.POST_CHANGE);
     }
 
@@ -117,11 +118,10 @@ public class DataTableEditor extends EditorPart implements IResourceChangeListen
 
     @Override
     public void selectionChanged(SelectionChangedEvent event) {
-        enableAction(editTypeButton, !event.getSelection().isEmpty());
-        enableAction(deleteTypeButton, !event.getSelection().isEmpty());
-        enableAction(renameTypeButton, !event.getSelection().isEmpty());
-        enableAction(copyTypeButton, !event.getSelection().isEmpty());
-
+        enableAction(editButton, !event.getSelection().isEmpty());
+        enableAction(deleteButton, !event.getSelection().isEmpty());
+        enableAction(renameButton, !event.getSelection().isEmpty());
+        enableAction(copyButton, !event.getSelection().isEmpty());
     }
 
     @Override
@@ -161,26 +161,8 @@ public class DataTableEditor extends EditorPart implements IResourceChangeListen
         tableViewer.addSelectionChangedListener(this);
 
         getSite().setSelectionProvider(tableViewer);
-        createTable(new DataViewerComparator<>(new ValueComparator<Variable>() {
-            @Override
-            public int compare(Variable o1, Variable o2) {
-                int result = 0;
-                switch (getColumn()) {
-                case 0:
-                    result = o1.getName().compareTo(o2.getName());
-                    break;
-                case 1:
-                    result = o1.getFormatLabel().compareTo(o2.getFormatLabel());
-                }
-                return result;
-            }
-        }));
-        List<String[]> userTypeAttributes = new ArrayList<>();
+        createTable();
         if (dataTable != null) {
-            for (Variable userTypeAttribute : dataTable.getAttributes()) {
-                String[] attr = new String[] { userTypeAttribute.getName(), userTypeAttribute.getFormatLabel(), userTypeAttribute.getDefaultValue() };
-                userTypeAttributes.add(attr);
-            }
             tableViewer.setInput(dataTable.getAttributes());
         } else {
             tableViewer.setInput(new Object[0]);
@@ -197,10 +179,10 @@ public class DataTableEditor extends EditorPart implements IResourceChangeListen
         gridData.grabExcessVerticalSpace = true;
         buttonsBar.setLayoutData(gridData);
         addButton(buttonsBar, "button.create", new CreateAttributeSelectionListener(), true, true);
-        editTypeButton = addButton(buttonsBar, "button.change", new ChangeAttributeSelectionListener(), true, false);
-        renameTypeButton = addButton(buttonsBar, "button.rename", new RenameAttributeSelectionListener(), true, false);
-        deleteTypeButton = addButton(buttonsBar, "button.delete", new DeleteAttributeSelectionListener(), true, false);
-        copyTypeButton = addButton(buttonsBar, "button.copy", new CopyAttributeSelectionListener(), true, false);
+        editButton = addButton(buttonsBar, "button.change", new ChangeAttributeSelectionListener(), true, false);
+        renameButton = addButton(buttonsBar, "button.rename", new RenameAttributeSelectionListener(), true, false);
+        deleteButton = addButton(buttonsBar, "button.delete", new DeleteAttributeSelectionListener(), true, false);
+        copyButton = addButton(buttonsBar, "button.copy", new CopyAttributeSelectionListener(), true, false);
         addButton(buttonsBar, "button.paste", new PasteAttributeSelectionListener(), true, true);
     }
 
@@ -209,11 +191,11 @@ public class DataTableEditor extends EditorPart implements IResourceChangeListen
         public String getColumnText(Object element, int index) {
             Variable variable = (Variable) element;
             switch (index) {
-            case 0:
+            case NAME_INDEX:
                 return variable.getName();
-            case 1:
+            case FORMAT_LABEL_INDEX:
                 return variable.getFormatLabel();
-            case 2:
+            case VARIABLE_VALUE_INDEX:
                 return Strings.nullToEmpty(variable.getDefaultValue());
             default:
                 return "unknown " + index;
@@ -238,13 +220,11 @@ public class DataTableEditor extends EditorPart implements IResourceChangeListen
         button.setLayoutData(gridData);
         button.addSelectionListener(selectionListener);
         button.setEnabled(enabled);
-        if (addToMenu) {
-            MenuItem item = new MenuItem(menu, SWT.NONE);
-            item.setText(title);
-            item.addSelectionListener(selectionListener);
-            item.setEnabled(enabled);
-            button.setData("menuItem", item);
-        }
+        MenuItem item = new MenuItem(menu, SWT.NONE);
+        item.setText(title);
+        item.addSelectionListener(selectionListener);
+        item.setEnabled(enabled);
+        button.setData("menuItem", item);
         return button;
     }
 
@@ -259,9 +239,8 @@ public class DataTableEditor extends EditorPart implements IResourceChangeListen
         return dataTableFile;
     }
 
-    @SuppressWarnings("unchecked")
-    private <T> T getSelection() {
-        return tableViewer == null ? null : (T) ((IStructuredSelection) tableViewer.getSelection()).getFirstElement();
+    private Variable getSelection() {
+        return (Variable) ((IStructuredSelection) tableViewer.getSelection()).getFirstElement();
     }
 
     private void createContextMenu(Control control) {
@@ -270,11 +249,8 @@ public class DataTableEditor extends EditorPart implements IResourceChangeListen
     }
 
     private Display getDisplay() {
-        Display result = Display.getCurrent();
-        if (result == null) {
-            result = Display.getDefault();
-        }
-        return result;
+        Display current = Display.getCurrent();
+        return current != null ? current : Display.getDefault();
     }
 
     private void enableAction(Button button, boolean enabled) {
@@ -285,7 +261,21 @@ public class DataTableEditor extends EditorPart implements IResourceChangeListen
         }
     }
 
-    private <S> void createTable(DataViewerComparator<S> comparator) {
+    private <S> void createTable() {
+        DataViewerComparator<Variable> comparator = new DataViewerComparator<>(new ValueComparator<Variable>() {
+            @Override
+            public int compare(Variable o1, Variable o2) {
+                int result = 0;
+                switch (getColumn()) {
+                case 0:
+                    result = o1.getName().compareTo(o2.getName());
+                    break;
+                case 1:
+                    result = o1.getFormatLabel().compareTo(o2.getFormatLabel());
+                }
+                return result;
+            }
+        });
         tableViewer.setComparator(comparator);
         Table table = tableViewer.getTable();
         table.setHeaderVisible(true);
@@ -293,21 +283,20 @@ public class DataTableEditor extends EditorPart implements IResourceChangeListen
         TableColumnDescription[] columnDescriptions = { new TableColumnDescription("property.name", 200, SWT.LEFT),
                 new TableColumnDescription("Variable.property.format", 200, SWT.LEFT),
                 new TableColumnDescription("Variable.property.defaultValue", 200, SWT.LEFT, false) };
-        int index = 0;
-        for (TableColumnDescription col : columnDescriptions) {
-            TableColumn tableColumn = new TableColumn(table, col.getStyle());
-            tableColumn.setText(Localization.getString(col.getTitleKey()));
-            tableColumn.setWidth(col.getWidth());
-            if (col.isSort()) {
-                tableColumn.addSelectionListener(createSelectionListener(tableViewer, comparator, tableColumn, index));
+        for (int i = 0; i < columnDescriptions.length; i++) {
+            TableColumnDescription columnDescription = columnDescriptions[i];
+            TableColumn tableColumn = new TableColumn(table, columnDescription.getStyle());
+            tableColumn.setText(Localization.getString(columnDescription.getTitleKey()));
+            tableColumn.setWidth(columnDescription.getWidth());
+            if (columnDescription.isSort()) {
+                tableColumn.addSelectionListener(createSelectionListener(tableViewer, comparator, tableColumn, i));
             }
-            index++;
         }
     }
 
     private <S> SelectionListener createSelectionListener(final TableViewer viewer, final DataViewerComparator<S> comparator,
             final TableColumn column, final int index) {
-        SelectionAdapter selectionAdapter = new SelectionAdapter() {
+        return new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 comparator.setColumn(index);
@@ -316,7 +305,6 @@ public class DataTableEditor extends EditorPart implements IResourceChangeListen
                 viewer.refresh();
             }
         };
-        return selectionAdapter;
     }
 
     private class DeleteAttributeSelectionListener extends LoggingSelectionAdapter {
@@ -337,16 +325,14 @@ public class DataTableEditor extends EditorPart implements IResourceChangeListen
         protected void onSelection(SelectionEvent e) throws Exception {
             Variable attribute = getSelection();
             UpdateVariableNameDialog dialog = new UpdateVariableNameDialog(dataTable, attribute);
-            int result = dialog.open();
-            if (result != IDialogConstants.OK_ID) {
-                return;
+            if (dialog.open() == Window.OK) {
+                String newAttributeName = dialog.getName();
+                String newAttributeScriptingName = dialog.getScriptingName();
+                attribute.setName(newAttributeName);
+                attribute.setScriptingName(newAttributeScriptingName);
+                WorkspaceOperations.saveDataTable(dataTableFile, dataTable);
+                rebuildView(editorComposite);
             }
-            String newAttributeName = dialog.getName();
-            String newAttributeScriptingName = dialog.getScriptingName();
-            attribute.setName(newAttributeName);
-            attribute.setScriptingName(newAttributeScriptingName);
-            WorkspaceOperations.saveDataTable(dataTableFile, dataTable);
-            rebuildView(editorComposite);
         }
     }
 
@@ -399,29 +385,28 @@ public class DataTableEditor extends EditorPart implements IResourceChangeListen
             @SuppressWarnings("unchecked")
             List<Variable> data = (List<Variable>) clipboard.getContents(VariableTransfer.getInstance());
             if (data != null) {
-                for (Variable variable : data) {
-                    boolean nameAllowed = true;
-                    Variable newVariable = VariableUtils.getVariableByName(dataTable, variable.getName());
-                    if (newVariable == null) {
-                        newVariable = new Variable(variable);
-                        dataTable.addAttribute(newVariable);
-                        WorkspaceOperations.saveDataTable(dataTableFile, dataTable);
-                    } else {
-                        UpdateVariableNameDialog dialog = new UpdateVariableNameDialog(dataTable, newVariable);
-                        nameAllowed = dialog.open() == Window.OK;
-                        if (nameAllowed) {
-                            newVariable = new Variable(variable);
-                            newVariable.setName(dialog.getName());
-                            newVariable.setScriptingName(dialog.getScriptingName());
-                            dataTable.addAttribute(newVariable);
-                            tableViewer.setSelection(new StructuredSelection(variable));
-                            WorkspaceOperations.saveDataTable(dataTableFile, dataTable);
-                        }
-                    }
-                    rebuildView(editorComposite);
-                }
+                clipboard.dispose();
+                return;
             }
-            clipboard.dispose();
+            for (Variable variable : data) {
+                Variable newVariable = VariableUtils.getVariableByName(dataTable, variable.getName());
+                if (newVariable == null) {
+                    newVariable = new Variable(variable);
+                    dataTable.addAttribute(newVariable);
+                    WorkspaceOperations.saveDataTable(dataTableFile, dataTable);
+                } else {
+                    UpdateVariableNameDialog dialog = new UpdateVariableNameDialog(dataTable, newVariable);
+                    if (dialog.open() == Window.OK) {
+                        newVariable = new Variable(variable);
+                        newVariable.setName(dialog.getName());
+                        newVariable.setScriptingName(dialog.getScriptingName());
+                        dataTable.addAttribute(newVariable);
+                        tableViewer.setSelection(new StructuredSelection(variable));
+                        WorkspaceOperations.saveDataTable(dataTableFile, dataTable);
+                    }
+                }
+                rebuildView(editorComposite);
+            }
         }
     }
 }

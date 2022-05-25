@@ -1,6 +1,5 @@
 package ru.runa.gpd.ui.wizard;
 
-import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.WizardPage;
@@ -12,7 +11,6 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
-
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.ui.custom.FileNameChecker;
 
@@ -82,10 +80,7 @@ public class NewDataTableWizardPage extends WizardPage {
     }
 
     public String getDataTableName() {
-        if (nameText == null) {
-            return ""; //$NON-NLS-1$
-        }
-        return nameText.getText().trim();
+        return nameText != null ? nameText.getText().trim() : "";
     }
 
     private boolean isDataTableNameEmpty() {
@@ -94,9 +89,5 @@ public class NewDataTableWizardPage extends WizardPage {
 
     private boolean isDataTableNameValid() {
         return FileNameChecker.isValid(nameText.getText());
-    }
-
-    public IStructuredSelection setSelection(IResource resource) {
-        return selection;
     }
 }

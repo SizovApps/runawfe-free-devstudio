@@ -1,7 +1,7 @@
 package ru.runa.gpd.ui.wizard;
 
+import com.google.common.base.Throwables;
 import java.util.List;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
@@ -20,9 +20,6 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.ide.IDE;
-
-import com.google.common.base.Throwables;
-
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.PluginLogger;
 import ru.runa.gpd.editor.DataTableEditor;
@@ -37,7 +34,6 @@ import ru.runa.wfe.var.UserType;
 import ru.runa.wfe.var.VariableDefinition;
 
 public class ImportDataTableWizardPage extends ImportWizardPage {
-    private Label importFromServerLabel;
     private WfeServerConnectorComposite serverConnectorComposite;
     private TreeViewer serverDataTableViewer;
     private IWorkbench workbench;
@@ -59,9 +55,9 @@ public class ImportDataTableWizardPage extends ImportWizardPage {
         GridData gridData = new GridData(GridData.GRAB_HORIZONTAL | GridData.FILL_HORIZONTAL);
         gridData.heightHint = 30;
 
-        importFromServerLabel = new Label(importGroup, SWT.RADIO);
+        Label importFromServerLabel = new Label(importGroup, SWT.RADIO);
         importFromServerLabel.setText(Localization.getString("button.importFromServer"));
-        serverConnectorComposite = new WfeServerConnectorComposite(importGroup, WfeServerDataTableImporter.getInstance(),
+        new WfeServerConnectorComposite(importGroup, WfeServerDataTableImporter.getInstance(),
                 new WfeServerConnectorSynchronizationCallback() {
 
                     @Override
@@ -98,13 +94,12 @@ public class ImportDataTableWizardPage extends ImportWizardPage {
     public boolean finish() {
         try {
             for (TreeItem treeItem : serverDataTableViewer.getTree().getSelection()) {
-                IFile dsFile = DataTableUtils.getDataTableProject().getFile(treeItem.getText() + DataTableUtils.DATA_TABLE_FILE_EXTENSION);
-                if (dsFile.exists()) {
+                if (DataTableUtils.getDataTableProject().getFile(treeItem.getText() + DataTableUtils.FILE_EXTENSION).exists()) {
                     throw new Exception(Localization.getString("ImportDataTableWizardPage.error.dataTableWithSameNameExists", treeItem.getText()));
                 }
                 UserType userType = WfeServerDataTableImporter.getInstance().getDataTable(treeItem.getText());
                 IProject dtProject = DataTableUtils.getDataTableProject();
-                IFile dataTableFile = dtProject.getFile(treeItem.getText() + DataTableUtils.DATA_TABLE_FILE_EXTENSION);
+                IFile dataTableFile = dtProject.getFile(treeItem.getText() + DataTableUtils.FILE_EXTENSION);
                 VariableUserType dataTable = new VariableUserType(treeItem.getText());
                 for (VariableDefinition varDef : userType.getAttributes()) {
                     Variable variable = new Variable(varDef.getName(), varDef.getScriptingName(), varDef.getFormat(), null);

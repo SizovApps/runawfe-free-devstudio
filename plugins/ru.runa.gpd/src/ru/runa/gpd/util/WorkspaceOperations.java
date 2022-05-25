@@ -676,16 +676,11 @@ public class WorkspaceOperations {
     }
 
     public static void saveDataTable(IFile file, VariableUserType dataTable) {
-        Document document = UserTypeXmlContentPorvider.save(file, dataTable);
-        if (document != null) {
-            byte[] contentBytes;
-            contentBytes = XmlUtil.writeXml(document);
-            InputStream content = new ByteArrayInputStream(contentBytes);
-            try {
-                IOUtils.createOrUpdateFile(file, content);
-            } catch (CoreException e) {
-                throw new InternalApplicationException(e);
-            }
+        Document document = UserTypeXmlContentProvider.save(file, dataTable);
+        try {
+            IOUtils.createOrUpdateFile(file, new ByteArrayInputStream(XmlUtil.writeXml(document)));
+        } catch (CoreException e) {
+            throw new InternalApplicationException(e);
         }
         DataTableCache.reload();
     }

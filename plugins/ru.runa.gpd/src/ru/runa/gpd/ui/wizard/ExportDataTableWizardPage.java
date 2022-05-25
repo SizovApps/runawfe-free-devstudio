@@ -4,8 +4,6 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -13,11 +11,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.eclipse.core.resources.IFile;
@@ -71,7 +67,7 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
         super(ExportDataTableWizardPage.class);
         setTitle(Localization.getString("ExportDataTableWizard.wizard.title"));
         setDescription(Localization.getString("ExportDataTableWizardPage.page.description"));
-        dataTableNameFileMap = new TreeMap<String, IFile>();
+        dataTableNameFileMap = new TreeMap<>();
         for (IFile dataTableFile : DataTableCache.getAllFiles()) {
             dataTableNameFileMap.put(IOUtils.getWithoutExtension(dataTableFile.getName()), dataTableFile);
         }
@@ -79,15 +75,9 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
     }
 
     private IResource getInitialElement(IStructuredSelection selection) {
-        if (selection != null && !selection.isEmpty()) {
-            Object selectedElement = selection.getFirstElement();
-            if (selectedElement instanceof IAdaptable) {
-                IAdaptable adaptable = (IAdaptable) selectedElement;
-                IResource resource = adaptable.getAdapter(IResource.class);
-                return resource;
-            }
-        }
-        return null;
+        return selection != null && !selection.isEmpty() && selection.getFirstElement() instanceof IAdaptable
+                ? (IResource) ((IAdaptable) selection.getFirstElement()).getAdapter(IResource.class)
+                : null;
     }
 
     @Override
@@ -105,16 +95,6 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
         Group exportGroup = new Group(sashForm, SWT.NONE);
         exportGroup.setLayout(new GridLayout(1, false));
         exportGroup.setLayoutData(new GridData(GridData.FILL_BOTH));
-        // TODO implement export to a file (xml, csv and json)
-        // exportToFileButton = new Button(exportGroup, SWT.RADIO);
-        // exportToFileButton.setText(Localization.getString("button.exportToFile"));
-        // exportToFileButton.addSelectionListener(new LoggingSelectionAdapter() {
-        // @Override
-        // protected void onSelection(SelectionEvent e) throws Exception {
-        // onExportModeChanged();
-        // }
-        // });
-        // createDestinationDirectoryGroup(exportGroup);
         exportToServerButton = new Button(exportGroup, SWT.RADIO);
         exportToServerButton.setText(Localization.getString("button.exportToServer"));
         exportToServerButton.setSelection(true);
@@ -149,7 +129,7 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
         }
         String selectedFileName = dialog.open();
         if (selectedFileName != null) {
-            setErrorMessage(null);
+            setErrorMessage("ExportDataTableWizardPage.error.empty.source.selection");
             setDestinationValue(selectedFileName);
         }
     }
@@ -176,7 +156,7 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
         boolean exportToProcess = exportToProcessButton.getSelection();
         String selected = getSelection();
         if (selected == null) {
-            setErrorMessage("select");
+            setErrorMessage("ExportDataTableWizardPage.error.empty.source.selection");
             return false;
         }
         if (exportToFile && Strings.isNullOrEmpty(getDestinationValue())) {
@@ -206,37 +186,37 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
     }
 
     protected void exportToFile(IResource exportResource) throws Exception {
-        new DataTableExportOperation(Lists.newArrayList((IFile) exportResource), new FileOutputStream(getDestinationValue())).run(null);
+        new DataTableExportOperation((IFile) exportResource, new FileOutputStream(getDestinationValue())).run(null);
     }
 
     protected void deployToServer(IResource exportResource) throws Exception {
         VariableUserType dataTable = DataTableCache.getDataTable(IOUtils.getWithoutExtension(exportResource.getName()));
         boolean hasUnsupportedFormats = dataTable.getAttributes().stream()
-                .anyMatch(var -> FORBIDDEN_VARIABLE_FORMATS.contains(var.getFormat().split("\\(|:")[0]));
+                .anyMatch(var -> FORBIDDEN_VARIABLE_FORMATS.contains(var.getFormat().split("[(:]")[0]));
         if (hasUnsupportedFormats) {
-            Dialogs.information(Localization.getString("ExportDataTableWizardPage.dialog.dataTable_export_forbidden_by_formats"));
+            Dialogs.information(Localization.getString("ExportDataTableWizardPage.dialog.error.forbidden.format"));
         } else if (dataTable.getAttributes().isEmpty()) {
-            Dialogs.information(Localization.getString("ExportDataTableWizardPage.dialog.dataTable_export_forbidden_without_variables"));
+            Dialogs.information(Localization.getString("ExportDataTableWizardPage.dialog.error.empty.variables"));
         } else {
-            new DataTableDeployOperation(Lists.newArrayList((IFile) exportResource)).run(null);
+            new DataTableDeployOperation((IFile) exportResource).run(null);
         }
     }
 
     protected void exportToProcess(IResource exportResource) throws Exception {
         new DataTableExportToProcessOperation((IFile) exportResource).run(null);
-    };
+    }
 
-    private static class DataTableExportOperation implements IRunnableWithProgress {
+    private class DataTableExportOperation implements IRunnableWithProgress {
         
         protected final OutputStream outputStream;
-        protected final List<IFile> resourcesToExport;
+        protected final IFile resource;
 
-        public DataTableExportOperation(List<IFile> resourcesToExport, OutputStream outputStream) throws Exception {
+        public DataTableExportOperation(IFile resource, OutputStream outputStream) {
             this.outputStream = outputStream;
-            this.resourcesToExport = resourcesToExport;
+            this.resource = resource;
         }
 
-        protected void exportResource(DataTableFileExporter exporter, IFile fileResource, IProgressMonitor progressMonitor)
+        protected void exportResource(DataTableFileExporter exporter, IFile fileResource)
                 throws IOException, CoreException {
             if (!fileResource.isSynchronized(IResource.DEPTH_ONE)) {
                 fileResource.refreshLocal(IResource.DEPTH_ONE, null);
@@ -248,12 +228,10 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
             exporter.write(fileResource, destinationName);
         }
 
-        protected void exportResources(IProgressMonitor progressMonitor) throws InvocationTargetException {
+        protected void exportResources() throws InvocationTargetException {
             try {
                 DataTableFileExporter exporter = new DataTableFileExporter(outputStream);
-                for (IFile resource : resourcesToExport) {
-                    exportResource(exporter, resource, progressMonitor);
-                }
+                exportResource(exporter, resource);
                 exporter.finished();
                 outputStream.flush();
             } catch (Exception e) {
@@ -263,41 +241,33 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
 
         @Override
         public void run(IProgressMonitor progressMonitor) throws InvocationTargetException, InterruptedException {
-            exportResources(progressMonitor);
+            exportResources();
         }
     
     }
 
     private class DataTableDeployOperation extends DataTableExportOperation {
         
-        public DataTableDeployOperation(List<IFile> resourcesToExport) throws Exception {
-            super(resourcesToExport, new ByteArrayOutputStream());
+        public DataTableDeployOperation(IFile resource) throws Exception {
+            super(resource, new ByteArrayOutputStream());
         }
 
         @Override
         public void run(final IProgressMonitor progressMonitor) throws InvocationTargetException, InterruptedException {
-            exportResources(progressMonitor);
+            exportResources();
             final ByteArrayOutputStream baos = (ByteArrayOutputStream) outputStream;
             try {
                 Display display = Display.getDefault();
                 // default handler doesn't rethrow any exception thus we set custom one
-                display.setRuntimeExceptionHandler(new Consumer<RuntimeException>() {
-                    @Override
-                    public void accept(RuntimeException t) {
-                        throw new InternalApplicationException(t);
-                    }
+                display.setRuntimeExceptionHandler(t -> {
+                    throw new InternalApplicationException(t);
                 });
-                display.syncExec(new Runnable() {
-                    @Override
-                    public void run() {
-                        WfeServerConnector.getInstance().deployDataTable(baos.toByteArray());
-                    }
-                });
+                display.syncExec(() -> WfeServerConnector.getInstance().deployDataTable(baos.toByteArray()));
             } catch (Exception e) {
                 if (e.getMessage().contains("DataTableAlreadyExistsException")) {
-                    String dataTableName = IOUtils.getWithoutExtension(Iterables.getOnlyElement(resourcesToExport).getName());
+                    String dataTableName = IOUtils.getWithoutExtension(resource.getName());
                     throw new RuntimeException(
-                            Localization.getString("ExportDataTableWizardPage.error.dataTable_already_exists", dataTableName));
+                            Localization.getString("ExportDataTableWizardPage.error.dataTable.already.exists", dataTableName));
                 }
                 throw new InvocationTargetException(e);
             }
@@ -328,7 +298,6 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
 
         public DataTableFileExporter(OutputStream outputStream) throws IOException {
             this.outputStream = new ZipOutputStream(outputStream, Charsets.UTF_8);
-
         }
 
         public void finished() throws IOException {

@@ -39,9 +39,9 @@ import ru.runa.wfe.definition.DefinitionAlreadyExistException;
 import ru.runa.wfe.definition.DefinitionDoesNotExistException;
 import ru.runa.wfe.definition.DefinitionNameMismatchException;
 import ru.runa.wfe.definition.dto.WfDefinition;
+import ru.runa.wfe.user.Actor;
 import ru.runa.wfe.user.Group;
 import ru.runa.wfe.var.UserType;
-import ru.runa.wfe.webservice.Actor;
 import ru.runa.wfe.webservice.AuthenticationAPI;
 import ru.runa.wfe.webservice.AuthenticationWebService;
 import ru.runa.wfe.webservice.BotAPI;
@@ -55,6 +55,7 @@ import ru.runa.wfe.webservice.DefinitionWebService;
 import ru.runa.wfe.webservice.ExecutorAPI;
 import ru.runa.wfe.webservice.ExecutorWebService;
 import ru.runa.wfe.webservice.Login;
+import ru.runa.wfe.webservice.LoginResponse;
 import ru.runa.wfe.webservice.Relation;
 import ru.runa.wfe.webservice.RelationAPI;
 import ru.runa.wfe.webservice.RelationWebService;
@@ -260,7 +261,7 @@ public class WebServiceWfeServerConnector extends WfeServerConnector {
             getDataTableService().importTable(getUser(), archive);
     	} catch (Exception e) {
             if (e.getMessage() != null && e.getMessage().contains("DataTableAlreadyExistsException")) {
-                throw new InternalApplicationException("DataTableAlreadyExistsException");
+                throw new InternalApplicationException("Data table already exists");
             }
             throw Throwables.propagate(e);
     	}
@@ -273,7 +274,7 @@ public class WebServiceWfeServerConnector extends WfeServerConnector {
 
     @Override
     public UserType getDataTable(String name) {
-        return DataTableAdapter.toDTO(getDataTableService().getMetaData(getUser(), name));
+        return DataTableAdapter.toDto(getDataTableService().getMetaData(getUser(), name));
     }
 
     private String getServiceUrl(String serviceName) {

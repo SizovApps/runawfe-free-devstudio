@@ -1,19 +1,15 @@
 package ru.runa.gpd.sync;
 
+import com.google.common.base.Throwables;
 import java.util.List;
 import java.util.Map;
-
 import javax.security.auth.login.Configuration;
-
 import org.ietf.jgss.GSSContext;
 import org.ietf.jgss.GSSCredential;
 import org.ietf.jgss.GSSException;
 import org.ietf.jgss.GSSManager;
 import org.ietf.jgss.GSSName;
 import org.ietf.jgss.Oid;
-
-import com.google.common.base.Throwables;
-
 import ru.runa.gpd.settings.PrefConstants;
 import ru.runa.wfe.bot.Bot;
 import ru.runa.wfe.bot.BotStation;

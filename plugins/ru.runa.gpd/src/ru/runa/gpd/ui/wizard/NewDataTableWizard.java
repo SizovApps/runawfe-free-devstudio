@@ -3,8 +3,6 @@ package ru.runa.gpd.ui.wizard;
 import java.lang.reflect.InvocationTargetException;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.ui.INewWizard;
@@ -35,27 +33,23 @@ public class NewDataTableWizard extends Wizard implements INewWizard {
     @Override
     public boolean performFinish() {
         try {
-            getContainer().run(false, false, new IRunnableWithProgress() {
-                @Override
-                public void run(IProgressMonitor monitor) throws InvocationTargetException {
-                    try {
-                        monitor.beginTask("processing", 4);
-                        IProject dtProject = DataTableUtils.getDataTableProject();
-                        IFile dataTableFile = dtProject.getFile(page.getDataTableName() + DataTableUtils.DATA_TABLE_FILE_EXTENSION);
-                        VariableUserType dataTable = new VariableUserType(page.getDataTableName());
-                        WorkspaceOperations.saveDataTable(dataTableFile, dataTable);
-                        monitor.worked(1);
-                        IDE.openEditor(getActivePage(), dataTableFile, DataTableEditor.ID, true);
-                        monitor.done();
-                    } catch (Exception e) {
-                        throw new InvocationTargetException(e);
-                    }
+            getContainer().run(false, false, monitor -> {
+                try {
+                    monitor.beginTask("processing", 4);
+                    IProject dtProject = DataTableUtils.getDataTableProject();
+                    IFile dataTableFile = dtProject.getFile(page.getDataTableName() + DataTableUtils.FILE_EXTENSION);
+                    VariableUserType dataTable = new VariableUserType(page.getDataTableName());
+                    WorkspaceOperations.saveDataTable(dataTableFile, dataTable);
+                    monitor.worked(1);
+                    IDE.openEditor(getActivePage(), dataTableFile, DataTableEditor.ID, true);
+                    monitor.done();
+                } catch (Exception e) {
+                    throw new InvocationTargetException(e);
                 }
             });
-        } catch (InvocationTargetException e) {
-            PluginLogger.logError("datatable.error.creation", e.getTargetException());
+        } catch (InvocationTargetException | InterruptedException e) {
+            PluginLogger.logError("datatable.error.creation", e);
             return false;
-        } catch (InterruptedException e) {
         }
         return true;
     }
