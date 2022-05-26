@@ -1,37 +1,24 @@
 package ru.runa.gpd.ui.wizard;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.operation.IRunnableWithProgress;
-import org.eclipse.jface.viewers.ArrayContentProvider;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ListViewer;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -48,16 +35,15 @@ import ru.runa.gpd.sync.WfeServerConnectorComposite;
 import ru.runa.gpd.sync.WfeServerProcessDefinitionImporter;
 import ru.runa.gpd.ui.custom.Dialogs;
 import ru.runa.gpd.util.IOUtils;
+import ru.runa.gpd.util.WizardPageUtils;
+import ru.runa.gpd.util.files.FileExporter;
 import ru.runa.wfe.InternalApplicationException;
 
 public class ExportDataTableWizardPage extends ExportWizardPage {
     private final Map<String, IFile> dataTableNameFileMap;
     private ListViewer dataTableListViewer;
     protected final IResource exportResource;
-    private Button exportToFileButton;
-    private Button exportToServerButton;
     private Button exportToProcessButton;
-    private WfeServerConnectorComposite serverConnectorComposite;
 
     private static final Set<String> FORBIDDEN_VARIABLE_FORMATS = ImmutableSet.of("ru.runa.wfe.var.format.HiddenFormat",
             "ru.runa.wfe.var.format.ListFormat",
@@ -71,34 +57,20 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
         for (IFile dataTableFile : DataTableCache.getAllFiles()) {
             dataTableNameFileMap.put(IOUtils.getWithoutExtension(dataTableFile.getName()), dataTableFile);
         }
-        exportResource = getInitialElement(selection);
-    }
-
-    private IResource getInitialElement(IStructuredSelection selection) {
-        return selection != null && !selection.isEmpty() && selection.getFirstElement() instanceof IAdaptable
-                ? (IResource) ((IAdaptable) selection.getFirstElement()).getAdapter(IResource.class)
-                : null;
+        exportResource = WizardPageUtils.getInitialElement(selection);
     }
 
     @Override
     public void createControl(Composite parent) {
-        Composite pageControl = new Composite(parent, SWT.NONE);
-        pageControl.setLayout(new GridLayout(1, false));
-        pageControl.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-        SashForm sashForm = new SashForm(pageControl, SWT.HORIZONTAL);
-        sashForm.setLayoutData(new GridData(GridData.FILL_BOTH));
-        Group processListGroup = new Group(sashForm, SWT.NONE);
-        processListGroup.setLayout(new GridLayout(1, false));
-        processListGroup.setLayoutData(new GridData(GridData.FILL_BOTH));
-        processListGroup.setText(Localization.getString("label.view.dataTableDesignerExplorer"));
-        createViewer(processListGroup);
-        Group exportGroup = new Group(sashForm, SWT.NONE);
-        exportGroup.setLayout(new GridLayout(1, false));
-        exportGroup.setLayoutData(new GridData(GridData.FILL_BOTH));
-        exportToServerButton = new Button(exportGroup, SWT.RADIO);
+        Composite pageControl = WizardPageUtils.createPageControl(parent);
+        SashForm sashForm = WizardPageUtils.createSashForm(pageControl);
+        dataTableListViewer = WizardPageUtils.createViewer(sashForm, "label.view.dataTableDesignerExplorer",
+                dataTableNameFileMap.keySet(), e -> setPageComplete(!e.getSelection().isEmpty()));
+        Group exportGroup = WizardPageUtils.createExportGroup(sashForm);
+        Button exportToServerButton = new Button(exportGroup, SWT.RADIO);
         exportToServerButton.setText(Localization.getString("button.exportToServer"));
         exportToServerButton.setSelection(true);
-        serverConnectorComposite = new WfeServerConnectorComposite(exportGroup, WfeServerProcessDefinitionImporter.getInstance(), null);
+        new WfeServerConnectorComposite(exportGroup, WfeServerProcessDefinitionImporter.getInstance(), null);
         new Label(parent, SWT.NONE); // vertical spacer
         exportToProcessButton = new Button(exportGroup, SWT.RADIO);
         exportToProcessButton.setText(Localization.getString("button.exportToProcess"));
@@ -108,43 +80,12 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
         }
     }
 
-    private void onExportModeChanged() {
-        boolean fromFile = exportToFileButton.getSelection();
-        destinationValueText.setEnabled(fromFile);
-        browseButton.setEnabled(fromFile);
-        serverConnectorComposite.setEnabled(!fromFile);
-    }
-
     @Override
     protected void onBrowseButtonSelected() {
         FileDialog dialog = new FileDialog(getContainer().getShell(), SWT.SAVE);
         String selectionName = getSelection();
-        if (selectionName != null) {
-            dialog.setFileName(IOUtils.getWithoutExtension(exportResource.getName()));
-        }
-        String currentSourceString = getDestinationValue();
-        int lastSeparatorIndex = currentSourceString.lastIndexOf(File.separator);
-        if (lastSeparatorIndex != -1) {
-            dialog.setFilterPath(currentSourceString.substring(0, lastSeparatorIndex));
-        }
-        String selectedFileName = dialog.open();
-        if (selectedFileName != null) {
-            setErrorMessage("ExportDataTableWizardPage.error.empty.source.selection");
-            setDestinationValue(selectedFileName);
-        }
-    }
-
-    private void createViewer(Composite parent) {
-        dataTableListViewer = new ListViewer(parent, SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
-        dataTableListViewer.getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
-        dataTableListViewer.setContentProvider(new ArrayContentProvider());
-        dataTableListViewer.setInput(dataTableNameFileMap.keySet());
-        dataTableListViewer.addSelectionChangedListener(new ISelectionChangedListener() {
-            @Override
-            public void selectionChanged(SelectionChangedEvent event) {
-                setPageComplete(!event.getSelection().isEmpty());
-            }
-        });
+        WizardPageUtils.onBrowseButtonSelected(dialog, selectionName, () -> IOUtils.getWithoutExtension(exportResource.getName()),
+                getDestinationValue(), () -> setErrorMessage("ExportDataTableWizardPage.error.empty.source.selection"), this::setDestinationValue);
     }
 
     private String getSelection() {
@@ -152,27 +93,20 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
     }
 
     public boolean finish() {
-        boolean exportToFile = false;
         boolean exportToProcess = exportToProcessButton.getSelection();
         String selected = getSelection();
         if (selected == null) {
             setErrorMessage("ExportDataTableWizardPage.error.empty.source.selection");
             return false;
         }
-        if (exportToFile && Strings.isNullOrEmpty(getDestinationValue())) {
-            setErrorMessage(Localization.getString("error.selectDestinationPath"));
-            return false;
-        }
-        if (!exportToFile && !WfeServerConnector.getInstance().isConfigured()) {
+        if (!WfeServerConnector.getInstance().isConfigured()) {
             setErrorMessage(Localization.getString("error.selectValidConnection"));
             return false;
         }
         IResource exportResource = dataTableNameFileMap.get(selected);
         try {
             exportResource.refreshLocal(IResource.DEPTH_ONE, null);
-            if (exportToFile) {
-                exportToFile(exportResource);
-            } else if (exportToProcess) {
+            if (exportToProcess) {
                 exportToProcess(exportResource);
             } else {
                 deployToServer(exportResource);
@@ -183,10 +117,6 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
             setErrorMessage(Throwables.getRootCause(th).getMessage());
             return false;
         }
-    }
-
-    protected void exportToFile(IResource exportResource) throws Exception {
-        new DataTableExportOperation((IFile) exportResource, new FileOutputStream(getDestinationValue())).run(null);
     }
 
     protected void deployToServer(IResource exportResource) throws Exception {
@@ -206,8 +136,7 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
         new DataTableExportToProcessOperation((IFile) exportResource).run(null);
     }
 
-    private class DataTableExportOperation implements IRunnableWithProgress {
-        
+    private static class DataTableExportOperation implements IRunnableWithProgress {
         protected final OutputStream outputStream;
         protected final IFile resource;
 
@@ -216,8 +145,7 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
             this.resource = resource;
         }
 
-        protected void exportResource(DataTableFileExporter exporter, IFile fileResource)
-                throws IOException, CoreException {
+        protected void exportResource(FileExporter exporter, IFile fileResource) throws IOException, CoreException {
             if (!fileResource.isSynchronized(IResource.DEPTH_ONE)) {
                 fileResource.refreshLocal(IResource.DEPTH_ONE, null);
             }
@@ -230,7 +158,7 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
 
         protected void exportResources() throws InvocationTargetException {
             try {
-                DataTableFileExporter exporter = new DataTableFileExporter(outputStream);
+                FileExporter exporter = new FileExporter(outputStream);
                 exportResource(exporter, resource);
                 exporter.finished();
                 outputStream.flush();
@@ -246,9 +174,9 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
     
     }
 
-    private class DataTableDeployOperation extends DataTableExportOperation {
+    private static class DataTableDeployOperation extends DataTableExportOperation {
         
-        public DataTableDeployOperation(IFile resource) throws Exception {
+        public DataTableDeployOperation(IFile resource) {
             super(resource, new ByteArrayOutputStream());
         }
 
@@ -259,8 +187,8 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
             try {
                 Display display = Display.getDefault();
                 // default handler doesn't rethrow any exception thus we set custom one
-                display.setRuntimeExceptionHandler(t -> {
-                    throw new InternalApplicationException(t);
+                display.setRuntimeExceptionHandler(e -> {
+                    throw new InternalApplicationException(e);
                 });
                 display.syncExec(() -> WfeServerConnector.getInstance().deployDataTable(baos.toByteArray()));
             } catch (Exception e) {
@@ -275,12 +203,12 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
     }
 
     private static class DataTableExportToProcessOperation implements IRunnableWithProgress {
-
         protected final IFile resourceToExport;
 
         public DataTableExportToProcessOperation(IFile resourceToExport) {
             this.resourceToExport = resourceToExport;
         }
+
         @Override
         public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
             ExportDataTableToProcessWizard wizard = new ExportDataTableToProcessWizard(resourceToExport);
@@ -288,42 +216,6 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
             CompactWizardDialog dialog = new CompactWizardDialog(wizard);
             dialog.setMinimumPageSize(850, 200);
             dialog.open();
-        }
-
-    }
-
-    private static class DataTableFileExporter {
-        
-        private final ZipOutputStream outputStream;
-
-        public DataTableFileExporter(OutputStream outputStream) throws IOException {
-            this.outputStream = new ZipOutputStream(outputStream, Charsets.UTF_8);
-        }
-
-        public void finished() throws IOException {
-            outputStream.close();
-        }
-
-        private void write(ZipEntry entry, IFile contents) throws IOException, CoreException {
-            byte[] readBuffer = new byte[1024];
-            outputStream.putNextEntry(entry);
-            InputStream contentStream = contents.getContents();
-            try {
-                int n;
-                while ((n = contentStream.read(readBuffer)) > 0) {
-                    outputStream.write(readBuffer, 0, n);
-                }
-            } finally {
-                if (contentStream != null) {
-                    contentStream.close();
-                }
-            }
-            outputStream.closeEntry();
-        }
-
-        public void write(IFile resource, String destinationPath) throws IOException, CoreException {
-            ZipEntry newEntry = new ZipEntry(destinationPath);
-            write(newEntry, resource);
         }
 
     }

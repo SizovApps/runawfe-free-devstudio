@@ -1,38 +1,27 @@
 package ru.runa.gpd.ui.wizard;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.operation.IRunnableWithProgress;
-import org.eclipse.jface.viewers.ArrayContentProvider;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ListViewer;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -47,6 +36,8 @@ import ru.runa.gpd.sync.WfeServerProcessDefinitionImporter;
 import ru.runa.gpd.ui.custom.Dialogs;
 import ru.runa.gpd.ui.custom.LoggingSelectionAdapter;
 import ru.runa.gpd.util.DataSourceUtils;
+import ru.runa.gpd.util.WizardPageUtils;
+import ru.runa.gpd.util.files.FileExporter;
 import ru.runa.wfe.datasource.DataSourceStuff;
 
 public class ExportDataSourceWizardPage extends ExportWizardPage {
@@ -66,36 +57,16 @@ public class ExportDataSourceWizardPage extends ExportWizardPage {
             String name = file.getName();
             dataSourceNameFileMap.put(name.substring(0, name.lastIndexOf('.')), file);
         }
-        exportResource = getInitialElement(selection);
-    }
-
-    private IResource getInitialElement(IStructuredSelection selection) {
-        if (selection != null && !selection.isEmpty()) {
-            Object selectedElement = selection.getFirstElement();
-            if (selectedElement instanceof IAdaptable) {
-                IAdaptable adaptable = (IAdaptable) selectedElement;
-                IResource resource = (IResource) adaptable.getAdapter(IResource.class);
-                return resource;
-            }
-        }
-        return null;
+        exportResource = WizardPageUtils.getInitialElement(selection);
     }
 
     @Override
     public void createControl(Composite parent) {
-        Composite pageControl = new Composite(parent, SWT.NONE);
-        pageControl.setLayout(new GridLayout(1, false));
-        pageControl.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-        SashForm sashForm = new SashForm(pageControl, SWT.HORIZONTAL);
-        sashForm.setLayoutData(new GridData(GridData.FILL_BOTH));
-        Group processListGroup = new Group(sashForm, SWT.NONE);
-        processListGroup.setLayout(new GridLayout(1, false));
-        processListGroup.setLayoutData(new GridData(GridData.FILL_BOTH));
-        processListGroup.setText(Localization.getString("label.view.dataSourceDesignerExplorer"));
-        createViewer(processListGroup);
-        Group exportGroup = new Group(sashForm, SWT.NONE);
-        exportGroup.setLayout(new GridLayout(1, false));
-        exportGroup.setLayoutData(new GridData(GridData.FILL_BOTH));
+        Composite pageControl = WizardPageUtils.createPageControl(parent);
+        SashForm sashForm = WizardPageUtils.createSashForm(pageControl);
+        dataSourceListViewer = WizardPageUtils.createViewer(sashForm, "label.view.dataSourceDesignerExplorer",
+                dataSourceNameFileMap.keySet(), e -> setPageComplete(!e.getSelection().isEmpty()));
+        Group exportGroup = WizardPageUtils.createExportGroup(sashForm);
         exportToFileButton = new Button(exportGroup, SWT.RADIO);
         exportToFileButton.setText(Localization.getString("button.exportToFile"));
         exportToFileButton.setSelection(true);
@@ -124,19 +95,6 @@ public class ExportDataSourceWizardPage extends ExportWizardPage {
         serverConnectorComposite.setEnabled(!fromFile);
     }
 
-    private void createViewer(Composite parent) {
-        dataSourceListViewer = new ListViewer(parent, SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
-        dataSourceListViewer.getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
-        dataSourceListViewer.setContentProvider(new ArrayContentProvider());
-        dataSourceListViewer.setInput(dataSourceNameFileMap.keySet());
-        dataSourceListViewer.addSelectionChangedListener(new ISelectionChangedListener() {
-            @Override
-            public void selectionChanged(SelectionChangedEvent event) {
-                setPageComplete(!event.getSelection().isEmpty());
-            }
-        });
-    }
-
     private String getSelection() {
         return (String) ((IStructuredSelection) dataSourceListViewer.getSelection()).getFirstElement();
     }
@@ -150,19 +108,8 @@ public class ExportDataSourceWizardPage extends ExportWizardPage {
         FileDialog dialog = new FileDialog(getContainer().getShell(), SWT.SAVE);
         dialog.setFilterExtensions(new String[] { DataSourceStuff.DATA_SOURCE_ARCHIVE_SUFFIX, "*.*" });
         String selectionName = getSelection();
-        if (selectionName != null) {
-            dialog.setFileName(getFileName(selectionName));
-        }
-        String currentSourceString = getDestinationValue();
-        int lastSeparatorIndex = currentSourceString.lastIndexOf(File.separator);
-        if (lastSeparatorIndex != -1) {
-            dialog.setFilterPath(currentSourceString.substring(0, lastSeparatorIndex));
-        }
-        String selectedFileName = dialog.open();
-        if (selectedFileName != null) {
-            setErrorMessage(null);
-            setDestinationValue(selectedFileName);
-        }
+        WizardPageUtils.onBrowseButtonSelected(dialog, selectionName, () -> getFileName(selectionName), getDestinationValue(),
+                () -> setErrorMessage(null), this::setDestinationValue);
     }
 
     public boolean finish() {
@@ -222,7 +169,7 @@ public class ExportDataSourceWizardPage extends ExportWizardPage {
             this.resourcesToExport = resourcesToExport;
         }
 
-        protected void exportResource(DsFileExporter exporter, IFile fileResource, IProgressMonitor progressMonitor)
+        protected void exportResource(FileExporter exporter, IFile fileResource, IProgressMonitor progressMonitor)
                 throws IOException, CoreException {
             if (!fileResource.isSynchronized(IResource.DEPTH_ONE)) {
                 fileResource.refreshLocal(IResource.DEPTH_ONE, null);
@@ -236,7 +183,7 @@ public class ExportDataSourceWizardPage extends ExportWizardPage {
 
         protected void exportResources(IProgressMonitor progressMonitor) throws InvocationTargetException {
             try {
-                DsFileExporter exporter = new DsFileExporter(outputStream);
+                FileExporter exporter = new FileExporter(outputStream);
                 for (IFile resource : resourcesToExport) {
                     exportResource(exporter, resource, progressMonitor);
                 }
@@ -265,52 +212,11 @@ public class ExportDataSourceWizardPage extends ExportWizardPage {
             exportResources(progressMonitor);
             final ByteArrayOutputStream baos = (ByteArrayOutputStream) outputStream;
             try {
-                Display.getDefault().syncExec(new Runnable() {
-                    @Override
-                    public void run() {
-                        WfeServerConnector.getInstance().deployDataSourceArchive(baos.toByteArray());
-                    }
-                });
+                Display.getDefault().syncExec((Runnable) () -> WfeServerConnector.getInstance().deployDataSourceArchive(baos.toByteArray()));
             } catch (Exception e) {
                 throw new InvocationTargetException(e);
             }
         }
-    }
-
-    private static class DsFileExporter {
-        
-        private final ZipOutputStream outputStream;
-
-        public DsFileExporter(OutputStream outputStream) throws IOException {
-            this.outputStream = new ZipOutputStream(outputStream, Charsets.UTF_8);
-        }
-
-        public void finished() throws IOException {
-            outputStream.close();
-        }
-
-        private void write(ZipEntry entry, IFile contents) throws IOException, CoreException {
-            byte[] readBuffer = new byte[1024];
-            outputStream.putNextEntry(entry);
-            InputStream contentStream = contents.getContents();
-            try {
-                int n;
-                while ((n = contentStream.read(readBuffer)) > 0) {
-                    outputStream.write(readBuffer, 0, n);
-                }
-            } finally {
-                if (contentStream != null) {
-                    contentStream.close();
-                }
-            }
-            outputStream.closeEntry();
-        }
-
-        public void write(IFile resource, String destinationPath) throws IOException, CoreException {
-            ZipEntry newEntry = new ZipEntry(destinationPath);
-            write(newEntry, resource);
-        }
-
     }
 
 }
