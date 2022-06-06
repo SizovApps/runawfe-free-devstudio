@@ -234,10 +234,10 @@ public class DiagramEditorPage extends DiagramEditor implements PropertyChangeLi
     public void refreshConnections() {
         Diagram diagram = getDiagramTypeProvider().getDiagram();
         for (Connection connection : diagram.getConnections()) {
-            Transition transition = (Transition) getDiagramTypeProvider().getFeatureProvider().getBusinessObjectForPictogramElement(connection);
-            if (transition != null && transition.getSource() instanceof ExclusiveGateway) {
-                ExclusiveGateway eg = (ExclusiveGateway) transition.getSource();
-                TransitionUtil.setDefaultFlow(eg, eg.getDelegationConfiguration());
+            Object element = getDiagramTypeProvider().getFeatureProvider().getBusinessObjectForPictogramElement(connection);
+            if (element instanceof Transition && ((Transition) element).getSource() instanceof ExclusiveGateway) {
+                ExclusiveGateway gateway = (ExclusiveGateway) ((Transition) element).getSource();
+                TransitionUtil.setDefaultFlow(gateway, gateway.getDelegationConfiguration());
             }
         }
         TransactionalEditingDomain domain = TransactionUtil.getEditingDomain(diagram);
