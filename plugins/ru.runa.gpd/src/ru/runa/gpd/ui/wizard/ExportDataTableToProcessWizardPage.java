@@ -33,12 +33,12 @@ public class ExportDataTableToProcessWizardPage extends ExportWizardPage {
     private ListViewer definitionListViewer;
     private String dataTableFileName;
 
-    protected ExportDataTableToProcessWizardPage(IStructuredSelection selection, IFile dataTableFile) {
+    protected ExportDataTableToProcessWizardPage(IFile dataTableFile) {
         super(ExportDataTableToProcessWizardPage.class);
         this.dataTableFileName = IOUtils.getWithoutExtension(dataTableFile.getName());
         setTitle(Localization.getString("ExportDataTableToProcessWizardPage.page.title"));
         setDescription(Localization.getString("ExportDataTableToProcessWizardPage.page.description"));
-        this.definitionNameFileMap = new TreeMap<>();
+        definitionNameFileMap = new TreeMap<>();
         for (IFile file : ProcessCache.getAllProcessDefinitionsMap().keySet()) {
             ProcessDefinition definition = ProcessCache.getProcessDefinition(file);
             if (definition != null && !(definition instanceof SubprocessDefinition)) {

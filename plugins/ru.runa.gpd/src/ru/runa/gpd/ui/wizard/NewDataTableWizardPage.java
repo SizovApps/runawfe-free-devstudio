@@ -1,7 +1,6 @@
 package ru.runa.gpd.ui.wizard;
 
 import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -17,20 +16,17 @@ import ru.runa.gpd.ui.custom.FileNameChecker;
 public class NewDataTableWizardPage extends WizardPage {
     private Text nameText;
     private String startName;
-    private final IStructuredSelection selection;
 
-    public NewDataTableWizardPage(IStructuredSelection selection) {
+    public NewDataTableWizardPage() {
         super(Localization.getString("NewDataTableWizardPage.page.name"));
         setTitle(Localization.getString("NewDataTableWizardPage.page.title"));
         setDescription(Localization.getString("NewDataTableWizardPage.page.description"));
-        this.selection = selection;
     }
 
-    public NewDataTableWizardPage(IStructuredSelection selection, String startName) {
+    public NewDataTableWizardPage(String startName) {
         super(Localization.getString("NewDataTableWizardPage.page.name"));
         setTitle(Localization.getString("NewDataTableWizardPage.page.title"));
         setDescription(Localization.getString("NewDataTableWizardPage.page.description"));
-        this.selection = selection;
         this.startName = startName;
     }
 

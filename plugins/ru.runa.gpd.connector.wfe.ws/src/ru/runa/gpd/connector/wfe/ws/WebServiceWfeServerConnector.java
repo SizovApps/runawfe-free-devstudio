@@ -48,12 +48,12 @@ import ru.runa.wfe.webservice.BotAPI;
 import ru.runa.wfe.webservice.BotWebService;
 import ru.runa.wfe.webservice.DataSourceAPI;
 import ru.runa.wfe.webservice.DataSourceWebService;
-import ru.runa.wfe.webservice.DataTableAPI;
-import ru.runa.wfe.webservice.DataTableWebService;
 import ru.runa.wfe.webservice.DefinitionAPI;
 import ru.runa.wfe.webservice.DefinitionWebService;
 import ru.runa.wfe.webservice.ExecutorAPI;
 import ru.runa.wfe.webservice.ExecutorWebService;
+import ru.runa.wfe.webservice.InternalStorageAPI;
+import ru.runa.wfe.webservice.InternalStorageWebService;
 import ru.runa.wfe.webservice.Login;
 import ru.runa.wfe.webservice.LoginResponse;
 import ru.runa.wfe.webservice.Relation;
@@ -258,9 +258,9 @@ public class WebServiceWfeServerConnector extends WfeServerConnector {
     @Override
     public void deployDataTable(byte[] archive) {
     	try {
-            getDataTableService().importTable(getUser(), archive);
+            getInternalStorageService().importTable(getUser(), archive);
     	} catch (Exception e) {
-            if (e.getMessage() != null && e.getMessage().contains("DataTableAlreadyExistsException")) {
+            if (e.getMessage() != null && e.getMessage().contains("InternalStorageAlreadyExistsException")) {
                 throw new InternalApplicationException("Data table already exists");
             }
             throw Throwables.propagate(e);
@@ -269,12 +269,12 @@ public class WebServiceWfeServerConnector extends WfeServerConnector {
 
     @Override
     public List<String> getDataTableNames() {
-        return getDataTableService().getTablesNames(getUser());
+        return getInternalStorageService().getTablesNames(getUser());
     }
 
     @Override
     public UserType getDataTable(String name) {
-        return DataTableAdapter.toDto(getDataTableService().getMetaData(getUser(), name));
+        return DataTableAdapter.toDto(getInternalStorageService().getMetaData(getUser(), name));
     }
 
     private String getServiceUrl(String serviceName) {
@@ -424,9 +424,9 @@ public class WebServiceWfeServerConnector extends WfeServerConnector {
         return api;
     }
 
-    private DataTableAPI getDataTableService() {
-        String serviceUrl = getServiceUrl("DataTable");
-        DataTableAPI api = new DataTableWebService(getWsdlUrl(serviceUrl)).getDataTableAPIPort();
+    private InternalStorageAPI getInternalStorageService() {
+        String serviceUrl = getServiceUrl("InternalStorage");
+        InternalStorageAPI api = new InternalStorageWebService(getWsdlUrl(serviceUrl)).getInternalStorageAPIPort();
         setApiEndpointAddress(api, serviceUrl);
         return api;
     }

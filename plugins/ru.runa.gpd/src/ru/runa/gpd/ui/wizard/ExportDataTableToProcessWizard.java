@@ -25,7 +25,7 @@ public class ExportDataTableToProcessWizard extends Wizard implements IExportWiz
 
     @Override
     public void addPages() {
-        page = new ExportDataTableToProcessWizardPage(selection, dataTable);
+        page = new ExportDataTableToProcessWizardPage(dataTable);
         addPage(page);
     }
 

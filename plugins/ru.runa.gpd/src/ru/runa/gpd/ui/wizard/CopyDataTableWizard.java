@@ -31,7 +31,7 @@ public class CopyDataTableWizard extends Wizard implements INewWizard {
     @Override
     public void addPages() {
         IFile sourceDataTable = (IFile) selection.getFirstElement();
-        page = new NewDataTableWizardPage(selection, IOUtils.getWithoutExtension(sourceDataTable.getName()));
+        page = new NewDataTableWizardPage(IOUtils.getWithoutExtension(sourceDataTable.getName()));
         addPage(page);
     }
 
@@ -40,7 +40,7 @@ public class CopyDataTableWizard extends Wizard implements INewWizard {
         try {
             getContainer().run(false, false, monitor -> {
                 try {
-                    monitor.beginTask(Localization.getString("CopyDataTableWizard.monitor.title"), 3);
+                    monitor.beginTask(Localization.getString("CopyDataTableWizard.wizard.monitor"), 3);
                     monitor.worked(1);
                     IFile sourceDataTableFile = (IFile) selection.getFirstElement();
                     VariableUserType userType = DataTableCache.getDataTable(IOUtils.getWithoutExtension(sourceDataTableFile.getName()));

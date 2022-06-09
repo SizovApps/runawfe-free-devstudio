@@ -8,17 +8,22 @@ import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
+import java.util.stream.Collectors;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ListViewer;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -40,9 +45,10 @@ import ru.runa.gpd.util.files.FileExporter;
 import ru.runa.wfe.InternalApplicationException;
 
 public class ExportDataTableWizardPage extends ExportWizardPage {
-    private final Map<String, IFile> dataTableNameFileMap;
+    private final Map<String, IResource> dataTableNameFileMap;
     private ListViewer dataTableListViewer;
     protected final IResource exportResource;
+    private Button exportToServerButton;
     private Button exportToProcessButton;
 
     private static final Set<String> FORBIDDEN_VARIABLE_FORMATS = ImmutableSet.of("ru.runa.wfe.var.format.HiddenFormat",
@@ -53,21 +59,26 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
         super(ExportDataTableWizardPage.class);
         setTitle(Localization.getString("ExportDataTableWizard.wizard.title"));
         setDescription(Localization.getString("ExportDataTableWizardPage.page.description"));
-        dataTableNameFileMap = new TreeMap<>();
-        for (IFile dataTableFile : DataTableCache.getAllFiles()) {
-            dataTableNameFileMap.put(IOUtils.getWithoutExtension(dataTableFile.getName()), dataTableFile);
-        }
+        dataTableNameFileMap = DataTableCache.getAllFiles().stream().collect(Collectors.toMap(f -> IOUtils.getWithoutExtension(f.getName()), f -> f));
         exportResource = WizardPageUtils.getInitialElement(selection);
     }
 
     @Override
     public void createControl(Composite parent) {
-        Composite pageControl = WizardPageUtils.createPageControl(parent);
-        SashForm sashForm = WizardPageUtils.createSashForm(pageControl);
-        dataTableListViewer = WizardPageUtils.createViewer(sashForm, "label.view.dataTableDesignerExplorer",
-                dataTableNameFileMap.keySet(), e -> setPageComplete(!e.getSelection().isEmpty()));
-        Group exportGroup = WizardPageUtils.createExportGroup(sashForm);
-        Button exportToServerButton = new Button(exportGroup, SWT.RADIO);
+        Composite pageControl = new Composite(parent, SWT.NONE);
+        pageControl.setLayout(new GridLayout(1, false));
+        pageControl.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+        SashForm sashForm = new SashForm(pageControl, SWT.HORIZONTAL);
+        sashForm.setLayoutData(new GridData(GridData.FILL_BOTH));
+        Group processListGroup = new Group(sashForm, SWT.NONE);
+        processListGroup.setLayout(new GridLayout(1, false));
+        processListGroup.setLayoutData(new GridData(GridData.FILL_BOTH));
+        processListGroup.setText(Localization.getString("label.view.dataTableDesignerExplorer"));
+        createViewer(processListGroup);
+        Group exportGroup = new Group(sashForm, SWT.NONE);
+        exportGroup.setLayout(new GridLayout(1, false));
+        exportGroup.setLayoutData(new GridData(GridData.FILL_BOTH));
+        exportToServerButton = new Button(exportGroup, SWT.RADIO);
         exportToServerButton.setText(Localization.getString("button.exportToServer"));
         exportToServerButton.setSelection(true);
         new WfeServerConnectorComposite(exportGroup, WfeServerProcessDefinitionImporter.getInstance(), null);
@@ -88,6 +99,19 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
                 getDestinationValue(), () -> setErrorMessage("ExportDataTableWizardPage.error.empty.source.selection"), this::setDestinationValue);
     }
 
+    private void createViewer(Composite parent) {
+        dataTableListViewer = new ListViewer(parent, SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
+        dataTableListViewer.getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
+        dataTableListViewer.setContentProvider(new ArrayContentProvider());
+        dataTableListViewer.setInput(dataTableNameFileMap.keySet());
+        dataTableListViewer.addSelectionChangedListener(new ISelectionChangedListener() {
+            @Override
+            public void selectionChanged(SelectionChangedEvent event) {
+                setPageComplete(!event.getSelection().isEmpty());
+            }
+        });
+    }
+    
     private String getSelection() {
         return (String) ((IStructuredSelection) dataTableListViewer.getSelection()).getFirstElement();
     }

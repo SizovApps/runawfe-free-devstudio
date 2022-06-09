@@ -6,7 +6,6 @@ import org.eclipse.swt.graphics.Image;
 import ru.runa.gpd.SharedImages;
 import ru.runa.gpd.util.IOUtils;
 
-
 public class DataTableResourcesLabelProvider extends LabelProvider {
 
     @Override

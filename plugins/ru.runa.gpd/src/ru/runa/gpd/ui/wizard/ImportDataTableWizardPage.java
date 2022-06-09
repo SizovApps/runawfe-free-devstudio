@@ -34,7 +34,6 @@ import ru.runa.wfe.var.UserType;
 import ru.runa.wfe.var.VariableDefinition;
 
 public class ImportDataTableWizardPage extends ImportWizardPage {
-    private WfeServerConnectorComposite serverConnectorComposite;
     private TreeViewer serverDataTableViewer;
     private IWorkbench workbench;
 

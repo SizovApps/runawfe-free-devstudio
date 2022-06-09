@@ -26,7 +26,7 @@ public class NewDataTableWizard extends Wizard implements INewWizard {
     @Override
     public void addPages() {
         super.addPages();
-        page = new NewDataTableWizardPage(selection);
+        page = new NewDataTableWizardPage();
         addPage(page);
     }
 

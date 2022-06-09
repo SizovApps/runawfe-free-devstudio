@@ -16,12 +16,17 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ListViewer;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DirectoryDialog;
@@ -70,11 +75,19 @@ public class ExportParWizardPage extends ExportWizardPage {
 
     @Override
     public void createControl(Composite parent) {
-        Composite pageControl = WizardPageUtils.createPageControl(parent);
-        SashForm sashForm = WizardPageUtils.createSashForm(pageControl);
-        definitionListViewer = WizardPageUtils.createViewer(sashForm, "label.process",
-                definitionNameFileMap.keySet(), e -> setPageComplete(!e.getSelection().isEmpty()));
-        Group exportGroup = WizardPageUtils.createExportGroup(sashForm);
+        Composite pageControl = new Composite(parent, SWT.NONE);
+        pageControl.setLayout(new GridLayout(1, false));
+        pageControl.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+        SashForm sashForm = new SashForm(pageControl, SWT.HORIZONTAL);
+        sashForm.setLayoutData(new GridData(GridData.FILL_BOTH));
+        Group processListGroup = new Group(sashForm, SWT.NONE);
+        processListGroup.setLayout(new GridLayout(1, false));
+        processListGroup.setLayoutData(new GridData(GridData.FILL_BOTH));
+        processListGroup.setText(Localization.getString("label.process"));
+        createViewer(processListGroup);
+        Group exportGroup = new Group(sashForm, SWT.NONE);
+        exportGroup.setLayout(new GridLayout(1, false));
+        exportGroup.setLayoutData(new GridData(GridData.FILL_BOTH));
         exportToFileButton = new Button(exportGroup, SWT.RADIO);
         exportToFileButton.setText(Localization.getString("button.exportToFile"));
         exportToFileButton.setSelection(true);
@@ -126,6 +139,19 @@ public class ExportParWizardPage extends ExportWizardPage {
             }
             setDestinationValue(selectedDirectoryName);
         }
+    }
+
+    private void createViewer(Composite parent) {
+        definitionListViewer = new ListViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
+        definitionListViewer.getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
+        definitionListViewer.setContentProvider(new ArrayContentProvider());
+        definitionListViewer.setInput(definitionNameFileMap.keySet());
+        definitionListViewer.addSelectionChangedListener(new ISelectionChangedListener() {
+            @Override
+            public void selectionChanged(SelectionChangedEvent event) {
+                setPageComplete(!event.getSelection().isEmpty());
+            }
+        });
     }
 
     private String getKey(IFile definitionFile, ProcessDefinition definition) {

@@ -162,11 +162,7 @@ public class DataTableEditor extends EditorPart implements IResourceChangeListen
 
         getSite().setSelectionProvider(tableViewer);
         createTable();
-        if (dataTable != null) {
-            tableViewer.setInput(dataTable.getAttributes());
-        } else {
-            tableViewer.setInput(new Object[0]);
-        }
+        tableViewer.setInput(dataTable != null ? dataTable.getAttributes() : new Object[0]);
         createContextMenu(tableViewer.getControl());
     }
 
@@ -178,15 +174,17 @@ public class DataTableEditor extends EditorPart implements IResourceChangeListen
         gridData.verticalAlignment = SWT.TOP;
         gridData.grabExcessVerticalSpace = true;
         buttonsBar.setLayoutData(gridData);
-        addButton(buttonsBar, "button.create", new CreateAttributeSelectionListener(), true, true);
-        editButton = addButton(buttonsBar, "button.change", new ChangeAttributeSelectionListener(), true, false);
-        renameButton = addButton(buttonsBar, "button.rename", new RenameAttributeSelectionListener(), true, false);
-        deleteButton = addButton(buttonsBar, "button.delete", new DeleteAttributeSelectionListener(), true, false);
-        copyButton = addButton(buttonsBar, "button.copy", new CopyAttributeSelectionListener(), true, false);
-        addButton(buttonsBar, "button.paste", new PasteAttributeSelectionListener(), true, true);
+        addButton(buttonsBar, "button.create", new CreateAttributeSelectionListener(), true);
+        editButton = addButton(buttonsBar, "button.change", new ChangeAttributeSelectionListener(), false);
+        renameButton = addButton(buttonsBar, "button.rename", new RenameAttributeSelectionListener(), false);
+        deleteButton = addButton(buttonsBar, "button.delete", new DeleteAttributeSelectionListener(), false);
+        copyButton = addButton(buttonsBar, "button.copy", new CopyAttributeSelectionListener(), false);
+        addButton(buttonsBar, "button.paste", new PasteAttributeSelectionListener(), true);
     }
 
     private static class TableLabelProvider extends LabelProvider implements ITableLabelProvider {
+        private static final int ZERO_INDEX = 0;
+
         @Override
         public String getColumnText(Object element, int index) {
             Variable variable = (Variable) element;
@@ -204,7 +202,7 @@ public class DataTableEditor extends EditorPart implements IResourceChangeListen
 
         @Override
         public String getText(Object element) {
-            return getColumnText(element, 0);
+            return getColumnText(element, ZERO_INDEX);
         }
 
         @Override
@@ -213,7 +211,7 @@ public class DataTableEditor extends EditorPart implements IResourceChangeListen
         }
     }
 
-    private Button addButton(Composite parent, String buttonKey, SelectionAdapter selectionListener, boolean addToMenu, boolean enabled) {
+    private Button addButton(Composite parent, String buttonKey, SelectionAdapter selectionListener, boolean enabled) {
         String title = Localization.getString(buttonKey);
         GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
         Button button = getToolkit().createButton(parent, title, SWT.PUSH);
@@ -261,19 +259,17 @@ public class DataTableEditor extends EditorPart implements IResourceChangeListen
         }
     }
 
-    private <S> void createTable() {
+    private void createTable() {
         DataViewerComparator<Variable> comparator = new DataViewerComparator<>(new ValueComparator<Variable>() {
             @Override
             public int compare(Variable o1, Variable o2) {
-                int result = 0;
                 switch (getColumn()) {
-                case 0:
-                    result = o1.getName().compareTo(o2.getName());
-                    break;
-                case 1:
-                    result = o1.getFormatLabel().compareTo(o2.getFormatLabel());
+                case NAME_INDEX:
+                    return o1.getName().compareTo(o2.getName());
+                case FORMAT_LABEL_INDEX:
+                    return o1.getFormatLabel().compareTo(o2.getFormatLabel());
                 }
-                return result;
+                return 0;
             }
         });
         tableViewer.setComparator(comparator);
@@ -384,7 +380,7 @@ public class DataTableEditor extends EditorPart implements IResourceChangeListen
             Clipboard clipboard = new Clipboard(getDisplay());
             @SuppressWarnings("unchecked")
             List<Variable> data = (List<Variable>) clipboard.getContents(VariableTransfer.getInstance());
-            if (data != null) {
+            if (data == null) {
                 clipboard.dispose();
                 return;
             }
