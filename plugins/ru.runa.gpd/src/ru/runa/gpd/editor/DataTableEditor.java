@@ -264,10 +264,10 @@ public class DataTableEditor extends EditorPart implements IResourceChangeListen
             @Override
             public int compare(Variable o1, Variable o2) {
                 switch (getColumn()) {
-                case NAME_INDEX:
-                    return o1.getName().compareTo(o2.getName());
-                case FORMAT_LABEL_INDEX:
-                    return o1.getFormatLabel().compareTo(o2.getFormatLabel());
+                    case NAME_INDEX:
+                        return o1.getName().compareTo(o2.getName());
+                    case FORMAT_LABEL_INDEX:
+                        return o1.getFormatLabel().compareTo(o2.getFormatLabel());
                 }
                 return 0;
             }
@@ -290,7 +290,7 @@ public class DataTableEditor extends EditorPart implements IResourceChangeListen
         }
     }
 
-    private <S> SelectionListener createSelectionListener(final TableViewer viewer, final DataViewerComparator<S> comparator,
+    private SelectionListener createSelectionListener(final TableViewer viewer, final DataViewerComparator<Variable> comparator,
             final TableColumn column, final int index) {
         return new SelectionAdapter() {
             @Override

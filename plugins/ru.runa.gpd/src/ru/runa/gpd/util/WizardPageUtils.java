@@ -36,37 +36,36 @@ public class WizardPageUtils {
     }
 
     public static Composite createPageControl(Composite parent) {
-        return new Composite(parent, SWT.NONE) {{
-            setLayout(new GridLayout(1, false));
-            setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-        }};
+        Composite composite = new Composite(parent, SWT.NONE);
+        composite.setLayout(new GridLayout(1, false));
+        composite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+        return composite;
     }
 
     public static SashForm createSashForm(Composite pageControl) {
-        return new SashForm(pageControl, SWT.HORIZONTAL) {{
-            setLayoutData(new GridData(GridData.FILL_BOTH));
-        }};
+        SashForm sashForm = new SashForm(pageControl, SWT.HORIZONTAL);
+        sashForm.setLayoutData(new GridData(GridData.FILL_BOTH));
+        return sashForm;
     }
 
     public static ListViewer createViewer(SashForm sashForm, String label, Set<String> input, Consumer<SelectionChangedEvent> onChange) {
-        Group listGroup = new Group(sashForm, SWT.NONE) {{
-            setLayout(new GridLayout(1, false));
-            setLayoutData(new GridData(GridData.FILL_BOTH));
-            setText(Localization.getString(label));
-        }};
-        return new ListViewer(listGroup, SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER) {{
-            getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
-            setContentProvider(new ArrayContentProvider());
-            setInput(input);
-            addSelectionChangedListener(onChange::accept);
-        }};
+        Group listGroup = new Group(sashForm, SWT.NONE);
+        listGroup.setLayout(new GridLayout(1, false));
+        listGroup.setLayoutData(new GridData(GridData.FILL_BOTH));
+        listGroup.setText(Localization.getString(label));
+        ListViewer listViewer = new ListViewer(listGroup, SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
+        listViewer.getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
+        listViewer.setContentProvider(new ArrayContentProvider());
+        listViewer.setInput(input);
+        listViewer.addSelectionChangedListener(onChange::accept);
+        return listViewer;
     }
 
     public static Group createExportGroup(SashForm sashForm) {
-        return new Group(sashForm, SWT.NONE) {{
-            setLayout(new GridLayout(1, false));
-            setLayoutData(new GridData(GridData.FILL_BOTH));
-        }};
+        Group group = new Group(sashForm, SWT.NONE);
+        group.setLayout(new GridLayout(1, false));
+        group.setLayoutData(new GridData(GridData.FILL_BOTH));
+        return group;
     }
 
     public static void onBrowseButtonSelected(FileDialog dialog, String selectionName, Supplier<String> fileName, String currentSource,

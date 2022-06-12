@@ -174,7 +174,6 @@ public class DataTableExplorerTreeView extends ViewPart implements ISelectionLis
                         public void run() {
                             WorkspaceOperations.refreshResources(resources);
                         }
-
             });
             manager.add(new Action(Localization.getString("button.delete"), SharedImages.getImageDescriptor("icons/delete.gif")) {
                 @Override

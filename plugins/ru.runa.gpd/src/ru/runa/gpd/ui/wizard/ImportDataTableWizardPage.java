@@ -115,7 +115,7 @@ public class ImportDataTableWizardPage extends ImportWizardPage {
         return true;
     }
 
-    class ViewContentProvider implements IStructuredContentProvider, ITreeContentProvider {
+    static class ViewContentProvider implements IStructuredContentProvider, ITreeContentProvider {
 
         @Override
         public void inputChanged(Viewer v, Object oldInput, Object newInput) {
