@@ -133,6 +133,9 @@ public class BizagiBpmnImporter implements GEFConstants {
             SwimlaneDisplayMode swimlaneDisplayMode = SwimlaneDisplayMode.none;
             Element collaborationElement = definitionsElement.element(COLLABORATION);
             String processName = collaborationElement.attributeValue(NAME);
+            if (processName == null) {
+            	processName = collaborationElement.attributeValue("id");
+            }
             nextParticipant: for (Element participant : (List<Element>) collaborationElement.elements(PARTICIPANT)) {
                 if (Strings.isNullOrEmpty(processName)) {
                     processName = participant.attributeValue(NAME);
@@ -168,7 +171,7 @@ public class BizagiBpmnImporter implements GEFConstants {
                 }
                 break;
             }
-
+            
             IFolder folder = IOUtils.getProcessFolder(dstFolder, processName);
             folder.create(true, true, null);
             IFile definitionFile = IOUtils.getProcessDefinitionFile(folder);
