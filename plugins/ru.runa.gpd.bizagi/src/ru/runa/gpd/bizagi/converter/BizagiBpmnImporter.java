@@ -565,7 +565,7 @@ public class BizagiBpmnImporter implements GEFConstants {
     private static void setConstraint(GraphElement ge, String id) {
         NodeTypeDefinition typeDefinition = NodeRegistry.getNodeTypeDefinition(ge.getClass());
         GraphitiEntry entry = typeDefinition.getGraphitiEntry();
-        Dimension defaultSize = entry.getDefaultSize();
+        Dimension defaultSize = entry.getDefaultSize(ge);
         Rectangle bounds = bounds(id);
         if (bounds.width < defaultSize.width || entry.isFixedSize()) {
             bounds.x -= (defaultSize.width - bounds.width) / 2;

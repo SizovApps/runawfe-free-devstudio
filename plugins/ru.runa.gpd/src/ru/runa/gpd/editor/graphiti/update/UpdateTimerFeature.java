@@ -7,7 +7,6 @@ import org.eclipse.graphiti.features.impl.Reason;
 import org.eclipse.graphiti.mm.algorithms.Image;
 import org.eclipse.graphiti.mm.pictograms.ContainerShape;
 import org.eclipse.graphiti.services.Graphiti;
-import ru.runa.gpd.lang.model.ITimed;
 import ru.runa.gpd.lang.model.Timer;
 
 public class UpdateTimerFeature extends UpdateFeature {
@@ -15,7 +14,7 @@ public class UpdateTimerFeature extends UpdateFeature {
     @Override
     public IReason updateNeeded(IUpdateContext context) {
         Timer timer = (Timer) getBusinessObjectForPictogramElement(context.getPictogramElement());
-        if (timer.getParent() instanceof ITimed) {
+        if (timer.isBoundaryEvent()) {
             if (!Objects.equal(((Image) ((ContainerShape) context.getPictogramElement()).getGraphicsAlgorithm()).getId(), getImageId(timer))) {
                 return Reason.createTrueReason();
             }
