@@ -127,6 +127,7 @@ public class ParamDefConfig {
         if (Strings.isNullOrEmpty(configuration)) {
             return properties;
         }
+        
         try {
             Document doc = XmlUtil.parseWithoutValidation(configuration);
             Map<String, String> allProperties = new HashMap<String, String>();
