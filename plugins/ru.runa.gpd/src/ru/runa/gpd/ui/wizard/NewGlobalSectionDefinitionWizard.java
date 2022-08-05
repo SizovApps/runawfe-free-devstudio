@@ -79,10 +79,13 @@ public class NewGlobalSectionDefinitionWizard extends Wizard implements INewWiza
 
     @Override
     public boolean performFinish() {
+        ru.runa.gpd.PluginLogger.logInfo("new global section : performFinish!");
         try {
             if (parentProcessDefinition != null) {
+                ru.runa.gpd.PluginLogger.logInfo("new global section first!");
                 getContainer().run(false, false, new CreateEmbeddedSubprocessOperation());
             } else {
+                ru.runa.gpd.PluginLogger.logInfo("new global section second!");
                 getContainer().run(false, false, new CreateProcessOperation());
             }
         } catch (InvocationTargetException e) {
@@ -111,6 +114,7 @@ public class NewGlobalSectionDefinitionWizard extends Wizard implements INewWiza
                 }
                 properties.put(ProcessSerializer.ACCESS_TYPE, accessType.name());
                 Document document = language.getSerializer().getInitialProcessDefinitionDocument(processName, properties);
+                ru.runa.gpd.PluginLogger.logInfo("document : " + document.getName());
                 byte[] bytes = XmlUtil.writeXml(document);
                 definitionFile.create(new ByteArrayInputStream(bytes), true, null);
                 String cssTemplateName = page.getFormCSSTemplateName();

@@ -56,6 +56,7 @@ public class ExportBotTaskWizardPage extends ExportBotWizardPage {
     }
 
     private void exportBot(IResource exportResource, boolean toFile) throws Exception {
+        ru.runa.gpd.PluginLogger.logInfo("Начинаем экспорт");
         String errorsDetails[] = { "" };
         Boolean docxTestResult = checkBotTaskParametersWithDocxTemplate(errorsDetails);
         if (null == docxTestResult) {
@@ -63,10 +64,12 @@ public class ExportBotTaskWizardPage extends ExportBotWizardPage {
             PluginLogger.logErrorWithoutDialog(Localization.getString("DialogEnhancement.exportCanceled"));
         } else if (docxTestResult) {
             if (toFile) {
+                ru.runa.gpd.PluginLogger.logInfo("IResource: " + exportResource);
                 getContainer().run(true, true, new BotTaskExportCommand(exportResource, new FileOutputStream(getDestinationValue())));
             } else {
                 getContainer().run(true, true, new BotTaskDeployCommand(exportResource, new ByteArrayOutputStream()));
             }
+            ru.runa.gpd.PluginLogger.logInfo("Успешно экспортировали!");
             PluginLogger.logInfo(Localization.getString("DialogEnhancement.exportSuccessful"));
         } else if (IDialogConstants.PROCEED_ID == Dialogs
                 .create(MessageDialog.CONFIRM, Localization.getString("DialogEnhancement.parametersNotCorrespondingWithDocxQ"))
@@ -87,7 +90,7 @@ public class ExportBotTaskWizardPage extends ExportBotWizardPage {
                     getContainer().run(true, true, new BotTaskDeployCommand(exportResource, new ByteArrayOutputStream()));
                 }
             }
-            PluginLogger.logInfo(Localization.getString("DialogEnhancement.exportSuccessful"));
+            PluginLogger.logInfo(Localization.getString("А\\u042d\\u043a\\u0441\\u043f\\u043e\\u0440\\u0442\\u0438\\u0440\\u043e\\u0432\\u0430\\u0442\\u044c \\u0437\\u0430\\u0434\\u0430\\u0447\\u0443 \\u0431\\u043e\\u0442\\u0430DialogEnhancement.exportSuccessful"));
         } else {
             PluginLogger.logErrorWithoutDialog(Localization.getString("DialogEnhancement.exportCanceled"));
         }
@@ -96,10 +99,12 @@ public class ExportBotTaskWizardPage extends ExportBotWizardPage {
     private Boolean checkBotTaskParametersWithDocxTemplate(String errorsDetails[]) {
         if (isDialogEnhancementMode() && null != exportResource && exportResource instanceof IFile) {
             IFile botTaskFile = (IFile) exportResource;
+            ru.runa.gpd.PluginLogger.logInfo("botTaskFile: " + botTaskFile.toString());
             BotTask botTask = null != botTaskFile ? BotCache.getBotTaskNotNull(botTaskFile) : null;
             if (null != botTask && 0 == botTask.getDelegationClassName().compareTo(DocxDialogEnhancementMode.DocxHandlerID)) {
                 Object obj = DialogEnhancement.getConfigurationValue(botTask, DocxDialogEnhancementMode.InputPathId);
                 String embeddedDocxTemplateFileName = null != obj && obj instanceof String ? (String) obj : "";
+                ru.runa.gpd.PluginLogger.logInfo("embeddedDocxTemplateFileName: " + embeddedDocxTemplateFileName);
                 if (!Strings.isNullOrEmpty(embeddedDocxTemplateFileName)) {
                     List<String> errors = Lists.newArrayList();
                     Boolean result = DocxDialogEnhancement.checkBotTaskParametersWithDocxTemplate(botTask, embeddedDocxTemplateFileName, errors,

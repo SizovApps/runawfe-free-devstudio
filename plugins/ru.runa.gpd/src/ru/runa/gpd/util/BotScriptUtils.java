@@ -1,7 +1,9 @@
 package ru.runa.gpd.util;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.nio.charset.StandardCharsets;
 
 import org.dom4j.Document;
 import org.dom4j.Element;
@@ -70,25 +72,41 @@ public class BotScriptUtils {
      *         name
      */
     public static List<BotTask> getBotTasksFromScript(String botStationName, String botName, byte[] scriptXml, Map<String, byte[]> files) {
+        ru.runa.gpd.PluginLogger.logInfo("getBotTasksFromScript!");
+        for ( String key : files.keySet() ) {
+            ru.runa.gpd.PluginLogger.logInfo("key!: " + key);
+            String s = new String(files.get(key), StandardCharsets.UTF_8);
+            ru.runa.gpd.PluginLogger.logInfo("scriptXml: " + s);
+        }
         List<BotTask> botTasks = Lists.newArrayList();
         Document document = XmlUtil.parseWithXSDValidation(scriptXml, "workflowScript.xsd");
+        ru.runa.gpd.PluginLogger.logInfo("document " + document.getName());
         List<Element> taskElements = document.getRootElement().elements(ADD_BOT_CONFIGURATION_ELEMENT_NAME);
+        ru.runa.gpd.PluginLogger.logInfo("taskElements " + taskElements.toString());
         for (Element taskElement : taskElements) {
+            ru.runa.gpd.PluginLogger.logInfo("taskElement " + taskElement.getName());
             List<Element> botList = taskElement.elements(BOT_CONFIGURATION_ELEMENT_NAME);
             for (Element botElement : botList) {
+                ru.runa.gpd.PluginLogger.logInfo("botElement " + botElement.getName());
                 String name = botElement.attributeValue(NAME_ATTRIBUTE_NAME, "").trim();
+                ru.runa.gpd.PluginLogger.logInfo("name " + name);
                 if (Strings.isNullOrEmpty(name)) {
                     continue;
                 }
                 String handler = botElement.attributeValue(HANDLER_ATTRIBUTE_NAME, "");
                 String embeddedFileName = botElement.attributeValue(EMBEDDED_FILE_ATTRIBUTE_NAME, "");
                 String configurationFileName = botElement.attributeValue(CONFIGURATION_STRING_ATTRIBUTE_NAME);
+                ru.runa.gpd.PluginLogger.logInfo("handler " + handler);
+                ru.runa.gpd.PluginLogger.logInfo("embeddedFileName " + embeddedFileName);
+                ru.runa.gpd.PluginLogger.logInfo("configurationFileName " + configurationFileName);
                 byte[] configurationFileData = files.remove(configurationFileName);
                 String configuration = configurationFileData != null ? new String(configurationFileData) : "";
+                ru.runa.gpd.PluginLogger.logInfo("configuration " + configuration);
                 BotTask botTask = BotTaskUtils.createBotTask(botStationName, botName, name, handler, configuration);
                 if (!Strings.isNullOrEmpty(embeddedFileName)) {
                     botTask.getFilesToSave().add(embeddedFileName);
                 }
+                ru.runa.gpd.PluginLogger.logInfo("botTask " + botTask.toString());
                 botTasks.add(botTask);
             }
         }

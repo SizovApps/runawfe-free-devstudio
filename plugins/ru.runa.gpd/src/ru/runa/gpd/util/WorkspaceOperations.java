@@ -654,11 +654,14 @@ public class WorkspaceOperations {
     public static void saveBotTask(IFile botTaskFile, BotTask botTask) {
         try {
             StringBuffer info = new StringBuffer();
+            ru.runa.gpd.PluginLogger.logInfo("botTask.getDelegationClassName(): " + botTask.getDelegationClassName());
             info.append(botTask.getDelegationClassName());
             info.append("\n");
             String configuration = BotTaskUtils.createBotTaskConfiguration(botTask);
+            ru.runa.gpd.PluginLogger.logInfo("configuration: " + configuration);
             if (!Strings.isNullOrEmpty(configuration)) {
                 String configurationFileName = botTask.getName() + "." + BotCache.CONFIGURATION_FILE_EXTENSION;
+                ru.runa.gpd.PluginLogger.logInfo("configurationFileName: " + configurationFileName);
                 IFile configurationFile = ((IFolder) botTaskFile.getParent()).getFile(configurationFileName);
                 ByteArrayInputStream stream = new ByteArrayInputStream(configuration.getBytes(Charsets.UTF_8));
                 IOUtils.createOrUpdateFile(configurationFile, stream);
@@ -676,7 +679,7 @@ public class WorkspaceOperations {
     }
 
     public static void saveDataTable(IFile file, VariableUserType dataTable) {
-        Document document = UserTypeXmlContentProvider.save(file, dataTable);
+            Document document = UserTypeXmlContentProvider.save(file, dataTable);
         try {
             IOUtils.createOrUpdateFile(file, new ByteArrayInputStream(XmlUtil.writeXml(document)));
         } catch (CoreException e) {

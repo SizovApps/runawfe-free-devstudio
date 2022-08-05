@@ -1,5 +1,6 @@
 package ru.runa.gpd.lang.model;
 
+import java.util.Arrays;
 import java.util.List;
 
 import ru.runa.gpd.Localization;
@@ -70,6 +71,7 @@ public class BotTaskLink implements Delegable {
 
     @Override
     public List<String> getVariableNames(boolean includeSwimlanes, String... typeClassNameFilters) {
+        ru.runa.gpd.PluginLogger.logInfo("HERE getVariableNames: BotTaskLink! " + taskState + " " + Arrays.toString(typeClassNameFilters) + " " + typeClassNameFilters);
         if (taskState != null) {
             return taskState.getProcessDefinition().getVariableNames(includeSwimlanes, typeClassNameFilters);
         }

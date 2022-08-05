@@ -15,9 +15,12 @@ import ru.runa.gpd.util.XmlUtil;
 import ru.runa.wfe.commons.BackCompatibilityClassNames;
 import ru.runa.wfe.var.format.UserTypeFormat;
 
+
+
 public class VariablesXmlContentProvider extends AuxContentProvider {
     private static final String XML_FILE_NAME = "variables.xml";
     private static final String FORMAT = "format";
+    private static final String NAME = "name";
     private static final String SWIMLANE = "swimlane";
     private static final String DESCRIPTION = "description";
     private static final String VARIABLE = "variable";
@@ -45,16 +48,21 @@ public class VariablesXmlContentProvider extends AuxContentProvider {
 
     @Override
     public void read(Document document, ProcessDefinition definition) throws Exception {
+        PluginLogger.logInfo("read document: " + document.getName());
+        PluginLogger.logInfo("root element: " + document.getRootElement().getName());
         List<Element> typeElements = document.getRootElement().elements(USER_TYPE);
         for (Element typeElement : typeElements) {
+            PluginLogger.logInfo("typeElement: " + typeElement.getName());
             VariableUserType type = new VariableUserType();
             type.setName(typeElement.attributeValue(NAME));
             type.setStoreInExternalStorage(Boolean.parseBoolean(typeElement.attributeValue(VariableUserType.PROPERTY_STORE_IN_EXTERNAL_STORAGE)));
             type.setGlobal("true".equals(typeElement.attributeValue(GLOBAL)));
             definition.addVariableUserType(type);
             if (type.isGlobal()) {
+                PluginLogger.logInfo("typeIsGlobal!!!");
                 List<Element> attributeElements = typeElement.elements(VARIABLE);
                 for (Element attributeElement : attributeElements) {
+                    PluginLogger.logInfo("attributeElement: " + attributeElement.getName());
                     Variable variable = parse(attributeElement, definition);
                     type.addAttribute(variable);
                 }
@@ -62,20 +70,57 @@ public class VariablesXmlContentProvider extends AuxContentProvider {
             }
         }
         for (Element typeElement : typeElements) {
+            PluginLogger.logInfo("Second loop typeElement: " + typeElement.getName());
             if ("true".equals(typeElement.attributeValue(GLOBAL))) {
                 continue;
             }
             VariableUserType type = definition.getVariableUserTypeNotNull(typeElement.attributeValue(NAME));
             List<Element> attributeElements = typeElement.elements(VARIABLE);
             for (Element attributeElement : attributeElements) {
+                PluginLogger.logInfo("Second loop attributeElement: " + attributeElement.getName());
                 Variable variable = parse(attributeElement, definition);
                 type.addAttribute(variable);
             }
         }
-        List<Element> elementsList = document.getRootElement().elements(VARIABLE);
+
+    }
+
+    public void readFromElement(Element startElement, ProcessDefinition definition) throws Exception {
+        PluginLogger.logInfo("root element: " + startElement.getName());
+        List<Element> typeElements = startElement.elements(USER_TYPE);
+
+        for (Element typeElement : typeElements) {
+            PluginLogger.logInfo("typeElement: " + typeElement.getName());
+            VariableUserType type = new VariableUserType();
+            type.setName(typeElement.attributeValue(NAME));
+            type.setStoreInExternalStorage(Boolean.parseBoolean(typeElement.attributeValue(VariableUserType.PROPERTY_STORE_IN_EXTERNAL_STORAGE)));
+            type.setGlobal("true".equals(typeElement.attributeValue(GLOBAL)));
+            PluginLogger.logInfo("definiton: " + definition.toString());
+            PluginLogger.logInfo("type: " + type.getName());
+
+            definition.addVariableUserType(type);
+        }
+
+        for (Element typeElement : typeElements) {
+            PluginLogger.logInfo("Second loop typeElement: " + typeElement.getName());
+            if ("true".equals(typeElement.attributeValue(GLOBAL))) {
+                continue;
+            }
+            VariableUserType type = definition.getVariableUserTypeNotNull(typeElement.attributeValue(NAME));
+            List<Element> attributeElements = typeElement.elements(VARIABLE);
+            for (Element attributeElement : attributeElements) {
+                PluginLogger.logInfo("Second loop attributeElement: " + attributeElement.getName());
+                Variable variable = parse(attributeElement, definition);
+                type.addAttribute(variable);
+            }
+        }
+
+        List<Element> elementsList = startElement.elements(VARIABLE);
 
         for (Element element : elementsList) {
+            PluginLogger.logInfo("find variable element: " + element.getName());
             if ("true".equals(element.attributeValue(SWIMLANE, "false"))) {
+                PluginLogger.logInfo("enter variable element: " + element.getName());
                 String variableName = element.attributeValue(NAME);
                 String scriptingName = element.attributeValue(SCRIPTING_NAME, variableName);
                 String isGlobal = element.attributeValue(GLOBAL);
@@ -119,7 +164,6 @@ public class VariablesXmlContentProvider extends AuxContentProvider {
             definition.addChild(variable);
         }
     }
-
     private Variable parse(Element element, ProcessDefinition processDefinition) {
         String variableName = element.attributeValue(NAME);
         PluginLogger.logErrorWithoutDialog(variableName + "_No swimlane", null);
@@ -229,6 +273,10 @@ public class VariablesXmlContentProvider extends AuxContentProvider {
             }
         }
         return element;
+    }
+
+    public Element writeGloabalVariable(Element root, Variable variable){
+        return writeVariable(root, variable);
     }
 
 }

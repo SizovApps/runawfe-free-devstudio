@@ -117,11 +117,13 @@ public class NodeRegistry {
     }
 
     private static ProcessDefinition parseProcessDefinitionInternal(IFile definitionFile) throws Exception {
+        ru.runa.gpd.PluginLogger.logInfo("enter parseProcessDefinitionInternal");
         boolean embeddedSubprocess = definitionFile.getName().startsWith(ParContentProvider.SUBPROCESS_DEFINITION_PREFIX);
         Document document = XmlUtil.parseWithoutValidation(definitionFile.getContents());
         for (Language language : Language.values()) {
             if (language.getSerializer().isSupported(document)) {
                 if (embeddedSubprocess) {
+                    ru.runa.gpd.PluginLogger.logInfo("enter embeddedSubprocess");
                     SubprocessDefinition subprocessDefinition = new SubprocessDefinition(definitionFile);
                     IFile parentDefinitionFile = IOUtils.getAdjacentFile(definitionFile, ParContentProvider.PROCESS_DEFINITION_FILE_NAME);
                     ProcessDefinition mainProcessDefinition = ProcessCache.getProcessDefinition(parentDefinitionFile);
@@ -131,12 +133,16 @@ public class NodeRegistry {
                     mainProcessDefinition.addEmbeddedSubprocess(subprocessDefinition);
                     return subprocessDefinition;
                 } else {
+                    ru.runa.gpd.PluginLogger.logInfo("not enter embeddedSubprocess");
                     ProcessDefinition definition;
                     if (definitionFile.getParent() != null && GlobalSectionUtils.isGlobalSectionContainer(definitionFile.getParent())) {
+                        ru.runa.gpd.PluginLogger.logInfo("GlobalSectionDefinition");
                         definition = new GlobalSectionDefinition(definitionFile);
                     } else {
+                        ru.runa.gpd.PluginLogger.logInfo("ProcessDefinition");
                         definition = new ProcessDefinition(definitionFile);
                     }
+                    ru.runa.gpd.PluginLogger.logInfo("exit parseProcessDefinitionInternal!!!");
                     definition.setLanguage(language);
                     language.getSerializer().parseXML(document, definition);
                     return definition;

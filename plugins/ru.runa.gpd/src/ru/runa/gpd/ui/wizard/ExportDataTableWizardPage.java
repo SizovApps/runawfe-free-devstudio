@@ -61,6 +61,7 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
     public void createControl(Composite parent) {
         Composite pageControl = WizardPageUtils.createPageControl(parent);
         SashForm sashForm = WizardPageUtils.createSashForm(pageControl);
+        ru.runa.gpd.PluginLogger.logInfo("enter ExportDataTableWizardPage!!!");
         dataTableListViewer = WizardPageUtils.createViewer(sashForm, "label.view.dataTableDesignerExplorer",
                 dataTableNameFileMap.keySet(), e -> setPageComplete(!e.getSelection().isEmpty()));
         Group exportGroup = WizardPageUtils.createExportGroup(sashForm);

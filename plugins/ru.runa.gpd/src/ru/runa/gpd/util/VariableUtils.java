@@ -28,6 +28,7 @@ public class VariableUtils {
     public static final String CURRENT_NODE_NAME = "${currentNodeName}";
     public static final String CURRENT_NODE_ID = "${currentNodeId}";
 
+
     public static final List<String> SELECTOR_SPECIAL_NAMES = Lists.newArrayList(VariableUtils.CURRENT_PROCESS_ID,
             VariableUtils.CURRENT_PROCESS_DEFINITION_NAME, VariableUtils.CURRENT_NODE_NAME, VariableUtils.CURRENT_NODE_ID);
 
@@ -95,11 +96,15 @@ public class VariableUtils {
     }
 
     public static List<String> getVariableNamesForScripting(Delegable delegable, String... typeClassNameFilters) {
+        PluginLogger.logInfo("typeClassNameFilters: " + typeClassNameFilters.toString());
         if (delegable instanceof GraphElement) {
+            PluginLogger.logInfo("delegable instanceof GraphElement!");
             List<Variable> variables = ((GraphElement) delegable).getVariables(true, true, typeClassNameFilters);
             return getVariableNamesForScripting(variables);
         } else {
+            PluginLogger.logInfo("delegable instanceof not GraphElement!");
             List<String> list = delegable.getVariableNames(true, typeClassNameFilters);
+
             for (Iterator<String> iterator = list.iterator(); iterator.hasNext();) {
                 String string = iterator.next();
                 if (!isValidScriptingName(string)) {

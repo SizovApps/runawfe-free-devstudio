@@ -7,6 +7,7 @@ import com.google.common.collect.Lists;
 import java.util.List;
 import ru.runa.gpd.PropertyNames;
 import ru.runa.gpd.util.EventSupport;
+import ru.runa.gpd.lang.model.Variable;
 
 public class VariableUserType extends EventSupport implements VariableContainer, PropertyNames, Comparable<VariableUserType> {
     public static final String PREFIX = "usertype:";
@@ -89,9 +90,21 @@ public class VariableUserType extends EventSupport implements VariableContainer,
     }
 
     public void addAttribute(Variable variable) {
+        if (isSameNameVariable(variable.getScriptingName())) {
+            return;
+        }
         attributes.add(variable);
         variable.setParent(getProcessDefinition());
         firePropertyChange(PROPERTY_CHILDREN_CHANGED, null, variable);
+    }
+
+    private boolean isSameNameVariable(String name) {
+        for (Variable variable : attributes) {
+            if (name.equals(variable.getScriptingName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void changeAttributePosition(Variable attribute, int position) {

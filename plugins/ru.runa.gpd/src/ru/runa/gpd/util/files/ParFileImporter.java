@@ -25,16 +25,20 @@ public final class ParFileImporter implements FileImporter {
     @Override
     public IFolder importFile(final FileImportInfo file) throws Exception {
         final IFolder processFolder = IOUtils.getProcessFolder(container, file.getPath());
+        ru.runa.gpd.PluginLogger.logInfo("processFolder: " + processFolder.getName());
         if (processFolder.exists()) {
             return null;
         }
         IOUtils.createFolder(processFolder);
         IOUtils.extractArchiveToFolder(file.getInputStream(), processFolder);
         final IFile definitionFile = IOUtils.getProcessDefinitionFile(processFolder);
+        ru.runa.gpd.PluginLogger.logInfo("definitionFile: " + definitionFile.getName());
         final ProcessDefinition definition = ProcessCache.newProcessDefinitionWasCreated(definitionFile);
         if (definition != null && !Objects.equal(definition.getName(), processFolder.getName())) {
             // if par name differs from definition name
+            ru.runa.gpd.PluginLogger.logInfo("ENTER DEF!");
             final IPath destination = IOUtils.getProcessFolder(container, definition.getName()).getFullPath();
+            ru.runa.gpd.PluginLogger.logInfo("destination: " + destination.toString());
             processFolder.move(destination, true, false, null);
             final IFile movedDefinitionFile = IOUtils.getProcessDefinitionFile(IOUtils.getProcessFolder(container, definition.getName()));
             if (definition.isUsingGlobalVars() && definition.getPropertyValue("PROPERTY_USE_GLOBALS").equals(0)) {

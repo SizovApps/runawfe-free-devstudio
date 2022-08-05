@@ -51,6 +51,7 @@ public class ImportBotTaskWizardPage extends ImportBotElementWizardPage {
         if (selectedProject == null) {
             return;
         }
+        ru.runa.gpd.PluginLogger.logInfo("Run Import!");
         getContainer().run(true, true, new BotImportCommand(parInputStream, selectedProject.getName(), selectedProject.getProject().getName()));
     }
 
@@ -92,6 +93,7 @@ public class ImportBotTaskWizardPage extends ImportBotElementWizardPage {
         @SuppressWarnings({ "unchecked", "rawtypes" })
         @Override
         public Object[] getElements(Object inputElement) {
+            ru.runa.gpd.PluginLogger.logInfo("ImportBotTaskWizardPage getElements: " + inputElement.toString());
             if (inputElement instanceof List) {
                 return ((List) inputElement).toArray(new Object[0]);
             }

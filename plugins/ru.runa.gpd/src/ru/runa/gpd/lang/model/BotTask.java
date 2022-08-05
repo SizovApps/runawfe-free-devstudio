@@ -106,10 +106,12 @@ public class BotTask implements Delegable, Comparable<BotTask> {
 
     @Override
     public List<String> getVariableNames(boolean includeSwimlanes, String... typeClassNameFilters) {
+        ru.runa.gpd.PluginLogger.logInfo("HERE getVariableNames: BotTask!");
         List<String> result = Lists.newArrayList();
         if (paramDefConfig != null) {
             for (ParamDefGroup group : paramDefConfig.getGroups()) {
                 for (ParamDef paramDef : group.getParameters()) {
+                    ru.runa.gpd.PluginLogger.logInfo("ParamDef: " + paramDef.toString());
                     boolean applicable = typeClassNameFilters == null || typeClassNameFilters.length == 0;
                     if (!applicable && paramDef.getFormatFilters().size() > 0) {
                         for (String typeClassNameFilter : typeClassNameFilters) {

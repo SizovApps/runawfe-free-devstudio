@@ -897,6 +897,7 @@ public class VariableTypeEditorPage extends EditorPartBase<VariableUserType> {
             boolean useLtk = false;
             if (variables.size() > 0) {
                 Variable substitutionVariable;
+                ru.runa.gpd.PluginLogger.logInfo("Enter VariableTypeEditorPage moveToUserType!");
                 if (variables.size() > 1) {
                     ChooseVariableDialog variableDialog = new ChooseVariableDialog(variables);
                     substitutionVariable = variableDialog.openDialog();

@@ -1,6 +1,7 @@
 package ru.runa.gpd.lang.model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -33,6 +34,7 @@ import ru.runa.gpd.util.Duration;
 import ru.runa.gpd.util.IOUtils;
 import ru.runa.gpd.util.SwimlaneDisplayMode;
 import ru.runa.gpd.util.VariableUtils;
+import ru.runa.gpd.lang.model.Variable;
 import ru.runa.wfe.InternalApplicationException;
 import ru.runa.wfe.definition.ProcessDefinitionAccessType;
 import ru.runa.wfe.var.format.ListFormat;
@@ -51,17 +53,32 @@ public class ProcessDefinition extends NamedGraphElement implements Describable,
     protected final Map<String, SubprocessDefinition> embeddedSubprocesses = Maps.newHashMap();
     protected ProcessDefinitionAccessType accessType = ProcessDefinitionAccessType.Process;
     protected final List<VariableUserType> types = Lists.newArrayList();
+
+    protected static List<VariableUserType> allTypes = Lists.newArrayList();
+
     protected final IFile file;
     protected boolean usingGlobalVars;
+
+    public static ProcessDefinition myProcessTest;
+
+    private static ArrayList<ProcessDefinition> allProcesses = new ArrayList<>();
+
 
     protected final ArrayList<VersionInfo> versionInfoList = new ArrayList<>();
 
     public ProcessDefinition(IFile file) {
         this.file = file;
+        myProcessTest = this;
+        allProcesses.add(this);
+        ru.runa.gpd.PluginLogger.logInfo("added!!!");
     }
 
     public IFile getFile() {
         return file;
+    }
+
+    public static ArrayList<ProcessDefinition> getAllProcesses() {
+        return allProcesses;
     }
 
     public ProcessDefinitionAccessType getAccessType() {
@@ -290,6 +307,14 @@ public class ProcessDefinition extends NamedGraphElement implements Describable,
     @Override
     public List<Variable> getVariables(boolean expandComplexTypes, boolean includeSwimlanes, String... typeClassNameFilters) {
         List<Variable> variables = getChildren(Variable.class);
+        String[] labels = typeClassNameFilters;
+        ru.runa.gpd.PluginLogger.logInfo("Enter variables!!! " + Arrays.toString(typeClassNameFilters));
+        for (Variable variable : variables) {
+            ru.runa.gpd.PluginLogger.logInfo("Variable name: " + variable.getScriptingName());
+        }
+        for (String label: labels) {
+            ru.runa.gpd.PluginLogger.logInfo("Label name: " + label);
+        }
         if (!includeSwimlanes) {
             variables.removeAll(getSwimlanes());
         }
@@ -302,12 +327,27 @@ public class ProcessDefinition extends NamedGraphElement implements Describable,
         }
         List<Variable> result = Lists.newArrayList();
         for (Variable variable : variables) {
+            if (result.contains(variable)) {
+                continue;
+            }
+            ru.runa.gpd.PluginLogger.logInfo("Добавить проверку на множественноть!!! Inspect Variable name: " + variable.getScriptingName() + " " + variable.getFormatClassName());
             if (VariableFormatRegistry.isApplicable(variable, typeClassNameFilters)) {
                 result.add(variable);
             }
+            for (String label: labels) {
+                ru.runa.gpd.PluginLogger.logInfo("To compare: " + label + " " + variable.getFormatClassName());
+                if (label.equals(variable.getFormatClassName())) {
+                    ru.runa.gpd.PluginLogger.logInfo("Equal!!!");
+                    result.add(variable);
+                }
+            }
+        }
+        for (Variable res: result) {
+            ru.runa.gpd.PluginLogger.logInfo("Res: " + res);
         }
         return result;
     }
+
 
     public List<Swimlane> getSwimlanes() {
         List<Swimlane> swimlanes = getChildren(Swimlane.class);
@@ -451,21 +491,41 @@ public class ProcessDefinition extends NamedGraphElement implements Describable,
         return types;
     }
 
+    public static List<VariableUserType> getAllVariableUserTypes() {
+        return allTypes;
+    }
+
     public void addVariableUserType(VariableUserType type) {
+        ru.runa.gpd.PluginLogger.logInfo("addVariableUserType: " + type.getAttributes() + " : " + type.getName());
         type.setProcessDefinition(this);
-        types.add(type);
-        firePropertyChange(PROPERTY_USER_TYPES_CHANGED, null, type);
+        if (!types.contains(type) && !isSameNameUserType(type.getName())) {
+            types.add(type);
+            allTypes.add(type);
+            ru.runa.gpd.PluginLogger.logInfo("types added!: ");
+            ru.runa.gpd.PluginLogger.logInfo("file changed!: ");
+        }
+    }
+
+    public boolean isSameNameUserType(String name) {
+        for (VariableUserType userType : allTypes) {
+            if (name.equals(userType.getName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void changeVariableUserTypePosition(VariableUserType type, int position) {
         if (position != -1 && types.remove(type)) {
             types.add(position, type);
+            allTypes.add(position, type);
             firePropertyChange(PROPERTY_USER_TYPES_CHANGED, null, type);
         }
     }
 
     public void removeVariableUserType(VariableUserType type) {
         types.remove(type);
+        allTypes.remove(type);
         firePropertyChange(PROPERTY_USER_TYPES_CHANGED, null, type);
     }
 
@@ -483,6 +543,13 @@ public class ProcessDefinition extends NamedGraphElement implements Describable,
 
     public VariableUserType getVariableUserType(String name) {
         for (VariableUserType type : getVariableUserTypes()) {
+            ru.runa.gpd.PluginLogger.logInfo("getVariableUserType: " + type.getName());
+            if (Objects.equal(name, type.getName())) {
+                return type;
+            }
+        }
+        for (VariableUserType type : getAllVariableUserTypes()) {
+            ru.runa.gpd.PluginLogger.logInfo("getAllVariableUserTypes: " + type.getName());
             if (Objects.equal(name, type.getName())) {
                 return type;
             }
@@ -632,8 +699,9 @@ public class ProcessDefinition extends NamedGraphElement implements Describable,
             typeToAdd.setName(IOUtils.GLOBAL_OBJECT_PREFIX + type.getName());
         }
         typeToAdd.setGlobal(true);
-        if (!types.contains(typeToAdd)) {
+        if (!types.contains(typeToAdd) && !allTypes.contains(typeToAdd)) {
             types.add(typeToAdd);
+            allTypes.add(typeToAdd);
             firePropertyChange(PROPERTY_USER_TYPES_CHANGED, null, typeToAdd);
         }
     }

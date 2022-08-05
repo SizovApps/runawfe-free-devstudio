@@ -6,6 +6,8 @@ import org.dom4j.Element;
 import org.eclipse.core.resources.IFile;
 import ru.runa.gpd.lang.model.Variable;
 import ru.runa.gpd.lang.model.VariableUserType;
+import ru.runa.gpd.extension.VariableFormatRegistry;
+import ru.runa.gpd.extension.VariableFormatArtifact;
 
 public class UserTypeXmlContentProvider {
 
@@ -27,6 +29,8 @@ public class UserTypeXmlContentProvider {
             newUserTypeAttribute.addAttribute(FORMAT, variable.getFormat());
             newUserTypeAttribute.addAttribute(DEFAULT_VALUE, variable.getDefaultValue());
         }
+        VariableFormatArtifact variableFormatArtifact = new VariableFormatArtifact(true, dataTable.getName(), dataTable.getName(), dataTable.getName());
+        VariableFormatRegistry.getInstance().add(variableFormatArtifact);
         return document;
     }
 

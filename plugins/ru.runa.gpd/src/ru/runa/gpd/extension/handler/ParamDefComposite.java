@@ -1,10 +1,6 @@
 package ru.runa.gpd.extension.handler;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.FocusAdapter;
@@ -17,6 +13,9 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.resources.IFile;
 
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.extension.handler.ParamDef.Presentation;
@@ -26,6 +25,7 @@ import ru.runa.gpd.ui.custom.SwtUtils;
 import ru.runa.gpd.ui.custom.TypedUserInputCombo;
 import ru.runa.gpd.ui.dialog.FilterBox;
 import ru.runa.gpd.util.VariableUtils;
+import ru.runa.gpd.util.DataTableUtils;
 
 import com.google.common.base.Objects;
 
@@ -44,6 +44,11 @@ public class ParamDefComposite extends Composite {
         this.config = config;
         this.properties = properties != null ? properties : new HashMap<String, String>();
         this.delegable = delegable;
+        ru.runa.gpd.PluginLogger.logInfo("Enter mapping!");
+        for(String key : properties.keySet()){
+            String value = properties.get(key);
+            ru.runa.gpd.PluginLogger.logInfo("Mapping: " + value);
+        }
         GridLayout layout = new GridLayout(2, false);
         setLayout(layout);
     }
@@ -56,6 +61,10 @@ public class ParamDefComposite extends Composite {
             GridData strokeData = new GridData(GridData.FILL_HORIZONTAL);
             strokeData.horizontalSpan = 2;
             SwtUtils.createStrokeComposite(this, strokeData, Localization.getString("ParamDefGroup.group." + group.getLabel()), 3);
+            for(String key : properties.keySet()){
+                String value = properties.get(key);
+                ru.runa.gpd.PluginLogger.logInfo("Mapping: " + value);
+            }
             for (ParamDef param : group.getParameters()) {
                 if (helpInlined) {
                     Label helpLabel = new Label(this, SWT.WRAP);
@@ -66,6 +75,7 @@ public class ParamDefComposite extends Composite {
                 }
                 Presentation presentation = param.getPresentation();
                 if (presentation == Presentation.combo) {
+                    ru.runa.gpd.PluginLogger.logInfo("ParamDef combo: " + param.getName());
                     addFilterBoxField(param);
                 } else if (presentation == Presentation.richcombo) {
                     addComboField(param, true);
@@ -192,16 +202,41 @@ public class ParamDefComposite extends Composite {
     }
 
     private void addFilterBoxField(final ParamDef paramDef) {
+        ru.runa.gpd.PluginLogger.logInfo("Enter addFilterBoxField!");
+        ru.runa.gpd.PluginLogger.logInfo("Param def name: " + paramDef.getName());
+        ru.runa.gpd.PluginLogger.logInfo("delegable.getDelegationClassName(): " + delegable.getDelegationClassName());
+        ru.runa.gpd.PluginLogger.logInfo("delegable.getDelegationConfiguration(): " + delegable.getDelegationConfiguration());
+        ru.runa.gpd.PluginLogger.logInfo("delegable.getDelegationType(): " + delegable.getDelegationType());
         String selectedValue = properties.get(paramDef.getName());
         if (selectedValue == null) {
             selectedValue = paramDef.getDefaultValue();
         }
+        String[] filters = paramDef.getFormatFiltersAsArray();
+        for (String cur: filters) {
+            ru.runa.gpd.PluginLogger.logInfo("Format filter: " + cur);
+            List<String> list = delegable.getVariableNames(true, cur);
+            ru.runa.gpd.PluginLogger.logInfo("Items size: " + list.size());
+            for (String item: list) {
+                ru.runa.gpd.PluginLogger.logInfo("Item: " + item);
+            }
+            List<String> vars = VariableUtils.getVariableNamesForScripting(delegable, cur);
+            for (String item: vars) {
+                ru.runa.gpd.PluginLogger.logInfo("Vars: " + item);
+            }
+        }
+
+        List<String> vars = VariableUtils.getVariableNamesForScripting(delegable, paramDef.getFormatFiltersAsArray());
+        for (String cur: vars) {
+            ru.runa.gpd.PluginLogger.logInfo("Vars: " + cur);
+        }
+
         List<String> variableNames = new ArrayList<String>();
         if (paramDef.isUseVariable()) {
             variableNames.addAll(delegable.getVariableNames(true, paramDef.getFormatFiltersAsArray()));
         }
         boolean localizeTextValue = false;
         for (String option : paramDef.getComboItems()) {
+            ru.runa.gpd.PluginLogger.logInfo("paramDef.getComboItems(): " + paramDef.getComboItems());
             variableNames.add(Localization.getString(option));
             if (Objects.equal(option, selectedValue)) {
                 localizeTextValue = true;
@@ -211,6 +246,20 @@ public class ParamDefComposite extends Composite {
         if (paramDef.isOptional()) {
             variableNames.add(0, "");
         }
+
+//        Object[] dataTables;
+//        try {
+//            dataTables = Arrays.stream(DataTableUtils.getDataTableProject().members())
+//                    .filter(r -> r instanceof IFile && r.getName().endsWith(DataTableUtils.FILE_EXTENSION)).toArray();
+//        } catch (CoreException e) {
+//            dataTables = new Object[] {};
+//        }
+//        if (dataTables != null) {
+//            for (Object curObj : dataTables) {
+//                variableNames.add(curObj instanceof IResource ? ru.runa.gpd.util.IOUtils.getWithoutExtension(((IResource) curObj).getName()) : "");
+//            }
+//        }
+
         comboItems.put(paramDef.getName(), variableNames);
         Label label = new Label(this, SWT.NONE);
         GridData gridData = new GridData(GridData.FILL_HORIZONTAL);

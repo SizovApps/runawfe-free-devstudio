@@ -50,6 +50,7 @@ public class ProcessCache {
     }
 
     private static void cacheProcessDefinition(IFile file, ProcessDefinition definition) throws Exception {
+        ru.runa.gpd.PluginLogger.logInfo("enter cacheProcessDefinition: " + file.getName());
         ParContentProvider.readAuxInfo(file, definition);
         CACHE_BY_FILE.put(file, definition);
         CACHE_BY_NAME.put(definition.getName(), definition);
@@ -59,6 +60,7 @@ public class ProcessCache {
         List<IFile> subprocessFiles = Lists.newArrayList();
         findSubProcessFiles(file.getParent(), subprocessFiles);
         for (IFile subprocessFile : subprocessFiles) {
+            ru.runa.gpd.PluginLogger.logInfo("subprocessFile: " + subprocessFile.getName());
             try {
                 cacheProcessDefinition(subprocessFile, NodeRegistry.parseProcessDefinition(subprocessFile));
             } catch (Exception e) {
@@ -194,6 +196,7 @@ public class ProcessCache {
         GlobalSectionDefinition definitionToReturn = null;
         int maxLength = 0;
         for (ProcessDefinition definition : getAllProcessDefinitions()) {
+            ru.runa.gpd.PluginLogger.logInfo("getGlobalProcessDefinition: " + definition.toString());
             if (definition instanceof GlobalSectionDefinition) {
                 IPath globalSectionPath = definition.getFile().getProjectRelativePath();
                 IPath processPath = processDefinition.getFile().getProjectRelativePath();

@@ -682,6 +682,7 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
     }
 
     private void createConfTableViewer(Composite parent, final String parameterType) {
+        ru.runa.gpd.PluginLogger.logInfo("Enter createConfTableViewer: " + parameterType);
         Composite dynaConfComposite = new Composite(parent, SWT.NONE);
         dynaConfComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         dynaConfComposite.setLayout(new GridLayout());
@@ -837,6 +838,7 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
     }
 
     public void setTableInput(String groupType) {
+        ru.runa.gpd.PluginLogger.logInfo("Enter setTableInput: " + groupType);
         TableViewer confTableViewer = getParamTableViewer(groupType);
         List<ParamDef> paramDefs = new ArrayList<ParamDef>();
         for (ParamDefGroup group : botTask.getParamDefConfig().getGroups()) {

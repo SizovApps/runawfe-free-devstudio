@@ -40,6 +40,7 @@ import ru.runa.gpd.util.UiUtil;
 import ru.runa.gpd.util.WorkspaceOperations;
 import ru.runa.wfe.InternalApplicationException;
 
+
 public class DataTableExplorerTreeView extends ViewPart implements ISelectionListener {
     private static final String PROJECT_NAME = "DataTables";
     private TreeViewer viewer;
@@ -50,6 +51,7 @@ public class DataTableExplorerTreeView extends ViewPart implements ISelectionLis
         getSite().getWorkbenchWindow().getSelectionService().addSelectionListener(this);
         
         try {
+            ru.runa.gpd.PluginLogger.logInfo("try create data!");
             IProject dtProject = ResourcesPlugin.getWorkspace().getRoot().getProject(PROJECT_NAME);
             if (!dtProject.exists()) {
                 IProjectDescription description = ResourcesPlugin.getWorkspace().newProjectDescription(dtProject.getName());

@@ -164,6 +164,7 @@ public abstract class ParamBasedProvider extends DelegableProvider {
 
         @Override
         public void createControl(Composite parent) {
+            ru.runa.gpd.PluginLogger.logInfo("Enter ConfigurationWizardPage!");
             ScrolledComposite scrolledComposite = new ScrolledComposite(parent, SWT.V_SCROLL | SWT.BORDER);
             scrolledComposite.setExpandHorizontal(true);
             scrolledComposite.setExpandVertical(true);

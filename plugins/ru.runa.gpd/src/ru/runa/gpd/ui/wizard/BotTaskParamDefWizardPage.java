@@ -1,7 +1,9 @@
 package ru.runa.gpd.ui.wizard;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
@@ -15,7 +17,13 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.MessageBox;
+
+import org.eclipse.core.runtime.CoreException;
 import ru.runa.gpd.Localization;
+import org.eclipse.core.resources.IResource;
+import ru.runa.gpd.lang.model.VariableUserType;
+import ru.runa.gpd.lang.model.ProcessDefinition;
 import ru.runa.gpd.extension.VariableFormatArtifact;
 import ru.runa.gpd.extension.VariableFormatRegistry;
 import ru.runa.gpd.extension.handler.ParamDef;
@@ -23,6 +31,26 @@ import ru.runa.gpd.extension.handler.ParamDefGroup;
 import ru.runa.gpd.ui.custom.LoggingSelectionAdapter;
 import ru.runa.gpd.ui.enhancement.DialogEnhancementMode;
 import ru.runa.gpd.ui.enhancement.DocxDialogEnhancementMode;
+
+
+
+import org.eclipse.core.resources.IResource;
+import ru.runa.gpd.DataTableCache;
+import java.util.stream.Collectors;
+import ru.runa.gpd.util.IOUtils;
+import ru.runa.gpd.util.DataTableUtils;
+import org.eclipse.core.resources.IFile;
+import java.util.Arrays;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jface.viewers.ITreeContentProvider;
+import org.eclipse.jface.viewers.Viewer;
+
+import ru.runa.gpd.ui.view.DataTableTreeContentProvider;
+import ru.runa.gpd.ui.view.DataTableResourcesLabelProvider;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import ru.runa.gpd.PluginLogger;
 
 public class BotTaskParamDefWizardPage extends WizardPage {
     private final ParamDefGroup paramDefGroup;
@@ -32,6 +60,9 @@ public class BotTaskParamDefWizardPage extends WizardPage {
     private Button useVariableButton;
     private Button requiredButton;
     private final DialogEnhancementMode dialogEnhancementMode;
+    private static final Log log = LogFactory.getLog(BotTaskParamDefWizardPage.class);
+
+
 
     public BotTaskParamDefWizardPage(ParamDefGroup paramDefGroup, ParamDef paramDef, DialogEnhancementMode dialogEnhancementMode) {
         super(Localization.getString("ParamDefWizardPage.page.title"));
@@ -53,6 +84,8 @@ public class BotTaskParamDefWizardPage extends WizardPage {
         composite.setLayout(layout);
         createNameField(composite);
         createVariableTypeField(composite);
+
+
         boolean isDocxMode = null != dialogEnhancementMode && dialogEnhancementMode.checkBotDocxTemplateEnhancementMode()
                 && ((DocxDialogEnhancementMode) dialogEnhancementMode).checkDocxMode();
         if (!isDocxMode) {
@@ -118,6 +151,23 @@ public class BotTaskParamDefWizardPage extends WizardPage {
         for (VariableFormatArtifact artifact : VariableFormatRegistry.getInstance().getFilterArtifacts()) {
             types.add(artifact.getLabel());
         }
+        Object[] dataTables;
+        try {
+            dataTables = Arrays.stream(DataTableUtils.getDataTableProject().members())
+                    .filter(r -> r instanceof IFile && r.getName().endsWith(DataTableUtils.FILE_EXTENSION)).toArray();
+        } catch (CoreException e) {
+            dataTables = new Object[] {};
+        }
+        if (dataTables != null) {
+            for (Object curObj : dataTables) {
+                types.add(curObj instanceof IResource ? IOUtils.getWithoutExtension(((IResource) curObj).getName()) : "");
+            }
+        }
+
+        for (VariableUserType userType : ProcessDefinition.getAllVariableUserTypes()) {
+            types.add(userType.getName());
+        }
+
         typeCombo = new Combo(parent, SWT.SINGLE | SWT.READ_ONLY | SWT.BORDER);
         typeCombo.setItems(types.toArray(new String[types.size()]));
         typeCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -127,6 +177,11 @@ public class BotTaskParamDefWizardPage extends WizardPage {
                 verifyContentsValid();
             }
         });
+
+        for (VariableUserType userType : ProcessDefinition.getAllVariableUserTypes()) {
+            PluginLogger.logInfo(userType.getName() + " : " + userType.getProcessDefinition().toString() + " : " + userType.getAttributes());
+        }
+
     }
 
     private void createUseVariableCheckbox(Composite parent) {
@@ -140,6 +195,7 @@ public class BotTaskParamDefWizardPage extends WizardPage {
         requiredButton = new Button(parent, SWT.CHECK);
         requiredButton.setText(Localization.getString("ParamDefWizardPage.page.required"));
     }
+
 
     private void verifyContentsValid() {
         if (nameText.getText().length() == 0) {

@@ -1,6 +1,9 @@
 package ru.runa.gpd.ui.wizard;
 
 import com.google.common.collect.Maps;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
@@ -11,6 +14,10 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.CoreException;
+
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.extension.VariableFormatArtifact;
 import ru.runa.gpd.extension.VariableFormatRegistry;
@@ -21,12 +28,16 @@ import ru.runa.gpd.lang.model.VariableUserType;
 import ru.runa.gpd.ui.custom.DynaContentWizardPage;
 import ru.runa.gpd.ui.custom.LoggingSelectionAdapter;
 import ru.runa.gpd.ui.custom.SwtUtils;
+import ru.runa.gpd.util.DataTableUtils;
+import ru.runa.gpd.util.IOUtils;
 import ru.runa.wfe.var.format.BigDecimalFormat;
 import ru.runa.wfe.var.format.ListFormat;
 import ru.runa.wfe.var.format.LongFormat;
 import ru.runa.wfe.var.format.MapFormat;
 import ru.runa.wfe.var.format.StringFormat;
 import ru.runa.wfe.var.format.UserTypeFormat;
+
+
 
 public class VariableFormatPage extends DynaContentWizardPage {
     private final VariableContainer variableContainer;
@@ -95,13 +106,16 @@ public class VariableFormatPage extends DynaContentWizardPage {
             @Override
             protected void onSelection(SelectionEvent e) throws Exception {
                 String label = combo.getText();
+                ru.runa.gpd.PluginLogger.logInfo("Variable format: " + label);
+                ru.runa.gpd.PluginLogger.logInfo("VariableFormatPage падает начало!!!");
                 userType = processDefinition.getVariableUserType(label);
+                ru.runa.gpd.PluginLogger.logInfo("VariableFormatPage падает конец!!! " + userType);
                 if (userType != null) {
                     type = VariableFormatRegistry.getInstance().getArtifactNotNull(UserTypeFormat.class.getName());
                 } else {
                     type = VariableFormatRegistry.getInstance().getArtifactNotNullByLabel(label);
                 }
-
+                ru.runa.gpd.PluginLogger.logInfo("Variable format: " + type.getJavaClassName());
                 updateAutoincrementCheckboxVisibility(type.getName());
                 createDefaultComponentClassNames();
                 updateContent();
@@ -149,7 +163,12 @@ public class VariableFormatPage extends DynaContentWizardPage {
 
     private Combo createTypeCombo(Composite composite, boolean disableListFormat, boolean disableMapFormat) {
         final Combo combo = new Combo(composite, SWT.BORDER | SWT.READ_ONLY);
+        ArrayList<VariableFormatArtifact> usedArtifacts = new ArrayList<>();
         for (VariableFormatArtifact artifact : VariableFormatRegistry.getInstance().getAll()) {
+            if (usedArtifacts.contains(artifact)) {
+                continue;
+            }
+            usedArtifacts.add(artifact);
             if (UserTypeFormat.class.getName().equals(artifact.getName())
                     || disableListFormat && ListFormat.class.getName().equals(artifact.getName())
                     || disableMapFormat && MapFormat.class.getName().equals(artifact.getName())) {
@@ -160,11 +179,26 @@ public class VariableFormatPage extends DynaContentWizardPage {
                 combo.add(artifact.getLabel());
             }
         }
+        ArrayList<VariableUserType> usedUserTypes = new ArrayList<>();
         for (VariableUserType userType : processDefinition.getVariableUserTypes()) {
+            if (usedUserTypes.contains(userType)) {
+                continue;
+            }
             if (!(variableContainer instanceof VariableUserType) || ((VariableUserType) variableContainer).canUseAsAttributeType(userType)) {
+                usedUserTypes.add(userType);
                 combo.add(userType.getName());
             }
         }
+        for (VariableUserType userType : ProcessDefinition.getAllVariableUserTypes()) {
+            if (usedUserTypes.contains(userType)) {
+                continue;
+            }
+            if (!(variableContainer instanceof VariableUserType) || ((VariableUserType) variableContainer).canUseAsAttributeType(userType)) {
+                usedUserTypes.add(userType);
+                combo.add(userType.getName());
+            }
+        }
+
         combo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         return combo;
     }

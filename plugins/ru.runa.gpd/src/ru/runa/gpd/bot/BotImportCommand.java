@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -52,6 +53,8 @@ public class BotImportCommand extends BotSyncCommand {
         Map<String, byte[]> files = IOUtils.getArchiveFiles(inputStream, true);
         byte[] scriptXml = files.remove("script.xml");
         Preconditions.checkNotNull(scriptXml, "No script.xml");
+        String s = new String(scriptXml, StandardCharsets.UTF_8);
+        ru.runa.gpd.PluginLogger.logInfo("scriptXml: " + s);
         List<BotTask> botTasks = BotScriptUtils.getBotTasksFromScript(botStationName, botName, scriptXml, files);
 
         // create bot
@@ -63,6 +66,7 @@ public class BotImportCommand extends BotSyncCommand {
 
         for (BotTask botTask : botTasks) {
             IFile file = folder.getFile(botTask.getName());
+            ru.runa.gpd.PluginLogger.logInfo("BotTaskName: " + botTask.getName());
             WorkspaceOperations.saveBotTask(file, botTask);
 
             // Save embedded files too.
@@ -73,6 +77,9 @@ public class BotImportCommand extends BotSyncCommand {
                 IOUtils.createOrUpdateFile(folder.getFile(fileToSave), new ByteArrayInputStream(files.get(fileToSave)));
             }
             botTask.getFilesToSave().clear();
+        }
+        for (ru.runa.gpd.lang.model.VariableUserType var : ru.runa.gpd.lang.model.ProcessDefinition.getAllVariableUserTypes()) {
+            ru.runa.gpd.PluginLogger.logInfo("var name: " + var.getName());
         }
     }
 

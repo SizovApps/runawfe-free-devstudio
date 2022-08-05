@@ -147,6 +147,7 @@ public class Variable extends NamedGraphElement implements Describable {
     }
 
     public void setFormat(String format) {
+        ru.runa.gpd.PluginLogger.logInfo("setFormat: " + format);
         String old = this.format;
         this.format = format;
         firePropertyChange(PROPERTY_FORMAT, old, this.format);
