@@ -78,9 +78,6 @@ public class BotImportCommand extends BotSyncCommand {
             }
             botTask.getFilesToSave().clear();
         }
-        for (ru.runa.gpd.lang.model.VariableUserType var : ru.runa.gpd.lang.model.ProcessDefinition.getAllVariableUserTypes()) {
-            ru.runa.gpd.PluginLogger.logInfo("var name: " + var.getName());
-        }
     }
 
     @Override

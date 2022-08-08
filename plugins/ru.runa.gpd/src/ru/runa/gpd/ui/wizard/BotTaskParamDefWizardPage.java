@@ -22,6 +22,7 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.core.runtime.CoreException;
 import ru.runa.gpd.Localization;
 import org.eclipse.core.resources.IResource;
+import ru.runa.gpd.ProcessCache;
 import ru.runa.gpd.lang.model.VariableUserType;
 import ru.runa.gpd.lang.model.ProcessDefinition;
 import ru.runa.gpd.extension.VariableFormatArtifact;
@@ -163,9 +164,10 @@ public class BotTaskParamDefWizardPage extends WizardPage {
                 types.add(curObj instanceof IResource ? IOUtils.getWithoutExtension(((IResource) curObj).getName()) : "");
             }
         }
-
-        for (VariableUserType userType : ProcessDefinition.getAllVariableUserTypes()) {
-            types.add(userType.getName());
+        for (ProcessDefinition processDefinition : ProcessCache.getAllProcessDefinitions()) {
+            for (VariableUserType userType : processDefinition.getVariableUserTypes()) {
+                types.add(userType.getName());
+            }
         }
 
         typeCombo = new Combo(parent, SWT.SINGLE | SWT.READ_ONLY | SWT.BORDER);
@@ -178,9 +180,6 @@ public class BotTaskParamDefWizardPage extends WizardPage {
             }
         });
 
-        for (VariableUserType userType : ProcessDefinition.getAllVariableUserTypes()) {
-            PluginLogger.logInfo(userType.getName() + " : " + userType.getProcessDefinition().toString() + " : " + userType.getAttributes());
-        }
 
     }
 

@@ -61,24 +61,17 @@ public class ProcessDefinition extends NamedGraphElement implements Describable,
 
     public static ProcessDefinition myProcessTest;
 
-    private static ArrayList<ProcessDefinition> allProcesses = new ArrayList<>();
-
 
     protected final ArrayList<VersionInfo> versionInfoList = new ArrayList<>();
 
     public ProcessDefinition(IFile file) {
         this.file = file;
         myProcessTest = this;
-        allProcesses.add(this);
         ru.runa.gpd.PluginLogger.logInfo("added!!!");
     }
 
     public IFile getFile() {
         return file;
-    }
-
-    public static ArrayList<ProcessDefinition> getAllProcesses() {
-        return allProcesses;
     }
 
     public ProcessDefinitionAccessType getAccessType() {
@@ -491,10 +484,6 @@ public class ProcessDefinition extends NamedGraphElement implements Describable,
         return types;
     }
 
-    public static List<VariableUserType> getAllVariableUserTypes() {
-        return allTypes;
-    }
-
     public void addVariableUserType(VariableUserType type) {
         ru.runa.gpd.PluginLogger.logInfo("addVariableUserType: " + type.getAttributes() + " : " + type.getName());
         type.setProcessDefinition(this);
@@ -548,10 +537,11 @@ public class ProcessDefinition extends NamedGraphElement implements Describable,
                 return type;
             }
         }
-        for (VariableUserType type : getAllVariableUserTypes()) {
-            ru.runa.gpd.PluginLogger.logInfo("getAllVariableUserTypes: " + type.getName());
-            if (Objects.equal(name, type.getName())) {
-                return type;
+        for (ProcessDefinition processDefinition : ProcessCache.getAllProcessDefinitions()) {
+            for (VariableUserType type : processDefinition.getVariableUserTypes()) {
+                if (Objects.equal(name, type.getName())) {
+                    return type;
+                }
             }
         }
         return null;

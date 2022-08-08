@@ -12,12 +12,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.resources.IProjectDescription;
 
 import java.io.ByteArrayInputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,6 +25,7 @@ import org.dom4j.io.OutputFormat;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.PluginLogger;
 import ru.runa.gpd.DataTableNature;
+import ru.runa.gpd.ProcessCache;
 import ru.runa.gpd.extension.handler.ParamDef.Presentation;
 import ru.runa.gpd.lang.ValidationError;
 import ru.runa.gpd.lang.model.Delegable;
@@ -172,11 +168,14 @@ public class ParamDefConfig {
                 // NewGlobalSectionDefinitionWizard создает файл, откуда получаем процесс в newProcessDefinitionWasCreated;
                 VariablesXmlContentProvider variablesXmlContentProvider = new VariablesXmlContentProvider();
                     try {
-                        ru.runa.gpd.PluginLogger.logInfo("ProcessDefinition.getAllProcesses() size: " + ProcessDefinition.getAllProcesses().size());
-                        for (ProcessDefinition cur: ProcessDefinition.getAllProcesses()) {
-                            ru.runa.gpd.PluginLogger.logInfo("ProcessDefinition.myProcessTest " + cur.toString());
+
+                        ArrayList<ProcessDefinition> allProcesses = new ArrayList<>(ProcessCache.getAllProcessDefinitions());
+
+
+                        for (ProcessDefinition cur: allProcesses) {
+                            ru.runa.gpd.PluginLogger.logInfo("ProcessDefinition.myProcessTest " + cur.toString() + " " + cur.isUsingGlobalVars());
                         }
-                        variablesXmlContentProvider.readFromElement(groupElement, ProcessDefinition.getAllProcesses().get(0));
+                        variablesXmlContentProvider.readFromElement(groupElement,allProcesses.get(0));
                         PluginLogger.logErrorWithoutDialog("Нет доступных бизнес процессов");
                     } catch (Exception e) {
                         throw new RuntimeException(e);
@@ -461,46 +460,48 @@ public class ParamDefConfig {
         for (String usedTypeName : usedUserTypesNames) {
             boolean isInGlobals = false;
 
-            for (VariableUserType variableUserType : ProcessDefinition.getAllVariableUserTypes()) {
-                if (variableUserType.getName().equals(usedTypeName)) {
-                    isInGlobals = true;
+            for (ProcessDefinition processDefinition : ProcessCache.getAllProcessDefinitions()) {
+                for (VariableUserType variableUserType : processDefinition.getVariableUserTypes()) {
+                    if (variableUserType.getName().equals(usedTypeName)) {
+                        isInGlobals = true;
 
-                    Element typeElement = globals.addElement(USER_TYPE);
-                    typeElement.addAttribute(NAME, variableUserType.getName());
-                    if (variableUserType.isStoreInExternalStorage()) {
-                        typeElement.addAttribute(VariableUserType.PROPERTY_STORE_IN_EXTERNAL_STORAGE, Boolean.TRUE.toString());
+                        Element typeElement = globals.addElement(USER_TYPE);
+                        typeElement.addAttribute(NAME, variableUserType.getName());
+                        if (variableUserType.isStoreInExternalStorage()) {
+                            typeElement.addAttribute(VariableUserType.PROPERTY_STORE_IN_EXTERNAL_STORAGE, Boolean.TRUE.toString());
+                        }
+                        if (variableUserType.isGlobal()) {
+                            typeElement.addAttribute(GLOBAL, "true");
+                        }
+                        for (Variable variable : variableUserType.getAttributes()) {
+                            variablesXmlContentProvider.writeGloabalVariable(typeElement, variable);
+                        }
+                        break;
                     }
-                    if (variableUserType.isGlobal()) {
-                        typeElement.addAttribute(GLOBAL, "true");
-                    }
-                    for (Variable variable : variableUserType.getAttributes()) {
-                       variablesXmlContentProvider.writeGloabalVariable(typeElement, variable);
-                    }
-                    break;
                 }
-            }
-            try {
-                IFile dataTableFile = dtProject.getFile(usedTypeName + DataTableUtils.FILE_EXTENSION);
-                Document document = XmlUtil.parseWithoutValidation(dataTableFile.getContents(true));
-                Element currentUsertype = usertypes.addElement(ROOT_ELEMENT_NAME);
-                List<Element> usertypesElements = usertypes.elements(ROOT_ELEMENT_NAME);
+                try {
+                    IFile dataTableFile = dtProject.getFile(usedTypeName + DataTableUtils.FILE_EXTENSION);
+                    Document document = XmlUtil.parseWithoutValidation(dataTableFile.getContents(true));
+                    Element currentUsertype = usertypes.addElement(ROOT_ELEMENT_NAME);
+                    List<Element> usertypesElements = usertypes.elements(ROOT_ELEMENT_NAME);
 //                if (usertypesElements.size() == 1) {
 //                    currentUsertype = usertypesElements.get(0);
 //                }
 //                else {
 //                    currentUsertype = usertypes.addElement(ROOT_ELEMENT_NAME);
 //                }
-                VariableUserType dataTable = UserTypeXmlContentProvider.read(document);
-                currentUsertype.addAttribute(NAME, usedTypeName);
-                for (Variable variable : dataTable.getAttributes()) {
-                    Element newUserTypeAttribute = currentUsertype.addElement(ATTRIBUTE_ELEMENT_NAME);
-                    newUserTypeAttribute.addAttribute(NAME, variable.getName());
-                    newUserTypeAttribute.addAttribute(SCRIPTING_NAME, variable.getScriptingName());
-                    newUserTypeAttribute.addAttribute(FORMAT, variable.getFormat());
-                    newUserTypeAttribute.addAttribute(DEFAULT_VALUE, variable.getDefaultValue());
+                    VariableUserType dataTable = UserTypeXmlContentProvider.read(document);
+                    currentUsertype.addAttribute(NAME, usedTypeName);
+                    for (Variable variable : dataTable.getAttributes()) {
+                        Element newUserTypeAttribute = currentUsertype.addElement(ATTRIBUTE_ELEMENT_NAME);
+                        newUserTypeAttribute.addAttribute(NAME, variable.getName());
+                        newUserTypeAttribute.addAttribute(SCRIPTING_NAME, variable.getScriptingName());
+                        newUserTypeAttribute.addAttribute(FORMAT, variable.getFormat());
+                        newUserTypeAttribute.addAttribute(DEFAULT_VALUE, variable.getDefaultValue());
+                    }
+                } catch (Exception e) {
+                    PluginLogger.logInfo("Found Ex!");
                 }
-            } catch (Exception e) {
-                PluginLogger.logInfo("Found Ex!");
             }
         }
     }

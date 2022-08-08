@@ -19,6 +19,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 
 import ru.runa.gpd.Localization;
+import ru.runa.gpd.ProcessCache;
 import ru.runa.gpd.extension.VariableFormatArtifact;
 import ru.runa.gpd.extension.VariableFormatRegistry;
 import ru.runa.gpd.lang.model.ProcessDefinition;
@@ -180,6 +181,7 @@ public class VariableFormatPage extends DynaContentWizardPage {
             }
         }
         ArrayList<VariableUserType> usedUserTypes = new ArrayList<>();
+
         for (VariableUserType userType : processDefinition.getVariableUserTypes()) {
             if (usedUserTypes.contains(userType)) {
                 continue;
@@ -189,13 +191,16 @@ public class VariableFormatPage extends DynaContentWizardPage {
                 combo.add(userType.getName());
             }
         }
-        for (VariableUserType userType : ProcessDefinition.getAllVariableUserTypes()) {
-            if (usedUserTypes.contains(userType)) {
-                continue;
-            }
-            if (!(variableContainer instanceof VariableUserType) || ((VariableUserType) variableContainer).canUseAsAttributeType(userType)) {
-                usedUserTypes.add(userType);
-                combo.add(userType.getName());
+
+        for (ProcessDefinition processDefinition : ProcessCache.getAllProcessDefinitions()) {
+            for (VariableUserType userType : processDefinition.getVariableUserTypes()) {
+                if (usedUserTypes.contains(userType)) {
+                    continue;
+                }
+                if (!(variableContainer instanceof VariableUserType) || ((VariableUserType) variableContainer).canUseAsAttributeType(userType)) {
+                    usedUserTypes.add(userType);
+                    combo.add(userType.getName());
+                }
             }
         }
 

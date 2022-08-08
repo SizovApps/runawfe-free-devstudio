@@ -14,6 +14,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.CoreException;
 
+import ru.runa.gpd.ProcessCache;
 import ru.runa.gpd.Activator;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.PluginLogger;
@@ -187,9 +188,11 @@ public class VariableFormatRegistry extends ArtifactRegistry<VariableFormatArtif
             }
         }
 
-        for (VariableUserType userType : ProcessDefinition.getAllVariableUserTypes()) {
-            if (userType.getName().equals(javaClassName)) {
-                return userType.getName();
+        for (ProcessDefinition processDefinition : ProcessCache.getAllProcessDefinitions()) {
+            for (VariableUserType userType : processDefinition.getVariableUserTypes()) {
+                if (userType.getName().equals(javaClassName)) {
+                    return userType.getName();
+                }
             }
         }
 
@@ -218,11 +221,14 @@ public class VariableFormatRegistry extends ArtifactRegistry<VariableFormatArtif
             }
         }
 
-        for (VariableUserType userType : ProcessDefinition.getAllVariableUserTypes()) {
-            if (userType.getName().equals(label)) {
-                return userType.getName();
+        for (ProcessDefinition processDefinition : ProcessCache.getAllProcessDefinitions()) {
+            for (VariableUserType userType : processDefinition.getVariableUserTypes()) {
+                if (userType.getName().equals(label)) {
+                    return userType.getName();
+                }
             }
         }
+
         throw new InternalApplicationException("No filter found by label " + label);
     }
 }

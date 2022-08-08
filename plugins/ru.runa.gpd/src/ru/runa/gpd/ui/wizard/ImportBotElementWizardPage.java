@@ -16,6 +16,7 @@ import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -28,6 +29,7 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Text;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.PluginLogger;
+import ru.runa.gpd.ProcessCache;
 import ru.runa.gpd.sync.WfeServerBotImporter;
 import ru.runa.gpd.sync.WfeServerBotStationImporter;
 import ru.runa.gpd.sync.WfeServerConnectorComposite;
@@ -36,11 +38,14 @@ import ru.runa.gpd.sync.WfeServerConnectorSynchronizationCallback;
 import ru.runa.wfe.bot.Bot;
 import ru.runa.wfe.bot.BotStation;
 import ru.runa.wfe.bot.BotTask;
+import ru.runa.gpd.ui.custom.LoggingSelectionAdapter;
+
 
 public abstract class ImportBotElementWizardPage extends ImportWizardPage {
     private Button importFromFileButton;
     private Composite fileSelectionArea;
     private Text selectedElementsText;
+    private Combo typeCombo;
     private Button selectParsButton;
     private Button importFromServerButton;
     private WfeServerConnectorComposite serverConnectorComposite;
@@ -54,6 +59,7 @@ public abstract class ImportBotElementWizardPage extends ImportWizardPage {
 
     @Override
     public void createControl(Composite parent) {
+        PluginLogger.logInfo("Enter! ImportBotElementWizardPage");
         Composite pageControl = new Composite(parent, SWT.NONE);
         pageControl.setLayout(new GridLayout(1, false));
         pageControl.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -124,6 +130,17 @@ public abstract class ImportBotElementWizardPage extends ImportWizardPage {
             
         });
         createServerDataViewer(importGroup);
+
+        List<String> allProcesses = new ArrayList<String>(ProcessCache.getAllProcessDefinitionNames());
+
+        for (String name: allProcesses) {
+            PluginLogger.logInfo("Name: " + name );
+        }
+        typeCombo = new Combo(importGroup, SWT.SINGLE | SWT.READ_ONLY | SWT.BORDER);
+        typeCombo.setItems(allProcesses.toArray(new String[allProcesses.size()]));
+        typeCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        typeCombo.setText("Select process");
+
         setControl(pageControl);
         onImportModeChanged();
     }
