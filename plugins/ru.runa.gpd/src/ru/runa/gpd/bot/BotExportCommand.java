@@ -36,7 +36,6 @@ public class BotExportCommand extends BotSyncCommand {
         try {
             int totalWork = 1;
             progressMonitor.beginTask("", totalWork);
-            ru.runa.gpd.PluginLogger.logInfo("Start reload!!!");
             ByteArrayOutputStream botStream = new ByteArrayOutputStream();
             getBotStream(botStream, getBotFolder());
             botStream.close();
@@ -54,15 +53,11 @@ public class BotExportCommand extends BotSyncCommand {
     protected void getBotStream(OutputStream out, IFolder botFolder) throws IOException, CoreException {
         ZipOutputStream zipStream = new ZipOutputStream(out);
         zipStream.putNextEntry(new ZipEntry("script.xml"));
-        ru.runa.gpd.PluginLogger.logInfo("before getBotStream");
         List<BotTask> botTaskForExport = getBotTasksForExport(botFolder);
         for (BotTask botTask : botTaskForExport) {
-            ru.runa.gpd.PluginLogger.logInfo("botTask.getName(): " + botTask.getName());
             ru.runa.gpd.util.WorkspaceOperations.saveBotTask(botFolder.getFile(botTask.getName()), botTask);
         }
-        ru.runa.gpd.PluginLogger.logInfo("getBotStream");
         Document document = BotScriptUtils.createScriptForBotLoading(botFolder.getName(), botTaskForExport);
-        ru.runa.gpd.PluginLogger.logInfo("getBotStream root name" + document.getRootElement().getName());
         XmlUtil.writeXml(document, zipStream);
         writeConfigurationFiles(botFolder, zipStream);
         writeEmbeddedFiles(botFolder, zipStream);
@@ -79,7 +74,6 @@ public class BotExportCommand extends BotSyncCommand {
     }
 
     protected void writeConfigurationFiles(IFolder botFolder, ZipOutputStream zipStream) throws CoreException, IOException {
-        ru.runa.gpd.PluginLogger.logInfo("BotExportCommand 1");
         for (IResource resource : botFolder.members()) {
             if (resource instanceof IFile && BotCache.CONFIGURATION_FILE_EXTENSION.equals(resource.getFileExtension())) {
                 write(zipStream, new ZipEntry(resource.getName()), (IFile) resource);
@@ -88,7 +82,6 @@ public class BotExportCommand extends BotSyncCommand {
     }
 
     protected void writeEmbeddedFiles(IFolder botFolder, ZipOutputStream zipStream) throws CoreException, IOException {
-        ru.runa.gpd.PluginLogger.logInfo("BotExportCommand 2");
         for (IResource resource : botFolder.members()) {
             // TODO must be replaced to IBotFileSupportProvider.getEmbeddedFileName(BotTask)
             if (resource instanceof IFile && resource.getName().contains(BotTaskUtils.EMBEDDED_SUFFIX)) {

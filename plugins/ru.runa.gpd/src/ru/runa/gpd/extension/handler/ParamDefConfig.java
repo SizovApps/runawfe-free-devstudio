@@ -94,30 +94,24 @@ public class ParamDefConfig {
 
     public static ParamDefConfig parse(Element rootElement) {
         ParamDefConfig config = new ParamDefConfig();
-        ru.runa.gpd.PluginLogger.logInfo("rootElement: " + rootElement.getName());
         List<Element> groupElements = rootElement.elements();
         for (Element groupElement : groupElements) {
-            ru.runa.gpd.PluginLogger.logInfo("groupElement: " + groupElement.getName());
             ParamDefGroup group = new ParamDefGroup(groupElement);
             if (groupElement.getName() == "input" || groupElement.getName() == "output") {
                 List<Element> inputParamElements = groupElement.elements("param");
                 for (Element element : inputParamElements) {
-                    ru.runa.gpd.PluginLogger.logInfo("element: " + element.getName());
                     group.getParameters().add(new ParamDef(element));
                 }
                 config.getGroups().add(group);
             } else if (groupElement.getName() == "usertypes") {
                 List<Element> usertypesParamElements = groupElement.elements("usertype");
                 for (Element element : usertypesParamElements) {
-                    ru.runa.gpd.PluginLogger.logInfo("element: " + element.getName());
                     String nameOfTable = element.attributeValue("name");
-                    ru.runa.gpd.PluginLogger.logInfo("nameOfTable: " + nameOfTable);
 
 
                     IProject dtProject = DataTableUtils.getDataTableProject();
 
                     try {
-                        ru.runa.gpd.PluginLogger.logInfo("try create data!");
                         if (!dtProject.exists()) {
                             IProjectDescription description = ResourcesPlugin.getWorkspace().newProjectDescription(dtProject.getName());
                             description.setNatureIds(new String[] { DataTableNature.NATURE_ID });
@@ -129,9 +123,7 @@ public class ParamDefConfig {
                         throw new InternalApplicationException(ex);
                     }
 
-                    ru.runa.gpd.PluginLogger.logInfo("dtProject: " + dtProject.toString());
                     IFile dataTableFile = dtProject.getFile(nameOfTable + DataTableUtils.FILE_EXTENSION);
-                    ru.runa.gpd.PluginLogger.logInfo("dataTableFile: " + dataTableFile.getName());
                     VariableUserType dataTable = new VariableUserType(nameOfTable);
 
                     List<Element> variables = element.elements();
@@ -139,7 +131,6 @@ public class ParamDefConfig {
                         String name = variable.attributeValue("name");
                         String scriptingName = variable.attributeValue("scriptingName");
                         String format = variable.attributeValue("format");
-                        ru.runa.gpd.PluginLogger.logInfo("variable: " + name + " " + scriptingName + " " + format);
                         Variable newVariable = new Variable(name, scriptingName, format, dataTable);
                         newVariable.setFormat(format);
                         dataTable.addAttribute(newVariable);
@@ -153,30 +144,21 @@ public class ParamDefConfig {
                     } catch (CoreException e) {
                         throw new InternalApplicationException(e);
                     }
-                    ru.runa.gpd.PluginLogger.logInfo("RELOAD!!!");
                     ru.runa.gpd.DataTableCache.reload();
 
 
                     group.getParameters().add(new ParamDef(element));
                 }
             } else if (groupElement.getName() == "globals") {
-                ru.runa.gpd.PluginLogger.logInfo("groupElement.elements() " + groupElement.elements());
                 if (groupElement.elements().size() == 0) {
                     continue;
                 }
-                ru.runa.gpd.PluginLogger.logInfo("groupElement.enter() ");
-                // NewGlobalSectionDefinitionWizard создает файл, откуда получаем процесс в newProcessDefinitionWasCreated;
                 VariablesXmlContentProvider variablesXmlContentProvider = new VariablesXmlContentProvider();
                     try {
 
                         ArrayList<ProcessDefinition> allProcesses = new ArrayList<>(ProcessCache.getAllProcessDefinitions());
 
-
-                        for (ProcessDefinition cur: allProcesses) {
-                            ru.runa.gpd.PluginLogger.logInfo("ProcessDefinition.myProcessTest " + cur.toString() + " " + cur.isUsingGlobalVars());
-                        }
                         variablesXmlContentProvider.readFromElement(groupElement,allProcesses.get(0));
-                        PluginLogger.logErrorWithoutDialog("Нет доступных бизнес процессов");
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }

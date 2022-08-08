@@ -76,7 +76,6 @@ public class VariableWizard extends Wizard {
             format += Variable.FORMAT_COMPONENT_TYPE_END;
         }
         String defaultValue = defaultValuePage.getDefaultValue();
-        ru.runa.gpd.PluginLogger.logInfo("Variable desc: " + name + " " + scriptingName + " " + description + " " + format + " " + defaultValue);
         if (!defaultValuePage.isValidContent()) {
             this.getContainer().showPage(defaultValuePage);
             return false;

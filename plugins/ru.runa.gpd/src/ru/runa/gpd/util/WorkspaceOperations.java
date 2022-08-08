@@ -654,14 +654,11 @@ public class WorkspaceOperations {
     public static void saveBotTask(IFile botTaskFile, BotTask botTask) {
         try {
             StringBuffer info = new StringBuffer();
-            ru.runa.gpd.PluginLogger.logInfo("botTask.getDelegationClassName(): " + botTask.getDelegationClassName());
             info.append(botTask.getDelegationClassName());
             info.append("\n");
             String configuration = BotTaskUtils.createBotTaskConfiguration(botTask);
-            ru.runa.gpd.PluginLogger.logInfo("configuration: " + configuration);
             if (!Strings.isNullOrEmpty(configuration)) {
                 String configurationFileName = botTask.getName() + "." + BotCache.CONFIGURATION_FILE_EXTENSION;
-                ru.runa.gpd.PluginLogger.logInfo("configurationFileName: " + configurationFileName);
                 IFile configurationFile = ((IFolder) botTaskFile.getParent()).getFile(configurationFileName);
                 ByteArrayInputStream stream = new ByteArrayInputStream(configuration.getBytes(Charsets.UTF_8));
                 IOUtils.createOrUpdateFile(configurationFile, stream);

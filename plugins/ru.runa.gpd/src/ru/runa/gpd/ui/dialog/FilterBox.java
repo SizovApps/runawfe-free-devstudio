@@ -36,10 +36,6 @@ public class FilterBox extends Composite {
         if (selectedItem != null) {
             text.setText(selectedItem);
         }
-        ru.runa.gpd.PluginLogger.logInfo("Item size: " + items.size());
-        for (String item: items) {
-            ru.runa.gpd.PluginLogger.logInfo("Item: " + item);
-        }
         button = new Button(this, SWT.PUSH);
         button.setText("...");
         button.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_BEGINNING));
@@ -47,7 +43,6 @@ public class FilterBox extends Composite {
 
             @Override
             public void widgetSelected(SelectionEvent e) {
-                ru.runa.gpd.PluginLogger.logInfo("Enter FilterBox: widgetSelected");
                 ChooseItemDialog<String> dialog = new ChooseVariableNameDialog(FilterBox.this.items);
                 dialog.setSelectedItem(text.getText());
                 String result = dialog.openDialog();

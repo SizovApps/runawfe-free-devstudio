@@ -9,8 +9,6 @@ public class DataTableUtils {
     public static final String FILE_EXTENSION = ".xml";
 
     public static IProject getDataTableProject() {
-
-        ru.runa.gpd.PluginLogger.logInfo("getDataTableProject enter!");
         return ResourcesPlugin.getWorkspace().getRoot().getProject(PROJECT_NAME);
     }
 }

@@ -29,7 +29,6 @@ public class VariableFinderParameter extends ParameterType {
     @Override
     public Object createEditor(Composite parent, Component component, final ComponentParameter parameter, final Object oldValue, final PropertyChangeListener listener) {
         Composite composite = new Composite(parent, SWT.NONE);
-        ru.runa.gpd.PluginLogger.logInfo("Enter VariableFinderParameter: ");
         composite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         composite.setLayout(new GridLayout(2, false));
         final Text text = new Text(composite, SWT.READ_ONLY | SWT.BORDER);

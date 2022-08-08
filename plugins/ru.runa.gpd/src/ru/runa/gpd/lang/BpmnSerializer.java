@@ -742,7 +742,6 @@ public class BpmnSerializer extends ProcessSerializer {
 
     @Override
     public void parseXML(Document document, ProcessDefinition definition) {
-        ru.runa.gpd.PluginLogger.logInfo("Bpmn enter parseXML");
         Element definitionsElement = document.getRootElement();
         parseDataStores(definitionsElement.elements(DATA_STORE), definition);
         Element processElement = definitionsElement.element(PROCESS);

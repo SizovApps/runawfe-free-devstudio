@@ -201,7 +201,6 @@ public class VariableFormatRegistry extends ArtifactRegistry<VariableFormatArtif
 
     public String getFilterJavaClassName(String label) {
         for (VariableFormatArtifact artifact : filterArtifacts) {
-            ru.runa.gpd.PluginLogger.logInfo("VariableFormatArtifact: " + artifact.getJavaClassName());
             if (Objects.equal(label, artifact.getLabel())) {
                 return artifact.getJavaClassName();
             }

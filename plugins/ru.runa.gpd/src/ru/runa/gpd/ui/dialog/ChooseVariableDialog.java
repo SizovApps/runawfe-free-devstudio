@@ -11,7 +11,6 @@ public class ChooseVariableDialog extends ChooseItemDialog<Variable> {
 
     public ChooseVariableDialog(List<Variable> variables) {
         super(Localization.getString("ChooseVariable.title"), variables, true, Localization.getString("ChooseVariable.message"), true);
-        ru.runa.gpd.PluginLogger.logInfo("Enter ChooseVariableDialog: ");
         setLabelProvider(new LabelProvider() {
             @Override
             public String getText(Object element) {

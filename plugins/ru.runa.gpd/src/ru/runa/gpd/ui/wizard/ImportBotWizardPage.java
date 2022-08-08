@@ -75,7 +75,6 @@ public class ImportBotWizardPage extends ImportBotElementWizardPage {
         @Override
         public Object[] getElements(Object inputElement) {
             if (inputElement instanceof List) {
-                ru.runa.gpd.PluginLogger.logInfo("ImportBotWizardPage getElements: " + inputElement.toString());
                 return ((List) inputElement).toArray(new Object[0]);
             }
             return new Object[0];

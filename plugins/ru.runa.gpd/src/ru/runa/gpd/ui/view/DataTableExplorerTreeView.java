@@ -51,7 +51,6 @@ public class DataTableExplorerTreeView extends ViewPart implements ISelectionLis
         getSite().getWorkbenchWindow().getSelectionService().addSelectionListener(this);
         
         try {
-            ru.runa.gpd.PluginLogger.logInfo("try create data!");
             IProject dtProject = ResourcesPlugin.getWorkspace().getRoot().getProject(PROJECT_NAME);
             if (!dtProject.exists()) {
                 IProjectDescription description = ResourcesPlugin.getWorkspace().newProjectDescription(dtProject.getName());

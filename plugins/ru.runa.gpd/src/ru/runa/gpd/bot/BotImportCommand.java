@@ -54,7 +54,6 @@ public class BotImportCommand extends BotSyncCommand {
         byte[] scriptXml = files.remove("script.xml");
         Preconditions.checkNotNull(scriptXml, "No script.xml");
         String s = new String(scriptXml, StandardCharsets.UTF_8);
-        ru.runa.gpd.PluginLogger.logInfo("scriptXml: " + s);
         List<BotTask> botTasks = BotScriptUtils.getBotTasksFromScript(botStationName, botName, scriptXml, files);
 
         // create bot
@@ -66,7 +65,6 @@ public class BotImportCommand extends BotSyncCommand {
 
         for (BotTask botTask : botTasks) {
             IFile file = folder.getFile(botTask.getName());
-            ru.runa.gpd.PluginLogger.logInfo("BotTaskName: " + botTask.getName());
             WorkspaceOperations.saveBotTask(file, botTask);
 
             // Save embedded files too.

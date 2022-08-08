@@ -56,7 +56,6 @@ public class ExportBotTaskWizardPage extends ExportBotWizardPage {
     }
 
     private void exportBot(IResource exportResource, boolean toFile) throws Exception {
-        ru.runa.gpd.PluginLogger.logInfo("Начинаем экспорт");
         String errorsDetails[] = { "" };
         Boolean docxTestResult = checkBotTaskParametersWithDocxTemplate(errorsDetails);
         if (null == docxTestResult) {
@@ -64,12 +63,10 @@ public class ExportBotTaskWizardPage extends ExportBotWizardPage {
             PluginLogger.logErrorWithoutDialog(Localization.getString("DialogEnhancement.exportCanceled"));
         } else if (docxTestResult) {
             if (toFile) {
-                ru.runa.gpd.PluginLogger.logInfo("IResource: " + exportResource);
                 getContainer().run(true, true, new BotTaskExportCommand(exportResource, new FileOutputStream(getDestinationValue())));
             } else {
                 getContainer().run(true, true, new BotTaskDeployCommand(exportResource, new ByteArrayOutputStream()));
             }
-            ru.runa.gpd.PluginLogger.logInfo("Успешно экспортировали!");
             PluginLogger.logInfo(Localization.getString("DialogEnhancement.exportSuccessful"));
         } else if (IDialogConstants.PROCEED_ID == Dialogs
                 .create(MessageDialog.CONFIRM, Localization.getString("DialogEnhancement.parametersNotCorrespondingWithDocxQ"))
@@ -99,12 +96,10 @@ public class ExportBotTaskWizardPage extends ExportBotWizardPage {
     private Boolean checkBotTaskParametersWithDocxTemplate(String errorsDetails[]) {
         if (isDialogEnhancementMode() && null != exportResource && exportResource instanceof IFile) {
             IFile botTaskFile = (IFile) exportResource;
-            ru.runa.gpd.PluginLogger.logInfo("botTaskFile: " + botTaskFile.toString());
             BotTask botTask = null != botTaskFile ? BotCache.getBotTaskNotNull(botTaskFile) : null;
             if (null != botTask && 0 == botTask.getDelegationClassName().compareTo(DocxDialogEnhancementMode.DocxHandlerID)) {
                 Object obj = DialogEnhancement.getConfigurationValue(botTask, DocxDialogEnhancementMode.InputPathId);
                 String embeddedDocxTemplateFileName = null != obj && obj instanceof String ? (String) obj : "";
-                ru.runa.gpd.PluginLogger.logInfo("embeddedDocxTemplateFileName: " + embeddedDocxTemplateFileName);
                 if (!Strings.isNullOrEmpty(embeddedDocxTemplateFileName)) {
                     List<String> errors = Lists.newArrayList();
                     Boolean result = DocxDialogEnhancement.checkBotTaskParametersWithDocxTemplate(botTask, embeddedDocxTemplateFileName, errors,

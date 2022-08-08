@@ -94,9 +94,7 @@ public class BotCache {
             try {
                 reader = new InputStreamReader(botTaskFile.getContents());
                 List<String> lines = CharStreams.readLines(reader);
-                for (String line : lines) {
-                    ru.runa.gpd.PluginLogger.logInfo("cacheBotTask: " + line);
-                }
+
                 String configurationFileData = "";
                 if (lines.size() > 1) {
                     String configurationFileName = lines.get(1);
@@ -107,7 +105,6 @@ public class BotCache {
                         }
                     }
                 }
-                ru.runa.gpd.PluginLogger.logInfo("cacheBotTask: " + configurationFileData);
                 BotTask botTask = BotTaskUtils.createBotTask(botStationName, botName, botTaskFile.getName(), lines.get(0), configurationFileData);
                 botTasks.add(botTask);
                 BOT_TASK_FILES.put(botTask, botTaskFile);

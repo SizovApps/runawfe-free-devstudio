@@ -69,7 +69,6 @@ public class ExportGlbWizardPage extends WizardArchiveFileResourceExportPage1 {
 
     protected ExportGlbWizardPage(IStructuredSelection selection) {
         super(selection);
-        ru.runa.gpd.PluginLogger.logInfo("ExportGlbWizardPage: " );
         setTitle(Localization.getString("ExportGlbWizardPage.page.title"));
         setDescription(Localization.getString("ExportGlbWizardPage.page.description"));
         this.definitionNameFileMap = new TreeMap<String, IFile>();
@@ -192,9 +191,6 @@ public class ExportGlbWizardPage extends WizardArchiveFileResourceExportPage1 {
         // about to invoke the operation so save our state
         saveWidgetValues();
         List<String> selectedDefinitionNames = ((IStructuredSelection) definitionListViewer.getSelection()).toList();
-        for (String line: selectedDefinitionNames) {
-            ru.runa.gpd.PluginLogger.logInfo("finish line: " + line);
-        }
         if (selectedDefinitionNames.size() == 0) {
             setErrorMessage(Localization.getString("ExportParWizardPage.error.selectProcess"));
             return false;
@@ -210,7 +206,6 @@ public class ExportGlbWizardPage extends WizardArchiveFileResourceExportPage1 {
         for (String selectedDefinitionName : selectedDefinitionNames) {
             try {
                 IFile definitionFile = definitionNameFileMap.get(selectedDefinitionName);
-                ru.runa.gpd.PluginLogger.logInfo("definitionNameFileMap: " + definitionNameFileMap.get(selectedDefinitionName));
                 IFolder processFolder = (IFolder) definitionFile.getParent();
                 processFolder.refreshLocal(IResource.DEPTH_ONE, null);
                 ProcessDefinition definition = ProcessCache.getProcessDefinition(definitionFile);
@@ -236,7 +231,6 @@ public class ExportGlbWizardPage extends WizardArchiveFileResourceExportPage1 {
                 IResource[] members = processFolder.members();
                 for (IResource resource : members) {
                     if (resource instanceof IFile) {
-                        ru.runa.gpd.PluginLogger.logInfo("resource name: " + resource.getName());
                         resourcesToExport.add((IFile) resource);
                     }
                 }
@@ -247,7 +241,6 @@ public class ExportGlbWizardPage extends WizardArchiveFileResourceExportPage1 {
                         continue;
                     }
                     String outputFileName = getDestinationValue() + definition.getName() + ".glb";
-                    ru.runa.gpd.PluginLogger.logInfo("outputFileName: " + outputFileName);
                     new ParExportOperation(resourcesToExport, new FileOutputStream(outputFileName)).run(null);
                     if (ProcessSaveHistory.isActive()) {
                         Map<String, File> savepoints = ProcessSaveHistory.getSavepoints(processFolder);
@@ -331,8 +324,6 @@ public class ExportGlbWizardPage extends WizardArchiveFileResourceExportPage1 {
                 return;
             }
             String destinationName = fileResource.getName();
-            ru.runa.gpd.PluginLogger.logInfo("destinationName: " + destinationName);
-            ru.runa.gpd.PluginLogger.logInfo("fileResource: " + fileResource.getContents());
             exporter.write(fileResource, destinationName);
         }
 

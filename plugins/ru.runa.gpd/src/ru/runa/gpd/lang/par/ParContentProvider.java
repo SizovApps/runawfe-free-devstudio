@@ -53,7 +53,6 @@ public class ParContentProvider {
     
     private static void processContent(AuxContentProvider contentProvider, ProcessDefinition definition, IFolder folder) throws Exception {
         String fileName = contentProvider.getFileName();
-        ru.runa.gpd.PluginLogger.logInfo("processContent fileName: " + fileName);
         if (definition instanceof SubprocessDefinition) {
             if (!contentProvider.isSupportedForEmbeddedSubprocess()) {
                 return;
@@ -73,7 +72,6 @@ public class ParContentProvider {
         } finally {
             is.close();
         }
-        ru.runa.gpd.PluginLogger.logInfo("Document: " + document.getRootElement().getName());
         contentProvider.read(document, definition);
     }
 

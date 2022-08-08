@@ -35,7 +35,6 @@ public class BotTaskExportCommand extends BotExportCommand {
     @Override
     protected void writeConfigurationFiles(IFolder botFolder, ZipOutputStream zipStream) throws CoreException, IOException {
         for (IResource resource : botFolder.members()) {
-            ru.runa.gpd.PluginLogger.logInfo("BotTaskExportCommand 1: " + resource.toString());
             if (resource instanceof IFile && resource.getName().equals(exportResource.getName() + "." + BotCache.CONFIGURATION_FILE_EXTENSION)) {
                 write(zipStream, new ZipEntry(resource.getName()), (IFile) resource);
             }
@@ -45,7 +44,6 @@ public class BotTaskExportCommand extends BotExportCommand {
     @Override
     protected void writeEmbeddedFiles(IFolder botFolder, ZipOutputStream zipStream) throws CoreException, IOException {
         for (IResource resource : botFolder.members()) {
-            ru.runa.gpd.PluginLogger.logInfo("BotTaskExportCommand 2: " + resource.toString());
             // TODO must be replaced to IBotFileSupportProvider.getEmbeddedFileName(BotTask)
             if (resource instanceof IFile && EmbeddedFileUtils.isBotTaskFileName(resource.getName(), exportResource.getName())) {
                 write(zipStream, new ZipEntry(resource.getName()), (IFile) resource);

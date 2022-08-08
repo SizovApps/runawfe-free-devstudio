@@ -107,16 +107,12 @@ public class VariableFormatPage extends DynaContentWizardPage {
             @Override
             protected void onSelection(SelectionEvent e) throws Exception {
                 String label = combo.getText();
-                ru.runa.gpd.PluginLogger.logInfo("Variable format: " + label);
-                ru.runa.gpd.PluginLogger.logInfo("VariableFormatPage падает начало!!!");
                 userType = processDefinition.getVariableUserType(label);
-                ru.runa.gpd.PluginLogger.logInfo("VariableFormatPage падает конец!!! " + userType);
                 if (userType != null) {
                     type = VariableFormatRegistry.getInstance().getArtifactNotNull(UserTypeFormat.class.getName());
                 } else {
                     type = VariableFormatRegistry.getInstance().getArtifactNotNullByLabel(label);
                 }
-                ru.runa.gpd.PluginLogger.logInfo("Variable format: " + type.getJavaClassName());
                 updateAutoincrementCheckboxVisibility(type.getName());
                 createDefaultComponentClassNames();
                 updateContent();

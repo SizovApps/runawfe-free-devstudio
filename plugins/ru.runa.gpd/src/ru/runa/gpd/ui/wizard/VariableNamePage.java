@@ -28,7 +28,6 @@ public class VariableNamePage extends ContentWizardPage {
     private String scriptingVariableName;
 
     public VariableNamePage(VariableContainer variableContainer, Variable variable) {
-        ru.runa.gpd.PluginLogger.logInfo("Enter VariableNamePage!!!");
         this.variableContainer = variableContainer;
         if (variable != null && variable.getName() != null) {
             this.initialVariableName = variable.getName();

@@ -71,7 +71,6 @@ public class BotTaskLink implements Delegable {
 
     @Override
     public List<String> getVariableNames(boolean includeSwimlanes, String... typeClassNameFilters) {
-        ru.runa.gpd.PluginLogger.logInfo("HERE getVariableNames: BotTaskLink! " + taskState + " " + Arrays.toString(typeClassNameFilters) + " " + typeClassNameFilters);
         if (taskState != null) {
             return taskState.getProcessDefinition().getVariableNames(includeSwimlanes, typeClassNameFilters);
         }

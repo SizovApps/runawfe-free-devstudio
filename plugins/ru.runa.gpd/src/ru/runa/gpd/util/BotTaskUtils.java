@@ -55,7 +55,6 @@ public class BotTaskUtils {
     }
 
     public static String createBotTaskConfiguration(BotTask botTask) {
-        ru.runa.gpd.PluginLogger.logInfo("botTask.getType(): " + botTask.getType().toString());
         if (botTask.getType() == BotTaskType.EXTENDED) {
             Document document = DocumentHelper.createDocument();
             Element root = document.addElement(EXTENDED_ELEMENT);
@@ -110,27 +109,18 @@ public class BotTaskUtils {
     }
 
     public static BotTask createBotTask(String botStationName, String botName, String botTaskName, String handlerClassName, String configuration) {
-        ru.runa.gpd.PluginLogger.logInfo("createBotTask!!!");
-        ru.runa.gpd.PluginLogger.logInfo("botStationName " + botStationName);
-        ru.runa.gpd.PluginLogger.logInfo("botName " + botName);
-        ru.runa.gpd.PluginLogger.logInfo("botTaskName " + botTaskName);
-        ru.runa.gpd.PluginLogger.logInfo("handlerClassName " + handlerClassName);
-        ru.runa.gpd.PluginLogger.logInfo("configuration " + configuration);
         BotTask botTask = new BotTask(botStationName, botName, botTaskName);
         botTask.setDelegationClassName(handlerClassName);
         if (isTaskHandlerParameterized(botTask.getDelegationClassName())) {
-            ru.runa.gpd.PluginLogger.logInfo("1 вход");
             botTask.setType(BotTaskType.PARAMETERIZED);
             Document document = XmlUtil.parseWithoutValidation(configuration);
             botTask.setParamDefConfig(ParamDefConfig.parse(document));
             botTask.setDelegationConfiguration(configuration);
         } else if (isBotTaskExtendedConfiguration(configuration)) {
-            ru.runa.gpd.PluginLogger.logInfo("2 вход");
             botTask.setType(BotTaskType.EXTENDED);
             Document document = XmlUtil.parseWithoutValidation(configuration);
             Element botElement = document.getRootElement();
             Element element = botElement.element(PARAMETERS_ELEMENT).element(ParamDefConfig.NAME_CONFIG);
-            ru.runa.gpd.PluginLogger.logInfo(element.getName());
             Preconditions.checkNotNull(element);
             botTask.setParamDefConfig(ParamDefConfig.parse(element));
             Element botConfigElement = botElement.element(BOTCONFIG_ELEMENT);
@@ -143,11 +133,9 @@ public class BotTaskUtils {
                 botTask.setDelegationConfiguration(config);
             }
         } else {
-            ru.runa.gpd.PluginLogger.logInfo("3 вход");
             botTask.setType(BotTaskType.SIMPLE);
             botTask.setDelegationConfiguration(configuration);
         }
-        ru.runa.gpd.PluginLogger.logInfo("return botTask");
         return botTask;
     }
 

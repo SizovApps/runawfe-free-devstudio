@@ -14,7 +14,6 @@ public class ExportGlbWizard extends Wizard implements IExportWizard {
     private ExportGlbWizardPage page;
 
     public ExportGlbWizard() {
-        ru.runa.gpd.PluginLogger.logInfo("ExportGlbWizard: " );
         IDialogSettings workbenchSettings = Activator.getDefault().getDialogSettings();
         IDialogSettings section = workbenchSettings.getSection("ParExportWizard");
         if (section == null) {
