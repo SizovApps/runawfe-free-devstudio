@@ -94,7 +94,6 @@ public class BotCache {
             try {
                 reader = new InputStreamReader(botTaskFile.getContents());
                 List<String> lines = CharStreams.readLines(reader);
-
                 String configurationFileData = "";
                 if (lines.size() > 1) {
                     String configurationFileName = lines.get(1);

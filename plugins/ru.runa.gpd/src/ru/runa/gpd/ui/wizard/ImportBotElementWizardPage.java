@@ -38,8 +38,6 @@ import ru.runa.gpd.sync.WfeServerConnectorSynchronizationCallback;
 import ru.runa.wfe.bot.Bot;
 import ru.runa.wfe.bot.BotStation;
 import ru.runa.wfe.bot.BotTask;
-import ru.runa.gpd.ui.custom.LoggingSelectionAdapter;
-
 
 public abstract class ImportBotElementWizardPage extends ImportWizardPage {
     private Button importFromFileButton;
@@ -59,7 +57,6 @@ public abstract class ImportBotElementWizardPage extends ImportWizardPage {
 
     @Override
     public void createControl(Composite parent) {
-        PluginLogger.logInfo("Enter! ImportBotElementWizardPage");
         Composite pageControl = new Composite(parent, SWT.NONE);
         pageControl.setLayout(new GridLayout(1, false));
         pageControl.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -131,11 +128,7 @@ public abstract class ImportBotElementWizardPage extends ImportWizardPage {
         });
         createServerDataViewer(importGroup);
 
-        List<String> allProcesses = new ArrayList<String>(ProcessCache.getAllProcessDefinitionNames());
-
-        for (String name: allProcesses) {
-            PluginLogger.logInfo("Name: " + name );
-        }
+        List<String> allProcesses = new ArrayList<>(ProcessCache.getAllProcessDefinitionNames());
         typeCombo = new Combo(importGroup, SWT.SINGLE | SWT.READ_ONLY | SWT.BORDER);
         typeCombo.setItems(allProcesses.toArray(new String[allProcesses.size()]));
         typeCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));

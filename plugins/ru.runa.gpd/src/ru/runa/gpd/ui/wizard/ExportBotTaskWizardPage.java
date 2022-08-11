@@ -87,7 +87,7 @@ public class ExportBotTaskWizardPage extends ExportBotWizardPage {
                     getContainer().run(true, true, new BotTaskDeployCommand(exportResource, new ByteArrayOutputStream()));
                 }
             }
-            PluginLogger.logInfo(Localization.getString("А\\u042d\\u043a\\u0441\\u043f\\u043e\\u0440\\u0442\\u0438\\u0440\\u043e\\u0432\\u0430\\u0442\\u044c \\u0437\\u0430\\u0434\\u0430\\u0447\\u0443 \\u0431\\u043e\\u0442\\u0430DialogEnhancement.exportSuccessful"));
+            PluginLogger.logInfo(Localization.getString("DialogEnhancement.exportSuccessful"));
         } else {
             PluginLogger.logErrorWithoutDialog(Localization.getString("DialogEnhancement.exportCanceled"));
         }

@@ -40,7 +40,6 @@ import ru.runa.gpd.util.UiUtil;
 import ru.runa.gpd.util.WorkspaceOperations;
 import ru.runa.wfe.InternalApplicationException;
 
-
 public class DataTableExplorerTreeView extends ViewPart implements ISelectionListener {
     private static final String PROJECT_NAME = "DataTables";
     private TreeViewer viewer;

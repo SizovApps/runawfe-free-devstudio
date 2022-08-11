@@ -4,29 +4,28 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.eclipse.core.runtime.CoreException;
 import java.io.File;
-import java.util.*;
-
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtension;
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.runtime.CoreException;
-
-import ru.runa.gpd.ProcessCache;
 import ru.runa.gpd.Activator;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.PluginLogger;
+import ru.runa.gpd.ProcessCache;
+import ru.runa.gpd.lang.model.ProcessDefinition;
 import ru.runa.gpd.lang.model.Variable;
 import ru.runa.gpd.lang.model.VariableUserType;
-import ru.runa.gpd.lang.model.ProcessDefinition;
+import ru.runa.gpd.util.DataTableUtils;
+import ru.runa.gpd.util.IOUtils;
 import ru.runa.wfe.InternalApplicationException;
 import ru.runa.wfe.var.UserTypeMap;
-import ru.runa.gpd.util.DataTableUtils;
-
-import ru.runa.gpd.util.IOUtils;
-import org.eclipse.core.resources.IResource;
 
 public class VariableFormatRegistry extends ArtifactRegistry<VariableFormatArtifact> {
     private static final String XML_FILE_NAME = "variableFormats.xml";
@@ -173,30 +172,7 @@ public class VariableFormatRegistry extends ArtifactRegistry<VariableFormatArtif
                 return artifact.getLabel();
             }
         }
-
-        Object[] dataTables;
-        try {
-            dataTables = Arrays.stream(ru.runa.gpd.util.DataTableUtils.getDataTableProject().members())
-                    .filter(r -> r instanceof IFile && r.getName().endsWith(ru.runa.gpd.util.DataTableUtils.FILE_EXTENSION)).toArray();
-        } catch (CoreException e) {
-            dataTables = new Object[] {};
-        }
-
-        for (Object curObj : dataTables) {
-            if (IOUtils.getWithoutExtension(((IResource) curObj).getName()).equals(javaClassName)) {
-                return IOUtils.getWithoutExtension(((IResource) curObj).getName());
-            }
-        }
-
-        for (ProcessDefinition processDefinition : ProcessCache.getAllProcessDefinitions()) {
-            for (VariableUserType userType : processDefinition.getVariableUserTypes()) {
-                if (userType.getName().equals(javaClassName)) {
-                    return userType.getName();
-                }
-            }
-        }
-
-        throw new InternalApplicationException("No filter found by type " + javaClassName);
+        return getVariableName(javaClassName).orElseThrow(() -> new InternalApplicationException("No filter found by type " + javaClassName));
     }
 
     public String getFilterJavaClassName(String label) {
@@ -205,29 +181,22 @@ public class VariableFormatRegistry extends ArtifactRegistry<VariableFormatArtif
                 return artifact.getJavaClassName();
             }
         }
+        return getVariableName(label).orElseThrow(() -> new InternalApplicationException("No filter found by label " + label));
+    }
 
-        Object[] dataTables;
+    private static Optional<String> getVariableName(String name) {
+        Optional<String> variableName = Optional.empty();
         try {
-            dataTables = Arrays.stream(ru.runa.gpd.util.DataTableUtils.getDataTableProject().members())
-                    .filter(r -> r instanceof IFile && r.getName().endsWith(ru.runa.gpd.util.DataTableUtils.FILE_EXTENSION)).toArray();
-        } catch (CoreException e) {
-            dataTables = new Object[] {};
+            variableName = Arrays.stream(DataTableUtils.getDataTableProject().members())
+                    .filter(r -> r instanceof IFile && r.getName().endsWith(DataTableUtils.FILE_EXTENSION))
+                    .map(r -> IOUtils.getWithoutExtension(r.getName()))
+                    .findFirst();
+        } catch (Exception ignored) {
         }
-
-        for (Object curObj : dataTables) {
-            if (IOUtils.getWithoutExtension(((IResource) curObj).getName()).equals(label)) {
-                return IOUtils.getWithoutExtension(((IResource) curObj).getName());
-            }
-        }
-
-        for (ProcessDefinition processDefinition : ProcessCache.getAllProcessDefinitions()) {
-            for (VariableUserType userType : processDefinition.getVariableUserTypes()) {
-                if (userType.getName().equals(label)) {
-                    return userType.getName();
-                }
-            }
-        }
-
-        throw new InternalApplicationException("No filter found by label " + label);
+        return variableName.isPresent() ? variableName : ProcessCache.getAllProcessDefinitions().stream()
+                .map(ProcessDefinition::getVariableUserTypes).flatMap(List::stream)
+                .map(VariableUserType::getName)
+                .filter(n -> n.equals(name))
+                .findFirst();
     }
 }

@@ -1,9 +1,7 @@
 package ru.runa.gpd.util;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
-import java.nio.charset.StandardCharsets;
 
 import org.dom4j.Document;
 import org.dom4j.Element;
@@ -72,7 +70,6 @@ public class BotScriptUtils {
      *         name
      */
     public static List<BotTask> getBotTasksFromScript(String botStationName, String botName, byte[] scriptXml, Map<String, byte[]> files) {
-
         List<BotTask> botTasks = Lists.newArrayList();
         Document document = XmlUtil.parseWithXSDValidation(scriptXml, "workflowScript.xsd");
         List<Element> taskElements = document.getRootElement().elements(ADD_BOT_CONFIGURATION_ELEMENT_NAME);

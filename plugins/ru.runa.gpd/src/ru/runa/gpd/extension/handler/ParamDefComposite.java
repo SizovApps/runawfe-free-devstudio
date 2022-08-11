@@ -1,6 +1,10 @@
 package ru.runa.gpd.extension.handler;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.FocusAdapter;
@@ -13,9 +17,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.resources.IFile;
 
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.extension.handler.ParamDef.Presentation;
@@ -25,7 +26,6 @@ import ru.runa.gpd.ui.custom.SwtUtils;
 import ru.runa.gpd.ui.custom.TypedUserInputCombo;
 import ru.runa.gpd.ui.dialog.FilterBox;
 import ru.runa.gpd.util.VariableUtils;
-import ru.runa.gpd.util.DataTableUtils;
 
 import com.google.common.base.Objects;
 
@@ -44,9 +44,6 @@ public class ParamDefComposite extends Composite {
         this.config = config;
         this.properties = properties != null ? properties : new HashMap<String, String>();
         this.delegable = delegable;
-        for(String key : properties.keySet()){
-            String value = properties.get(key);
-        }
         GridLayout layout = new GridLayout(2, false);
         setLayout(layout);
     }
@@ -59,9 +56,6 @@ public class ParamDefComposite extends Composite {
             GridData strokeData = new GridData(GridData.FILL_HORIZONTAL);
             strokeData.horizontalSpan = 2;
             SwtUtils.createStrokeComposite(this, strokeData, Localization.getString("ParamDefGroup.group." + group.getLabel()), 3);
-            for(String key : properties.keySet()){
-                String value = properties.get(key);
-            }
             for (ParamDef param : group.getParameters()) {
                 if (helpInlined) {
                     Label helpLabel = new Label(this, SWT.WRAP);
@@ -202,9 +196,6 @@ public class ParamDefComposite extends Composite {
         if (selectedValue == null) {
             selectedValue = paramDef.getDefaultValue();
         }
-        String[] filters = paramDef.getFormatFiltersAsArray();
-
-
         List<String> variableNames = new ArrayList<String>();
         if (paramDef.isUseVariable()) {
             variableNames.addAll(delegable.getVariableNames(true, paramDef.getFormatFiltersAsArray()));
@@ -220,8 +211,6 @@ public class ParamDefComposite extends Composite {
         if (paramDef.isOptional()) {
             variableNames.add(0, "");
         }
-
-
         comboItems.put(paramDef.getName(), variableNames);
         Label label = new Label(this, SWT.NONE);
         GridData gridData = new GridData(GridData.FILL_HORIZONTAL);

@@ -836,7 +836,7 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
         });
     }
 
-    public void setTableInput(String groupType) {;
+    public void setTableInput(String groupType) {
         TableViewer confTableViewer = getParamTableViewer(groupType);
         List<ParamDef> paramDefs = new ArrayList<ParamDef>();
         for (ParamDefGroup group : botTask.getParamDefConfig().getGroups()) {

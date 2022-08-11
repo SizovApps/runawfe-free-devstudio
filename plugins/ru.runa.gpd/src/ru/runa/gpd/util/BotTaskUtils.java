@@ -46,7 +46,6 @@ public class BotTaskUtils {
     private static final String PARAMETERS_ELEMENT = "parameters";
     public static final String EMBEDDED_SUFFIX = ".embedded";
 
-
     public static ParamDefConfig createEmptyParamDefConfig() {
         ParamDefConfig paramDefConfig = new ParamDefConfig();
         paramDefConfig.getGroups().add(new ParamDefGroup(ParamDefGroup.NAME_INPUT));
@@ -61,7 +60,6 @@ public class BotTaskUtils {
             Element parametersElement = root.addElement(PARAMETERS_ELEMENT);
             botTask.getParamDefConfig().writeXml(parametersElement);
             Element botConfigElement = root.addElement(BOTCONFIG_ELEMENT);
-            Element botConfigElement2 = root.addElement(BOTCONFIG_ELEMENT);
             if (XmlUtil.isXml(botTask.getDelegationConfiguration())) {
                 Document conf = XmlUtil.parseWithoutValidation(botTask.getDelegationConfiguration());
                 botConfigElement.add(conf.getRootElement().detach());

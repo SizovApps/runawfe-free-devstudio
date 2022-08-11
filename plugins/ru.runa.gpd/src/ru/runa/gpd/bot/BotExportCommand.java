@@ -20,6 +20,7 @@ import ru.runa.gpd.BotCache;
 import ru.runa.gpd.lang.model.BotTask;
 import ru.runa.gpd.util.BotScriptUtils;
 import ru.runa.gpd.util.BotTaskUtils;
+import ru.runa.gpd.util.WorkspaceOperations;
 import ru.runa.gpd.util.XmlUtil;
 
 public class BotExportCommand extends BotSyncCommand {
@@ -55,7 +56,7 @@ public class BotExportCommand extends BotSyncCommand {
         zipStream.putNextEntry(new ZipEntry("script.xml"));
         List<BotTask> botTaskForExport = getBotTasksForExport(botFolder);
         for (BotTask botTask : botTaskForExport) {
-            ru.runa.gpd.util.WorkspaceOperations.saveBotTask(botFolder.getFile(botTask.getName()), botTask);
+            WorkspaceOperations.saveBotTask(botFolder.getFile(botTask.getName()), botTask);
         }
         Document document = BotScriptUtils.createScriptForBotLoading(botFolder.getName(), botTaskForExport);
         XmlUtil.writeXml(document, zipStream);
@@ -70,7 +71,7 @@ public class BotExportCommand extends BotSyncCommand {
     }
 
     protected List<BotTask> getBotTasksForExport(IFolder botFolder) throws CoreException, IOException {
-            return BotCache.getBotTasks(botFolder.getName());
+        return BotCache.getBotTasks(botFolder.getName());
     }
 
     protected void writeConfigurationFiles(IFolder botFolder, ZipOutputStream zipStream) throws CoreException, IOException {

@@ -278,7 +278,6 @@ public class ImportParWizardPage extends ImportWizardPage {
     }
 
     public boolean performFinish() {
-        PluginLogger.logInfo("Старт импорта глобального раздела!");
         List<ProcessDefinitionImportInfo> importInfos = Lists.newArrayList();
         try {
             IContainer selectedProject = getSelectedProject();
@@ -293,7 +292,6 @@ public class ImportParWizardPage extends ImportWizardPage {
                 for (int i = 0; i < selectedFileNames.length; i++) {
                     String definitionName = selectedFileNames[i].substring(0, selectedFileNames[i].length() - fileExtension().length());
                     String fileName = selectedDirFileName + File.separator + selectedFileNames[i];
-                    PluginLogger.logInfo("definitionName: " + definitionName + " " + fileName);
                     importInfos.add(new ProcessDefinitionImportInfo(definitionName, "", new FileInputStream(fileName)));
                 }
             } else {

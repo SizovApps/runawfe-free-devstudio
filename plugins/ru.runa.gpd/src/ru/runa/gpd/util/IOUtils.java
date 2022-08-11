@@ -246,7 +246,6 @@ public class IOUtils {
         ZipEntry entry = zis.getNextEntry();
         while (entry != null) {
             if (!entry.getName().contains("META-INF")) {
-
                 IFile file = getFile(folder, entry.getName());
                 ByteArrayOutputStream baos = new ByteArrayOutputStream(buf.length);
                 int n;

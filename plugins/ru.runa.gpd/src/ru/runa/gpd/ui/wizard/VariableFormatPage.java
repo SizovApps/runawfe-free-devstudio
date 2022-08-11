@@ -1,9 +1,7 @@
 package ru.runa.gpd.ui.wizard;
 
 import com.google.common.collect.Maps;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Map;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
@@ -14,10 +12,6 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.runtime.CoreException;
-
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.ProcessCache;
 import ru.runa.gpd.extension.VariableFormatArtifact;
@@ -29,16 +23,12 @@ import ru.runa.gpd.lang.model.VariableUserType;
 import ru.runa.gpd.ui.custom.DynaContentWizardPage;
 import ru.runa.gpd.ui.custom.LoggingSelectionAdapter;
 import ru.runa.gpd.ui.custom.SwtUtils;
-import ru.runa.gpd.util.DataTableUtils;
-import ru.runa.gpd.util.IOUtils;
 import ru.runa.wfe.var.format.BigDecimalFormat;
 import ru.runa.wfe.var.format.ListFormat;
 import ru.runa.wfe.var.format.LongFormat;
 import ru.runa.wfe.var.format.MapFormat;
 import ru.runa.wfe.var.format.StringFormat;
 import ru.runa.wfe.var.format.UserTypeFormat;
-
-
 
 public class VariableFormatPage extends DynaContentWizardPage {
     private final VariableContainer variableContainer;
@@ -113,6 +103,7 @@ public class VariableFormatPage extends DynaContentWizardPage {
                 } else {
                     type = VariableFormatRegistry.getInstance().getArtifactNotNullByLabel(label);
                 }
+
                 updateAutoincrementCheckboxVisibility(type.getName());
                 createDefaultComponentClassNames();
                 updateContent();
@@ -199,7 +190,6 @@ public class VariableFormatPage extends DynaContentWizardPage {
                 }
             }
         }
-
         combo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         return combo;
     }

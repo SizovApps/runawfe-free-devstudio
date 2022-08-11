@@ -1,6 +1,5 @@
 package ru.runa.gpd.lang.model;
 
-import java.util.Arrays;
 import java.util.List;
 
 import ru.runa.gpd.Localization;

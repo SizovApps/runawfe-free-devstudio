@@ -9,17 +9,11 @@ import ru.runa.gpd.extension.handler.ParamDef;
 import ru.runa.gpd.extension.handler.ParamDefGroup;
 import ru.runa.gpd.ui.enhancement.DialogEnhancementMode;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import ru.runa.gpd.PluginLogger;
-
 public class BotTaskParamDefWizard extends Wizard implements INewWizard {
     private BotTaskParamDefWizardPage page;
     private ParamDefGroup paramDefGroup;
     private ParamDef paramDef;
     private final DialogEnhancementMode dialogEnhancementMode;
-
-    private static final Log log = LogFactory.getLog(BotTaskParamDefWizard.class);
 
     public BotTaskParamDefWizard(ParamDefGroup paramDefGroup, ParamDef paramDef, DialogEnhancementMode dialogEnhancementMode) {
         this.paramDefGroup = paramDefGroup;
@@ -60,7 +54,6 @@ public class BotTaskParamDefWizard extends Wizard implements INewWizard {
         paramDef.getFormatFilters().add(page.getType());
         paramDef.setUseVariable(page.isUseVariable());
         paramDef.setOptional(page.isOptional());
-        PluginLogger.logInfo("paramDef from page: " + paramDef.getFormatFilters().get(0).toString() + "  " + paramDef.getName());
         paramDefGroup.getParameters().add(paramDef);
         return true;
     }

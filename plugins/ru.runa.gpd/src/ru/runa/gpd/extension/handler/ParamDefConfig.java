@@ -1,76 +1,58 @@
 package ru.runa.gpd.extension.handler;
 
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IFile;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
-import com.google.common.base.Throwables;
-
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.resources.IProjectDescription;
-
 import java.io.ByteArrayInputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.dom4j.Branch;
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 import org.dom4j.io.OutputFormat;
-
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IProjectDescription;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
+import ru.runa.gpd.DataTableCache;
+import ru.runa.gpd.DataTableNature;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.PluginLogger;
-import ru.runa.gpd.DataTableNature;
 import ru.runa.gpd.ProcessCache;
 import ru.runa.gpd.extension.handler.ParamDef.Presentation;
 import ru.runa.gpd.lang.ValidationError;
 import ru.runa.gpd.lang.model.Delegable;
 import ru.runa.gpd.lang.model.GraphElement;
 import ru.runa.gpd.lang.model.ProcessDefinition;
+import ru.runa.gpd.lang.model.Variable;
+import ru.runa.gpd.lang.model.VariableUserType;
 import ru.runa.gpd.lang.par.VariablesXmlContentProvider;
-import ru.runa.gpd.ui.view.DataTableExplorerTreeView;
+import ru.runa.gpd.util.DataTableUtils;
+import ru.runa.gpd.util.IOUtils;
+import ru.runa.gpd.util.UserTypeXmlContentProvider;
 import ru.runa.gpd.util.VariableUtils;
 import ru.runa.gpd.util.XmlUtil;
-import ru.runa.gpd.util.IOUtils;
-import ru.runa.gpd.util.DataTableUtils;
-import ru.runa.gpd.lang.model.VariableUserType;
-import ru.runa.gpd.lang.model.Variable;
-import ru.runa.gpd.util.UserTypeXmlContentProvider;
-
 import ru.runa.wfe.InternalApplicationException;
-
-
 
 @SuppressWarnings("unchecked")
 public class ParamDefConfig {
     public static final String NAME_CONFIG = "config";
-
     private static final String ROOT_ELEMENT_NAME = "usertype";
     private static final String NAME = "name";
     private static final String SCRIPTING_NAME = "scriptingName";
     private static final String FORMAT = "format";
     private static final String DEFAULT_VALUE = "defaultValue";
     private static final String ATTRIBUTE_ELEMENT_NAME = "variable";
-    private static final String XML_FILE_NAME = "variables.xml";
-
-    private static final String SWIMLANE = "swimlane";
-    private static final String DESCRIPTION = "description";
-    private static final String VARIABLE = "variable";
-    private static final String VARIABLES = "variables";
-    private static final String PUBLIC = "public";
-    private static final String EDITABLE_IN_CHAT = "editableInChat";
-
-
-    private static final String STORE_TYPE = "storeType";
     private static final String USER_TYPE = "usertype";
-    private static final String EDITOR = "editor";
     private static final String GLOBAL = "global";
-    private static final String PRIMARY_KEY = "primaryKey";
-    private static final String AUTOINCREMENT = "autoincrement";
     private static final Pattern VARIABLE_REGEXP = Pattern.compile("\\$\\{(.*?[^\\\\])\\}");
     private final String name;
     private final List<ParamDefGroup> groups = new ArrayList<ParamDefGroup>();
@@ -107,10 +89,7 @@ public class ParamDefConfig {
                 List<Element> usertypesParamElements = groupElement.elements("usertype");
                 for (Element element : usertypesParamElements) {
                     String nameOfTable = element.attributeValue("name");
-
-
                     IProject dtProject = DataTableUtils.getDataTableProject();
-
                     try {
                         if (!dtProject.exists()) {
                             IProjectDescription description = ResourcesPlugin.getWorkspace().newProjectDescription(dtProject.getName());
@@ -122,10 +101,8 @@ public class ParamDefConfig {
                     } catch (CoreException ex) {
                         throw new InternalApplicationException(ex);
                     }
-
                     IFile dataTableFile = dtProject.getFile(nameOfTable + DataTableUtils.FILE_EXTENSION);
                     VariableUserType dataTable = new VariableUserType(nameOfTable);
-
                     List<Element> variables = element.elements();
                     for (Element variable: variables) {
                         String name = variable.attributeValue("name");
@@ -135,18 +112,13 @@ public class ParamDefConfig {
                         newVariable.setFormat(format);
                         dataTable.addAttribute(newVariable);
                     }
-
-
                     Document document = UserTypeXmlContentProvider.save(dataTableFile, dataTable);
-
                     try {
                         IOUtils.createOrUpdateFile(dataTableFile, new ByteArrayInputStream(XmlUtil.writeXml(document)));
                     } catch (CoreException e) {
                         throw new InternalApplicationException(e);
                     }
-                    ru.runa.gpd.DataTableCache.reload();
-
-
+                    DataTableCache.reload();
                     group.getParameters().add(new ParamDef(element));
                 }
             } else if (groupElement.getName() == "globals") {
@@ -155,9 +127,7 @@ public class ParamDefConfig {
                 }
                 VariablesXmlContentProvider variablesXmlContentProvider = new VariablesXmlContentProvider();
                     try {
-
                         ArrayList<ProcessDefinition> allProcesses = new ArrayList<>(ProcessCache.getAllProcessDefinitions());
-
                         variablesXmlContentProvider.readFromElement(groupElement,allProcesses.get(0));
                     } catch (Exception e) {
                         throw new RuntimeException(e);
@@ -487,7 +457,6 @@ public class ParamDefConfig {
             }
         }
     }
-
 
     public Set<String> getAllParameterNames(boolean excludeOptional) {
         Set<String> result = Sets.newHashSet();

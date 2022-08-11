@@ -1,7 +1,6 @@
 package ru.runa.gpd.lang.model;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -34,7 +33,6 @@ import ru.runa.gpd.util.Duration;
 import ru.runa.gpd.util.IOUtils;
 import ru.runa.gpd.util.SwimlaneDisplayMode;
 import ru.runa.gpd.util.VariableUtils;
-import ru.runa.gpd.lang.model.Variable;
 import ru.runa.wfe.InternalApplicationException;
 import ru.runa.wfe.definition.ProcessDefinitionAccessType;
 import ru.runa.wfe.var.format.ListFormat;
@@ -59,14 +57,10 @@ public class ProcessDefinition extends NamedGraphElement implements Describable,
     protected final IFile file;
     protected boolean usingGlobalVars;
 
-    public static ProcessDefinition myProcessTest;
-
-
     protected final ArrayList<VersionInfo> versionInfoList = new ArrayList<>();
 
     public ProcessDefinition(IFile file) {
         this.file = file;
-        myProcessTest = this;
     }
 
     public IFile getFile() {
@@ -327,7 +321,6 @@ public class ProcessDefinition extends NamedGraphElement implements Describable,
         }
         return result;
     }
-
 
     public List<Swimlane> getSwimlanes() {
         List<Swimlane> swimlanes = getChildren(Swimlane.class);

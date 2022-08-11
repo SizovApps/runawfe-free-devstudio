@@ -9,7 +9,6 @@ import ru.runa.gpd.util.DataTableUtils;
 
 public class DataTableTreeContentProvider implements ITreeContentProvider {
 
-
     @Override
     public Object[] getChildren(Object element) {
         return null;
