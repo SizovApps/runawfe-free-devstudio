@@ -25,6 +25,7 @@ import ru.runa.gpd.util.IOUtils;
 public class ProcessCache {
     private static Map<IFile, ProcessDefinition> CACHE_BY_FILE = new HashMap<IFile, ProcessDefinition>();
     private static Map<String, ProcessDefinition> CACHE_BY_NAME = new HashMap<String, ProcessDefinition>();
+
     static {
         try {
             for (IFile file : IOUtils.getAllProcessDefinitionFiles()) {
@@ -39,6 +40,20 @@ public class ProcessCache {
             PluginLogger.logError(e);
         }
     }
+
+    private static ProcessDefinition selectedProcess;
+
+    public static ProcessDefinition getSelectedProcess() {
+        return selectedProcess;
+    }
+
+    public static void setSelectedProcessByName(String processDefinitionName) {
+        ru.runa.gpd.PluginLogger.logInfo("processDefinitionName: " + processDefinitionName);
+        ProcessDefinition processDefinition = CACHE_BY_NAME.get(processDefinitionName);
+        selectedProcess = processDefinition;
+    }
+
+
 
     private static void findSubProcessFiles(IContainer container, List<IFile> result) throws CoreException {
         for (IResource resource : container.members()) {

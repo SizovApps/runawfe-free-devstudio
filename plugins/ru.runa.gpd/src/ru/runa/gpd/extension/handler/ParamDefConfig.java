@@ -128,7 +128,11 @@ public class ParamDefConfig {
                 VariablesXmlContentProvider variablesXmlContentProvider = new VariablesXmlContentProvider();
                     try {
                         ArrayList<ProcessDefinition> allProcesses = new ArrayList<>(ProcessCache.getAllProcessDefinitions());
-                        variablesXmlContentProvider.readFromElement(groupElement,allProcesses.get(0));
+                        if (allProcesses.size() == 0) {
+                            PluginLogger.logErrorWithoutDialog("no processes!!!");
+                            continue;
+                        }
+                        variablesXmlContentProvider.readFromElement(groupElement, ProcessCache.getSelectedProcess());
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
@@ -435,13 +439,6 @@ public class ParamDefConfig {
                     IFile dataTableFile = dtProject.getFile(usedTypeName + DataTableUtils.FILE_EXTENSION);
                     Document document = XmlUtil.parseWithoutValidation(dataTableFile.getContents(true));
                     Element currentUsertype = usertypes.addElement(ROOT_ELEMENT_NAME);
-                    List<Element> usertypesElements = usertypes.elements(ROOT_ELEMENT_NAME);
-//                if (usertypesElements.size() == 1) {
-//                    currentUsertype = usertypesElements.get(0);
-//                }
-//                else {
-//                    currentUsertype = usertypes.addElement(ROOT_ELEMENT_NAME);
-//                }
                     VariableUserType dataTable = UserTypeXmlContentProvider.read(document);
                     currentUsertype.addAttribute(NAME, usedTypeName);
                     for (Variable variable : dataTable.getAttributes()) {

@@ -54,6 +54,7 @@ public class ParamDef {
         }
         this.defaultValue = element.attributeValue("defaultValue");
         String formatFilter = element.attributeValue("formatFilter");
+        ru.runa.gpd.PluginLogger.logInfo("Format filter: " + formatFilter);
         if (formatFilter != null && formatFilter.length() > 0) {
             String[] formats = formatFilter.split(";", -1);
             for (String format : formats) {
