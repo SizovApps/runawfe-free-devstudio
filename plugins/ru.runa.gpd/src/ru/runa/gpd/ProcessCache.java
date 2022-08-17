@@ -131,7 +131,6 @@ public class ProcessCache {
     public static synchronized List<String> getGlobalProcessDefinitionNames() {
         List<String> list = new ArrayList<>();
         for (ProcessDefinition processDefinition : getGlobalProcessDefinitions()) {
-            ru.runa.gpd.PluginLogger.logInfo("Name: " + processDefinition.getName());
             list.add(processDefinition.getName());
         }
         Collections.sort(list);
