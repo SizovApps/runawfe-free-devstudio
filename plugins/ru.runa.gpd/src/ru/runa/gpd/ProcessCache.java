@@ -128,6 +128,16 @@ public class ProcessCache {
         return list;
     }
 
+    public static synchronized List<String> getGlobalProcessDefinitionNames() {
+        List<String> list = new ArrayList<>();
+        for (ProcessDefinition processDefinition : getGlobalProcessDefinitions()) {
+            ru.runa.gpd.PluginLogger.logInfo("Name: " + processDefinition.getName());
+            list.add(processDefinition.getName());
+        }
+        Collections.sort(list);
+        return list;
+    }
+
     public static synchronized Map<IFile, ProcessDefinition> getAllProcessDefinitionsMap() {
         return new HashMap<IFile, ProcessDefinition>(CACHE_BY_FILE);
     }

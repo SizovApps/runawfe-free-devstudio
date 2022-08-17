@@ -130,7 +130,7 @@ public abstract class ImportBotElementWizardPage extends ImportWizardPage {
         });
         createServerDataViewer(importGroup);
 
-        List<String> allProcesses = new ArrayList<>(ProcessCache.getAllProcessDefinitionNames());
+        List<String> allProcesses = new ArrayList<>(ProcessCache.getGlobalProcessDefinitionNames());
         Label typeComboLabel = new Label(importGroup, SWT.NONE);
         typeComboLabel.setText(Localization.getString("ImportBotElementWizardPage.page.processesNames"));
         typeCombo = new Combo(importGroup, SWT.SINGLE | SWT.READ_ONLY | SWT.BORDER);
