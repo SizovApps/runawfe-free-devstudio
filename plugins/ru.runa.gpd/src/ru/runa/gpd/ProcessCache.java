@@ -48,7 +48,6 @@ public class ProcessCache {
     }
 
     public static void setSelectedProcessByName(String processDefinitionName) {
-        ru.runa.gpd.PluginLogger.logInfo("processDefinitionName: " + processDefinitionName);
         ProcessDefinition processDefinition = CACHE_BY_NAME.get(processDefinitionName);
         selectedProcess = processDefinition;
     }
@@ -111,6 +110,16 @@ public class ProcessCache {
 
     public static synchronized Set<ProcessDefinition> getAllProcessDefinitions() {
         return new HashSet<ProcessDefinition>(CACHE_BY_NAME.values());
+    }
+
+    public static synchronized Set<ProcessDefinition> getGlobalProcessDefinitions() {
+        HashSet<ProcessDefinition> hashSet = new HashSet<ProcessDefinition>();
+        for (ProcessDefinition processDefinition : CACHE_BY_NAME.values()) {
+            if (processDefinition.getClass().toString().equals("class ru.runa.gpd.lang.model.GlobalSectionDefinition")) {
+                hashSet.add(processDefinition);
+            }
+        }
+        return hashSet;
     }
 
     public static synchronized List<String> getAllProcessDefinitionNames() {

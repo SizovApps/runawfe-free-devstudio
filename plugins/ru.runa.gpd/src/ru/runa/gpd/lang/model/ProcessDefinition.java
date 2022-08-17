@@ -466,10 +466,20 @@ public class ProcessDefinition extends NamedGraphElement implements Describable,
 
     public void addVariableUserType(VariableUserType type) {
         type.setProcessDefinition(this);
-        if (!types.contains(type)) {
+        if (!types.contains(type) && !isSameNameUserType(type.getName())) {
             types.add(type);
             allTypes.add(type);
         }
+    }
+
+
+    public boolean isSameNameUserType(String name) {
+        for (VariableUserType userType : types) {
+            if (name.equals(userType.getName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
 
@@ -505,7 +515,7 @@ public class ProcessDefinition extends NamedGraphElement implements Describable,
                 return type;
             }
         }
-        for (ProcessDefinition processDefinition : ProcessCache.getAllProcessDefinitions()) {
+        for (ProcessDefinition processDefinition : ProcessCache.getGlobalProcessDefinitions()) {
             for (VariableUserType type : processDefinition.getVariableUserTypes()) {
                 if (Objects.equal(name, type.getName())) {
                     return type;

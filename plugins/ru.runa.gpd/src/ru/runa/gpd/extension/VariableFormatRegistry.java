@@ -190,6 +190,7 @@ public class VariableFormatRegistry extends ArtifactRegistry<VariableFormatArtif
             variableName = Arrays.stream(DataTableUtils.getDataTableProject().members())
                     .filter(r -> r instanceof IFile && r.getName().endsWith(DataTableUtils.FILE_EXTENSION))
                     .map(r -> IOUtils.getWithoutExtension(r.getName()))
+                    .filter(n -> n.equals(name))
                     .findFirst();
         } catch (Exception ignored) {
         }

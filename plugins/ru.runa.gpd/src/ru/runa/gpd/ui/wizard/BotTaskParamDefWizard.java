@@ -54,7 +54,6 @@ public class BotTaskParamDefWizard extends Wizard implements INewWizard {
         paramDef.getFormatFilters().add(page.getType());
         paramDef.setUseVariable(page.isUseVariable());
         paramDef.setOptional(page.isOptional());
-        ru.runa.gpd.PluginLogger.logInfo("paramDef from page: " + paramDef.getFormatFilters().get(0).toString() + "  " + paramDef.getName());
         paramDefGroup.getParameters().add(paramDef);
         return true;
     }

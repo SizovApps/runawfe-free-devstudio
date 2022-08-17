@@ -132,7 +132,7 @@ public class BotTaskParamDefWizardPage extends WizardPage {
                     .forEach(types::add);
         } catch (Exception ignored) {
         }
-        ProcessCache.getAllProcessDefinitions().stream()
+        ProcessCache.getGlobalProcessDefinitions().stream()
                 .map(ProcessDefinition::getVariableUserTypes).flatMap(List::stream)
                 .map(VariableUserType::getName)
                 .forEach(types::add);
