@@ -20,6 +20,7 @@ import ru.runa.gpd.lang.model.ActionImpl;
 import ru.runa.gpd.lang.model.Delegable;
 import ru.runa.gpd.lang.model.Describable;
 import ru.runa.gpd.lang.model.EmbeddedSubprocess;
+import ru.runa.gpd.lang.model.EmbeddedSubprocess.Behavior;
 import ru.runa.gpd.lang.model.EndState;
 import ru.runa.gpd.lang.model.EndTokenState;
 import ru.runa.gpd.lang.model.EndTokenSubprocessDefinitionBehavior;
@@ -174,6 +175,9 @@ public class BpmnSerializer extends ProcessSerializer {
         }
         processProperties.put(ACCESS_TYPE, definition.getAccessType().name());
         processProperties.put(VERSION, Application.getVersion().toString());
+        if (definition instanceof SubprocessDefinition) {
+            processProperties.put(BEHAVIOR, ((SubprocessDefinition) definition).getBehavior().name());
+        }
         if (definition.isInvalid()) {
             processElement.addAttribute(EXECUTABLE, "false");
         }
@@ -309,7 +313,7 @@ public class BpmnSerializer extends ProcessSerializer {
                     properties.put(VARIABLES, variableMappings);
                 }
             }
-            if (definition instanceof SubprocessDefinition) {
+            if (definition instanceof SubprocessDefinition && ((SubprocessDefinition) definition).getBehavior() == Behavior.GraphPart) {
                 properties.put(BEHAVIOR, endTokenState.getSubprocessDefinitionBehavior().name());
             }
             writeExtensionElements(element, properties);
@@ -766,6 +770,12 @@ public class BpmnSerializer extends ProcessSerializer {
         }
         if (processProperties.containsKey(USE_GLOBALS)) {
             definition.setUsingGlobalVars("true".equals(processProperties.get(USE_GLOBALS)));
+        }
+        if (definition instanceof SubprocessDefinition) {
+            String behaviorString = processProperties.get(BEHAVIOR);
+            if (behaviorString != null) {
+                ((SubprocessDefinition) definition).setBehavior(Behavior.valueOf(behaviorString));
+            }
         }
         String swimlaneDisplayModeName = processProperties.get(SHOW_SWIMLANE);
         if (swimlaneDisplayModeName != null) {
