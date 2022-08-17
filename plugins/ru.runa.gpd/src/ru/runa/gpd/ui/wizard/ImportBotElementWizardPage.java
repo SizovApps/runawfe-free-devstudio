@@ -140,7 +140,6 @@ public abstract class ImportBotElementWizardPage extends ImportWizardPage {
         typeCombo.addSelectionListener(new LoggingSelectionAdapter() {
             @Override
             protected void onSelection(SelectionEvent e) throws Exception {
-                PluginLogger.logInfo("Selected!!! " + typeCombo.getText());
                 ProcessCache.setSelectedProcessByName(typeCombo.getText());
             }
         });

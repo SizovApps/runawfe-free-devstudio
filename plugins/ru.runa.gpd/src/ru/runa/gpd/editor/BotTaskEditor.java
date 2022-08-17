@@ -775,7 +775,6 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
                             return;
                         }
                         for (ParamDef paramDef : group.getParameters()) {
-                            PluginLogger.logInfo(paramDef.getFormatFilters().get(0));
                             if (paramDef.getName().equals(row[0])) {
                                 BotTaskParamDefWizard wizard = new BotTaskParamDefWizard(group, paramDef, docxDialogEnhancementModeInput);
                                 CompactWizardDialog dialog = new CompactWizardDialog(wizard);

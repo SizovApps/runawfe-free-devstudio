@@ -83,9 +83,6 @@ public class ParamDefConfig {
                 List<Element> inputParamElements = groupElement.elements("param");
                 for (Element element : inputParamElements) {
                     group.getParameters().add(new ParamDef(element));
-                    for (ru.runa.gpd.extension.handler.ParamDef paramDef : group.getParameters()) {
-                        PluginLogger.logInfo("ParamDef from config: " + paramDef.getFormatFilters().get(0));
-                    }
                 }
                 config.getGroups().add(group);
             } else if (groupElement.getName() == "usertypes") {

@@ -81,9 +81,7 @@ public abstract class ArtifactRegistry<T extends Artifact> {
     }
 
     public T getArtifactByLabel(String label) {
-        ru.runa.gpd.PluginLogger.logInfo("getArtifactByLabel: " + label);
         for (T artifact : list) {
-            ru.runa.gpd.PluginLogger.logInfo("artifact: " + artifact.getLabel());
             if (Objects.equal(label, artifact.getLabel())) {
                 return artifact;
             }

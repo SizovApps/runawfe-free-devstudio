@@ -53,9 +53,7 @@ public class BotImportCommand extends BotSyncCommand {
         Map<String, byte[]> files = IOUtils.getArchiveFiles(inputStream, true);
         byte[] scriptXml = files.remove("script.xml");
         Preconditions.checkNotNull(scriptXml, "No script.xml");
-        PluginLogger.logInfo("Go to getBotTasksFromScript");
         List<BotTask> botTasks = BotScriptUtils.getBotTasksFromScript(botStationName, botName, scriptXml, files);
-        PluginLogger.logInfo("Out from getBotTasksFromScript");
 
         // create bot
         IPath path = new Path(botStationName).append("/src/botstation/").append(botName);
@@ -82,7 +80,6 @@ public class BotImportCommand extends BotSyncCommand {
     @Override
     protected void execute(IProgressMonitor progressMonitor) throws InvocationTargetException {
         try {
-            PluginLogger.logInfo("Start import execute");
             importBot(progressMonitor);
         } catch (Exception e) {
             throw new InvocationTargetException(e);
