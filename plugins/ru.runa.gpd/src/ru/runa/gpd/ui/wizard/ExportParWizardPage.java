@@ -4,35 +4,24 @@ import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Optional;
 import java.util.TreeMap;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.viewers.ArrayContentProvider;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ListViewer;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DirectoryDialog;
@@ -53,6 +42,7 @@ import ru.runa.gpd.ui.custom.Dialogs;
 import ru.runa.gpd.ui.custom.LoggingSelectionAdapter;
 import ru.runa.gpd.ui.custom.StatusBarUtils;
 import ru.runa.gpd.util.IOUtils;
+import ru.runa.gpd.util.WizardPageUtils;
 import ru.runa.gpd.util.files.FileResourcesExportOperation;
 import ru.runa.gpd.util.files.ParFileExporter;
 import ru.runa.gpd.util.files.ZipFileExporter;
@@ -80,19 +70,11 @@ public class ExportParWizardPage extends ExportWizardPage {
 
     @Override
     public void createControl(Composite parent) {
-        Composite pageControl = new Composite(parent, SWT.NONE);
-        pageControl.setLayout(new GridLayout(1, false));
-        pageControl.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-        SashForm sashForm = new SashForm(pageControl, SWT.HORIZONTAL);
-        sashForm.setLayoutData(new GridData(GridData.FILL_BOTH));
-        Group processListGroup = new Group(sashForm, SWT.NONE);
-        processListGroup.setLayout(new GridLayout(1, false));
-        processListGroup.setLayoutData(new GridData(GridData.FILL_BOTH));
-        processListGroup.setText(Localization.getString("label.process"));
-        createViewer(processListGroup);
-        Group exportGroup = new Group(sashForm, SWT.NONE);
-        exportGroup.setLayout(new GridLayout(1, false));
-        exportGroup.setLayoutData(new GridData(GridData.FILL_BOTH));
+        Composite pageControl = WizardPageUtils.createPageControl(parent);
+        SashForm sashForm = WizardPageUtils.createSashForm(pageControl);
+        definitionListViewer = WizardPageUtils.createViewer(sashForm, "label.process",
+                definitionNameFileMap.keySet(), e -> setPageComplete(!e.getSelection().isEmpty()));
+        Group exportGroup = WizardPageUtils.createExportGroup(sashForm);
         exportToFileButton = new Button(exportGroup, SWT.RADIO);
         exportToFileButton.setText(Localization.getString("button.exportToFile"));
         exportToFileButton.setSelection(true);
@@ -144,19 +126,6 @@ public class ExportParWizardPage extends ExportWizardPage {
             }
             setDestinationValue(selectedDirectoryName);
         }
-    }
-
-    private void createViewer(Composite parent) {
-        definitionListViewer = new ListViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
-        definitionListViewer.getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
-        definitionListViewer.setContentProvider(new ArrayContentProvider());
-        definitionListViewer.setInput(definitionNameFileMap.keySet());
-        definitionListViewer.addSelectionChangedListener(new ISelectionChangedListener() {
-            @Override
-            public void selectionChanged(SelectionChangedEvent event) {
-                setPageComplete(!event.getSelection().isEmpty());
-            }
-        });
     }
 
     private String getKey(IFile definitionFile, ProcessDefinition definition) {
@@ -224,7 +193,7 @@ public class ExportParWizardPage extends ExportWizardPage {
                                 filesToExport.add(uaLog.getValue());
                             }
                         }
-                        zip(filesToExport, new FileOutputStream(getDestinationValue() + processFolder.getName() + ".har"));
+                        WizardPageUtils.zip(filesToExport, new FileOutputStream(getDestinationValue() + processFolder.getName() + ".har"));
                     }
                 }
             } catch (Throwable th) {
@@ -285,28 +254,6 @@ public class ExportParWizardPage extends ExportWizardPage {
             }
             StatusBarUtils.updateStatusBar(message + " " + WfeServerConnector.getInstance().getSettings().getUrl());
         }
-    }
-
-    private void zip(List<File> files, OutputStream os) throws IOException, CoreException {
-        ZipOutputStream zos = new ZipOutputStream(os);
-        for (File file : files) {
-            ZipEntry newEntry = new ZipEntry(file.getName());
-            byte[] readBuffer = new byte[1024];
-            zos.putNextEntry(newEntry);
-            InputStream cos = new FileInputStream(file);
-            try {
-                int n;
-                while ((n = cos.read(readBuffer)) > 0) {
-                    zos.write(readBuffer, 0, n);
-                }
-            } finally {
-                if (cos != null) {
-                    cos.close();
-                }
-            }
-            zos.closeEntry();
-        }
-        zos.close();
     }
 
 }

@@ -4,10 +4,8 @@ import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -60,6 +58,7 @@ import ru.runa.gpd.ui.custom.Dialogs;
 import ru.runa.gpd.ui.custom.LoggingSelectionAdapter;
 import ru.runa.gpd.ui.view.ValidationErrorsView;
 import ru.runa.gpd.util.IOUtils;
+import ru.runa.gpd.util.WizardPageUtils;
 
 @SuppressWarnings("restriction")
 public class ExportGlbWizardPage extends WizardArchiveFileResourceExportPage1 {
@@ -260,7 +259,7 @@ public class ExportGlbWizardPage extends WizardArchiveFileResourceExportPage1 {
                                     filesToExport.add(uaLog.getValue());
                                 }
                             }
-                            zip(filesToExport, new FileOutputStream(getDestinationValue() + definition.getName() + ".har"));
+                            WizardPageUtils.zip(filesToExport, new FileOutputStream(getDestinationValue() + definition.getName() + ".har"));
                         }
                     }
                 } else {
@@ -368,7 +367,7 @@ public class ExportGlbWizardPage extends WizardArchiveFileResourceExportPage1 {
     private static class ParFileExporter implements IFileExporter {
         private final ZipOutputStream outputStream;
 
-        public ParFileExporter(OutputStream outputStream) throws IOException {
+        public ParFileExporter(OutputStream outputStream) {
             this.outputStream = new ZipOutputStream(outputStream);
         }
 
@@ -377,55 +376,15 @@ public class ExportGlbWizardPage extends WizardArchiveFileResourceExportPage1 {
             outputStream.close();
         }
 
-        private void write(ZipEntry entry, IFile contents) throws IOException, CoreException {
-            byte[] readBuffer = new byte[1024];
-            outputStream.putNextEntry(entry);
-            InputStream contentStream = contents.getContents();
-            try {
-                int n;
-                while ((n = contentStream.read(readBuffer)) > 0) {
-                    outputStream.write(readBuffer, 0, n);
-                }
-            } finally {
-                if (contentStream != null) {
-                    contentStream.close();
-                }
-            }
-            outputStream.closeEntry();
-        }
-
         @Override
         public void write(IFile resource, String destinationPath) throws IOException, CoreException {
-            ZipEntry newEntry = new ZipEntry(destinationPath);
-            write(newEntry, resource);
+            WizardPageUtils.write(outputStream, new ZipEntry(destinationPath), resource);
         }
 
         @Override
         public void write(IContainer container, String destinationPath) throws IOException {
             throw new UnsupportedOperationException();
         }
-    }
-
-    private void zip(List<File> files, OutputStream os) throws IOException, CoreException {
-        ZipOutputStream zos = new ZipOutputStream(os);
-        for (File file : files) {
-            ZipEntry newEntry = new ZipEntry(file.getName());
-            byte[] readBuffer = new byte[1024];
-            zos.putNextEntry(newEntry);
-            InputStream cos = new FileInputStream(file);
-            try {
-                int n;
-                while ((n = cos.read(readBuffer)) > 0) {
-                    zos.write(readBuffer, 0, n);
-                }
-            } finally {
-                if (cos != null) {
-                    cos.close();
-                }
-            }
-            zos.closeEntry();
-        }
-        zos.close();
     }
 
 }

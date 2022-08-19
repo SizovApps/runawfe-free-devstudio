@@ -30,6 +30,7 @@ import javax.xml.ws.soap.SOAPFaultException;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.sync.ConnectionStatus;
 import ru.runa.gpd.sync.WfeServerConnector;
+import ru.runa.wfe.InternalApplicationException;
 import ru.runa.wfe.bot.Bot;
 import ru.runa.wfe.bot.BotStation;
 import ru.runa.wfe.bot.BotStationDoesNotExistException;
@@ -40,6 +41,7 @@ import ru.runa.wfe.definition.DefinitionNameMismatchException;
 import ru.runa.wfe.definition.dto.WfDefinition;
 import ru.runa.wfe.user.Actor;
 import ru.runa.wfe.user.Group;
+import ru.runa.wfe.var.UserType;
 import ru.runa.wfe.webservice.AuthenticationAPI;
 import ru.runa.wfe.webservice.AuthenticationWebService;
 import ru.runa.wfe.webservice.BotAPI;
@@ -50,7 +52,10 @@ import ru.runa.wfe.webservice.DefinitionAPI;
 import ru.runa.wfe.webservice.DefinitionWebService;
 import ru.runa.wfe.webservice.ExecutorAPI;
 import ru.runa.wfe.webservice.ExecutorWebService;
+import ru.runa.wfe.webservice.InternalStorageAPI;
+import ru.runa.wfe.webservice.InternalStorageWebService;
 import ru.runa.wfe.webservice.Login;
+import ru.runa.wfe.webservice.LoginResponse;
 import ru.runa.wfe.webservice.Relation;
 import ru.runa.wfe.webservice.RelationAPI;
 import ru.runa.wfe.webservice.RelationWebService;
@@ -250,6 +255,28 @@ public class WebServiceWfeServerConnector extends WfeServerConnector {
         return getDataSourceService().getNames();
     }
 
+    @Override
+    public void deployDataTable(byte[] archive) {
+    	try {
+            getInternalStorageService().importTable(getUser(), archive);
+    	} catch (Exception e) {
+            if (e.getMessage() != null && e.getMessage().contains("InternalStorageAlreadyExistsException")) {
+                throw new InternalApplicationException("Data table already exists");
+            }
+            throw Throwables.propagate(e);
+    	}
+    }
+
+    @Override
+    public List<String> getDataTableNames() {
+        return getInternalStorageService().getTablesNames(getUser());
+    }
+
+    @Override
+    public UserType getDataTable(String name) {
+        return DataTableAdapter.toDto(getInternalStorageService().getMetaData(getUser(), name));
+    }
+
     private String getServiceUrl(String serviceName) {
         String version = getVersion();
         return settings.getUrl() + "/wfe-service-" + version + "/" + serviceName + "WebService/" + serviceName + "API";
@@ -393,6 +420,13 @@ public class WebServiceWfeServerConnector extends WfeServerConnector {
     private RelationAPI getRelationService() {
         String serviceUrl = getServiceUrl("Relation");
         RelationAPI api = new RelationWebService(getWsdlUrl(serviceUrl)).getRelationAPIPort();
+        setApiEndpointAddress(api, serviceUrl);
+        return api;
+    }
+
+    private InternalStorageAPI getInternalStorageService() {
+        String serviceUrl = getServiceUrl("InternalStorage");
+        InternalStorageAPI api = new InternalStorageWebService(getWsdlUrl(serviceUrl)).getInternalStorageAPIPort();
         setApiEndpointAddress(api, serviceUrl);
         return api;
     }

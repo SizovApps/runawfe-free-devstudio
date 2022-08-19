@@ -15,6 +15,8 @@ public class DeleteAction extends BaseActionDelegate {
             WorkspaceOperations.deleteBotResources(selection.toList());
         } else if (isDataSourceStructuredSelection()) {
             WorkspaceOperations.deleteDataSources(selection.toList());
+        } else if (isDataTableStructuredSelection()) {
+            WorkspaceOperations.deleteDataTable(selection.toList());
         } else {
             WorkspaceOperations.deleteResources(selection.toList());
         }
