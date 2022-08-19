@@ -265,6 +265,22 @@ public abstract class EditorPartBase<T> extends EditorPart implements PropertyCh
             this.style = style;
             this.sort = sort;
         }
+
+        public String getTitleKey() {
+            return titleKey;
+        }
+
+        public int getWidth() {
+            return width;
+        }
+
+        public int getStyle() {
+            return style;
+        }
+
+        public boolean isSort() {
+            return sort;
+        }
     }
 
     /**
@@ -283,11 +299,11 @@ public abstract class EditorPartBase<T> extends EditorPart implements PropertyCh
             direction = SWT.NONE;
         }
 
-        private int getDirection() {
+        protected int getDirection() {
             return direction;
         }
 
-        private void setColumn(int column) {
+        protected void setColumn(int column) {
             if (column == propertyIndex) {
                 switch (direction) {
                 case SWT.UP:

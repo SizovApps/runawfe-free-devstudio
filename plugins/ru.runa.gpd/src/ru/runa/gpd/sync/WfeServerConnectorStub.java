@@ -8,6 +8,7 @@ import ru.runa.wfe.bot.Bot;
 import ru.runa.wfe.bot.BotStation;
 import ru.runa.wfe.bot.BotTask;
 import ru.runa.wfe.definition.dto.WfDefinition;
+import ru.runa.wfe.var.UserType;
 
 public class WfeServerConnectorStub extends WfeServerConnector {
 
@@ -113,6 +114,21 @@ public class WfeServerConnectorStub extends WfeServerConnector {
 
     @Override
     public ConnectionStatus testConnection() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void deployDataTable(byte[] archive) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<String> getDataTableNames() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public UserType getDataTable(String name) {
         throw new UnsupportedOperationException();
     }
 

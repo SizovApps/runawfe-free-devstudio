@@ -44,11 +44,13 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.FileEditorInput;
 import ru.runa.gpd.BotCache;
+import ru.runa.gpd.DataTableCache;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.PluginLogger;
 import ru.runa.gpd.ProcessCache;
 import ru.runa.gpd.SubprocessMap;
 import ru.runa.gpd.editor.BotTaskEditor;
+import ru.runa.gpd.editor.DataTableEditor;
 import ru.runa.gpd.editor.ProcessEditorBase;
 import ru.runa.gpd.editor.GlobalSectionEditorBase;
 import ru.runa.gpd.editor.ProcessSaveHistory;
@@ -66,6 +68,7 @@ import ru.runa.gpd.lang.model.ProcessDefinition;
 import ru.runa.gpd.lang.model.Subprocess;
 import ru.runa.gpd.lang.model.SubprocessDefinition;
 import ru.runa.gpd.lang.model.TaskState;
+import ru.runa.gpd.lang.model.VariableUserType;
 import ru.runa.gpd.lang.par.ParContentProvider;
 import ru.runa.gpd.ui.custom.Dialogs;
 import ru.runa.gpd.ui.dialog.DataSourceDialog;
@@ -74,23 +77,28 @@ import ru.runa.gpd.ui.dialog.RenameBotDialog;
 import ru.runa.gpd.ui.dialog.RenameBotStationDialog;
 import ru.runa.gpd.ui.dialog.RenameBotTaskDialog;
 import ru.runa.gpd.ui.dialog.RenameProcessDefinitionDialog;
+import ru.runa.gpd.ui.dialog.RenameUserTypeDialog;
 import ru.runa.gpd.ui.wizard.CompactWizardDialog;
 import ru.runa.gpd.ui.wizard.CompareProcessDefinitionWizard;
 import ru.runa.gpd.ui.wizard.CopyBotTaskWizard;
+import ru.runa.gpd.ui.wizard.CopyDataTableWizard;
 import ru.runa.gpd.ui.wizard.CopyProcessDefinitionWizard;
 import ru.runa.gpd.ui.wizard.ExportBotElementWizardPage;
 import ru.runa.gpd.ui.wizard.ExportBotWizard;
 import ru.runa.gpd.ui.wizard.ExportDataSourceWizard;
+import ru.runa.gpd.ui.wizard.ExportDataTableWizard;
 import ru.runa.gpd.ui.wizard.ExportParWizard;
 import ru.runa.gpd.ui.wizard.ExportGlbWizard;
 import ru.runa.gpd.ui.wizard.ImportBotElementWizardPage;
 import ru.runa.gpd.ui.wizard.ImportBotWizard;
 import ru.runa.gpd.ui.wizard.ImportDataSourceWizard;
+import ru.runa.gpd.ui.wizard.ImportDataTableWizard;
 import ru.runa.gpd.ui.wizard.ImportParWizard;
 import ru.runa.gpd.ui.wizard.ImportGlbWizard;
 import ru.runa.gpd.ui.wizard.NewBotStationWizard;
 import ru.runa.gpd.ui.wizard.NewBotTaskWizard;
 import ru.runa.gpd.ui.wizard.NewBotWizard;
+import ru.runa.gpd.ui.wizard.NewDataTableWizard;
 import ru.runa.gpd.ui.wizard.NewFolderWizard;
 import ru.runa.gpd.ui.wizard.NewProcessDefinitionWizard;
 import ru.runa.gpd.ui.wizard.NewGlobalSectionDefinitionWizard;
@@ -198,6 +206,7 @@ public class WorkspaceOperations {
             refreshResource(resource);
         }
         BotCache.reload();
+        DataTableCache.reload();
     }
 
     public static void refreshResource(IResource resource) {
@@ -635,6 +644,13 @@ public class WorkspaceOperations {
         dialog.open();
     }
 
+    public static void createDataTable(IStructuredSelection selection) {
+        NewDataTableWizard wizard = new NewDataTableWizard();
+        wizard.init(PlatformUI.getWorkbench(), selection);
+        WizardDialog dialog = new WizardDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), wizard);
+        dialog.open();
+    }
+
     public static void saveBotTask(IFile botTaskFile, BotTask botTask) {
         try {
             StringBuffer info = new StringBuffer();
@@ -657,6 +673,16 @@ public class WorkspaceOperations {
         } catch (CoreException | IOException e) {
             throw new InternalApplicationException(e);
         }
+    }
+
+    public static void saveDataTable(IFile file, VariableUserType dataTable) {
+        Document document = UserTypeXmlContentProvider.save(file, dataTable);
+        try {
+            IOUtils.createOrUpdateFile(file, new ByteArrayInputStream(XmlUtil.writeXml(document)));
+        } catch (CoreException e) {
+            throw new InternalApplicationException(e);
+        }
+        DataTableCache.reload();
     }
 
     public static void deleteBotTask(IFile botTaskFile, BotTask botTask) {
@@ -873,6 +899,33 @@ public class WorkspaceOperations {
         }
     }
 
+    public static void renameDataTable(IStructuredSelection selection) {
+        IFile srcFile = (IFile) selection.getFirstElement();
+        String srcFileName = IOUtils.getWithoutExtension(srcFile.getName());
+        String srcFileNameExtension = IOUtils.getExtension(srcFile.getName());
+        VariableUserType userType = DataTableCache.getDataTable(srcFileName);
+        RenameUserTypeDialog dialog = new RenameUserTypeDialog(new ProcessDefinition(null), userType);
+        dialog.open();
+        String newName = dialog.getName();
+        userType.setName(newName);
+        IFile newFile = srcFile.getProject().getFile(newName + "." + srcFileNameExtension);
+        try {
+            WorkspaceOperations.deleteDataTableFile(srcFile);
+        } catch (CoreException e) {
+            throw new InternalApplicationException(e);
+        }
+        WorkspaceOperations.saveDataTable(newFile, userType);
+        DataTableCache.reload();
+    }
+
+    public static void openDataTable(IFile dataTableFile) {
+        try {
+            IDE.openEditor(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(), dataTableFile, DataTableEditor.ID, true);
+        } catch (PartInitException e) {
+            PluginLogger.logError("Unable open data table", e);
+        }
+    }
+
     public static void copyDataSource(IStructuredSelection selection) {
         IFile srcFile = (IFile) selection.getFirstElement();
         String srcDSName = srcFile.getName();
@@ -900,6 +953,14 @@ public class WorkspaceOperations {
         }
     }
 
+    public static void copyDataTable(IStructuredSelection selection) {
+        CopyDataTableWizard wizard = new CopyDataTableWizard();
+        wizard.init(PlatformUI.getWorkbench(), selection);
+        CompactWizardDialog dialog = new CompactWizardDialog(wizard);
+        dialog.open();
+        DataTableCache.reload();
+    }
+
     public static void deleteDataSources(List<IResource> resources) {
         for (IResource resource : resources) {
             try {
@@ -917,6 +978,32 @@ public class WorkspaceOperations {
                 PluginLogger.logError("Error deleting", e);
             }
         }
+    }
+
+    public static void deleteDataTable(List<IResource> resources) {
+        for (IResource resource : resources) {
+            try {
+                resource.refreshLocal(IResource.DEPTH_INFINITE, null);
+                if (Dialogs.confirm(Localization.getString("Delete.dataTable.message", IOUtils.getWithoutExtension(resource.getName())))) {
+                    if (resource instanceof IFile) {
+                        IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+                        IFile selectedDataTableFile = (IFile) resource;
+                        IEditorPart editor = page.findEditor(new FileEditorInput(selectedDataTableFile));
+                        if (editor != null) {
+                            page.closeEditor(editor, false);
+                        }
+                        deleteDataTableFile(selectedDataTableFile);
+                    }
+                }
+            } catch (CoreException e) {
+                PluginLogger.logError("Error deleting", e);
+            }
+        }
+        DataTableCache.reload();
+    }
+
+    private static void deleteDataTableFile(IFile file) throws CoreException {
+        file.delete(true, null);
     }
 
     public static void exportDataSource(IStructuredSelection selection) {
@@ -945,4 +1032,17 @@ public class WorkspaceOperations {
         job.schedule();
     }
 
+    public static void exportDataTable(IStructuredSelection selection) {
+        ExportDataTableWizard wizard = new ExportDataTableWizard();
+        wizard.init(PlatformUI.getWorkbench(), selection);
+        CompactWizardDialog dialog = new CompactWizardDialog(wizard);
+        dialog.open();
+    }
+
+    public static void importDataTable(IStructuredSelection selection) {
+        ImportDataTableWizard wizard = new ImportDataTableWizard();
+        wizard.init(PlatformUI.getWorkbench(), selection);
+        CompactWizardDialog dialog = new CompactWizardDialog(wizard);
+        dialog.open();
+    }
 }
