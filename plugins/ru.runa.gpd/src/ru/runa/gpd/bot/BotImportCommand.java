@@ -19,7 +19,6 @@ import org.eclipse.core.runtime.Path;
 
 import ru.runa.gpd.BotCache;
 import ru.runa.gpd.Localization;
-import ru.runa.gpd.PluginLogger;
 import ru.runa.gpd.lang.model.BotTask;
 import ru.runa.gpd.util.BotScriptUtils;
 import ru.runa.gpd.util.IOUtils;

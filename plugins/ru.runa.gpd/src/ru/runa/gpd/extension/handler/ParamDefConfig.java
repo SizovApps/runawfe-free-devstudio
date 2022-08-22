@@ -127,14 +127,9 @@ public class ParamDefConfig {
                 }
                 VariablesXmlContentProvider variablesXmlContentProvider = new VariablesXmlContentProvider();
                     try {
-                        ArrayList<ProcessDefinition> allProcesses = new ArrayList<>(ProcessCache.getAllProcessDefinitions());
-                        if (allProcesses.size() == 0) {
-                            PluginLogger.logErrorWithoutDialog("no processes!!!");
-                            continue;
-                        }
                         variablesXmlContentProvider.readFromElement(groupElement, ProcessCache.getSelectedProcess());
                     } catch (Exception e) {
-                        throw new RuntimeException(e);
+                        throw new RuntimeException("No selected process definition!");
                     }
             }
         }
