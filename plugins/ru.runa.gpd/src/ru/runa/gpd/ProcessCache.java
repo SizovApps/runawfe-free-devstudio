@@ -44,6 +44,14 @@ public class ProcessCache {
     private static ProcessDefinition selectedProcess;
 
     public static ProcessDefinition getSelectedProcess() {
+        if (selectedProcess == null) {
+            if (ProcessCache.getGlobalProcessDefinitions().size() != 0) {
+                for (ProcessDefinition processDefinition : ProcessCache.getAllProcessDefinitions()) {
+                    selectedProcess = processDefinition;
+                    break;
+                }
+            }
+        }
         return selectedProcess;
     }
 
