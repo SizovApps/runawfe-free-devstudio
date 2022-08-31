@@ -37,7 +37,7 @@ public class SelectConstraintsComposite extends AbstractOperatingVariableComboBa
     @Override
     protected Predicate<? super Variable> getFilterPredicate(String variableTypeName) {
         ru.runa.gpd.PluginLogger.logInfo("Enter getFilterPredicate: " + variableTypeName);
-        return variable -> variable.getFormatClassName().equals(variableTypeName);
+        return variable -> variable.getUserType().getName().equals(variableTypeName);
     }
 
     @Override
