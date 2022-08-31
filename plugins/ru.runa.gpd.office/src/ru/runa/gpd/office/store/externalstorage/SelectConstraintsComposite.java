@@ -16,6 +16,7 @@ public class SelectConstraintsComposite extends AbstractOperatingVariableComboBa
     public SelectConstraintsComposite(Composite parent, int style, StorageConstraintsModel constraintsModel, VariableProvider variableProvider,
             VariableUserTypeInfo variableUserTypeInfo, InputOutputModel inOutModel) {
         super(parent, style, constraintsModel, variableProvider, variableUserTypeInfo.getVariableTypeName());
+        ru.runa.gpd.PluginLogger.logInfo("Enter SelectConstraintsComposite");
         this.variableUserTypeInfo = variableUserTypeInfo;
         this.inOutModel = inOutModel;
     }
@@ -35,7 +36,8 @@ public class SelectConstraintsComposite extends AbstractOperatingVariableComboBa
 
     @Override
     protected Predicate<? super Variable> getFilterPredicate(String variableTypeName) {
-        return variable -> variable.getFormatComponentClassNames()[0].equals(variableTypeName);
+        ru.runa.gpd.PluginLogger.logInfo("Enter getFilterPredicate: " + variableTypeName);
+        return variable -> variable.getFormatClassName().equals(variableTypeName);
     }
 
     @Override

@@ -38,6 +38,8 @@ import ru.runa.gpd.office.store.externalstorage.ProcessDefinitionVariableProvide
 import ru.runa.gpd.office.store.externalstorage.SelectConstraintsComposite;
 import ru.runa.gpd.office.store.externalstorage.UpdateConstraintsComposite;
 import ru.runa.gpd.office.store.externalstorage.VariableProvider;
+import ru.runa.gpd.office.store.externalstorage.BotTaskVariableProvider;
+import ru.runa.gpd.lang.model.BotTask;
 import ru.runa.gpd.ui.custom.SwtUtils;
 import ru.runa.gpd.util.EmbeddedFileUtils;
 
@@ -61,12 +63,18 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
 
     @Override
     protected Composite createConstructorComposite(Composite parent, Delegable delegable, InternalStorageDataModel model) {
+        PluginLogger.logInfo("Enter createConstructorComposite");
         final boolean isUseExternalStorageIn = (delegable instanceof StorageAware) ? ((StorageAware) delegable).isUseExternalStorageIn() : false;
         final boolean isUseExternalStorageOut = (delegable instanceof StorageAware) ? ((StorageAware) delegable).isUseExternalStorageOut() : false;
 
         Optional<ProcessDefinition> processDefinition = Optional.empty();
+        Optional<BotTask> botTask = Optional.empty();
         if (delegable instanceof ProcessDefinitionAware) {
             processDefinition = Optional.ofNullable(((ProcessDefinitionAware) delegable).getProcessDefinition());
+        }
+        if (delegable instanceof BotTask) {
+            botTask = Optional.ofNullable((BotTask) delegable);
+            PluginLogger.logInfo("Bot task!!! " + botTask.toString());
         }
         if (!processDefinition.isPresent() && delegable instanceof VariableContainer) {
             processDefinition = ((VariableContainer) delegable).getVariables(false, true).stream().map(variable -> variable.getProcessDefinition())
@@ -86,8 +94,10 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
                             processDefinition.orElseThrow(() -> new IllegalStateException("process definition unavailable"))),
                     isUseExternalStorageIn, isUseExternalStorageOut).build();
         } else {
-            // TODO 1506 Реализовать VariableProvider для параметров бота
-            throw new UnsupportedOperationException("VariableProvider is not realized for " + delegable.getClass().getName());
+            PluginLogger.logInfo("Class name: " + delegable.getDelegationClassName() + " " + delegable.getDelegationType());
+            return new ConstructorView(parent, delegable, model,
+                        new BotTaskVariableProvider(botTask.orElseThrow(() -> new IllegalStateException("bot task unavailable"))),
+                    isUseExternalStorageIn, isUseExternalStorageOut).build();
         }
     }
 
@@ -169,6 +179,7 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
             }
 
             if (constraintsModel.getSheetName() != null && !constraintsModel.getSheetName().isEmpty()) {
+                PluginLogger.logInfo("Enter add vars!!!");
                 final VariableUserType userType = variableProvider.getUserType(constraintsModel.getSheetName());
                 variableUserTypeInfo.setVariableTypeName(userType != null ? userType.getName() : "");
 
@@ -187,6 +198,7 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
             }
 
             new Label(this, SWT.NONE).setText(Messages.getString("label.DataType"));
+            PluginLogger.logInfo("isImmutable: " + variableUserTypeInfo.isImmutable());
             if (variableUserTypeInfo.isImmutable()) {
                 SwtUtils.createLabel(this, variableUserTypeInfo.getVariableTypeName());
                 constraintsModel.setSheetName(variableUserTypeInfo.getVariableTypeName());
@@ -194,15 +206,14 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
                 model.setMode(FilesSupplierMode.IN);
             } else {
                 addDataTypeCombo();
+                PluginLogger.logInfo("Pass addDataTypeCombo");
             }
-
             initConstraintsCompositeBuilder();
             if (constraintsCompositeBuilder != null) {
                 constraintsCompositeBuilder.clearConstraints();
                 new Label(this, SWT.NONE);
                 constraintsCompositeBuilder.build();
             }
-
             ((ScrolledComposite) getParent()).setMinSize(computeSize(getSize().x, SWT.DEFAULT));
             this.layout(true, true);
             this.redraw();
@@ -251,24 +262,29 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
         private void addDataTypeCombo() {
             final Combo combo = new Combo(this, SWT.READ_ONLY);
             variableProvider.complexUserTypeNames().collect(Collectors.toSet()).forEach(combo::add);
+            PluginLogger.logInfo("Pass complexUserTypeNames");
             combo.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> {
                 final String text = combo.getText();
                 if (Strings.isNullOrEmpty(text)) {
                     return;
                 }
+                PluginLogger.logInfo("Set type name: " + text);
                 variableUserTypeInfo.setVariableTypeName(text);
                 constraintsModel.setSheetName(variableUserTypeInfo.getVariableTypeName());
+                PluginLogger.logInfo("setSheetName: " + constraintsModel.getSheetName());
                 if (constraintsCompositeBuilder != null) {
                     constraintsCompositeBuilder.onChangeVariableTypeName(variableUserTypeInfo.getVariableTypeName());
                 }
                 buildFromModel();
             }));
-
+            PluginLogger.logInfo("Pass addSelectionListener");
             final VariableUserType userType = variableProvider.getUserType(constraintsModel.getSheetName());
+            PluginLogger.logInfo("userType: " + userType);
             if (userType != null) {
                 combo.setText(userType.getName());
                 variableUserTypeInfo.setVariableTypeName(userType.getName());
             }
+            PluginLogger.logInfo("Pass setVariableTypeName");
         }
 
         private void addActionCombo(boolean isUseExternalStorageIn, boolean isUseExternalStorageOut) {

@@ -522,6 +522,7 @@ public class ProcessDefinition extends NamedGraphElement implements Describable,
                 }
             }
         }
+        PluginLogger.logInfo("Return null!");
         return null;
     }
 

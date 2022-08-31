@@ -1,6 +1,8 @@
 package ru.runa.gpd.lang.model;
 
 import com.google.common.collect.Lists;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 import org.eclipse.core.resources.IFile;
@@ -11,6 +13,8 @@ import ru.runa.gpd.BotCache;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.PluginConstants;
 import ru.runa.gpd.PluginLogger;
+import ru.runa.gpd.lang.model.Variable;
+import ru.runa.gpd.lang.model.VariableUserType;
 import ru.runa.gpd.extension.HandlerArtifact;
 import ru.runa.gpd.extension.HandlerRegistry;
 import ru.runa.gpd.extension.VariableFormatRegistry;
@@ -86,6 +90,57 @@ public class BotTask implements Delegable, Comparable<BotTask> {
             return true;
         }
         return XmlUtil.isXml(delegationConfiguration);
+    }
+
+    public VariableUserType getVariableUserType(String name) {
+        PluginLogger.logInfo("Enter getVariableUserType!!! " + name);
+        for (ParamDefGroup group : paramDefConfig.getGroups()) {
+            for (ParamDef paramDef : group.getParameters()) {
+                PluginLogger.logInfo("ParamDef: " + paramDef.getName() + " | " + paramDef.getFormatFilters().toString());
+                if (name.equals(paramDef.getFormatFilters().get(0))) {
+                    return new VariableUserType(paramDef.getFormatFilters().get(0), true);
+                }
+            }
+        }
+        return null;
+    }
+
+    public List<VariableUserType> getVariableUserTypes() {
+        List<VariableUserType> userTypes = new ArrayList<>();
+        for (ParamDefGroup group : paramDefConfig.getGroups()) {
+            for (ParamDef paramDef : group.getParameters()) {
+                userTypes.add(new VariableUserType(paramDef.getFormatFilters().get(0), true));
+                PluginLogger.logInfo("ParamDef from all: " + paramDef.getName() + " | " + paramDef.getFormatFilters().toString());
+            }
+        }
+        return userTypes;
+    }
+
+    public List<Variable> getVariabels(boolean expandComplexTypes, boolean includeSwimlanes, String... typeClassNameFilters) {
+        List<Variable> result = Lists.newArrayList();
+        if (paramDefConfig != null) {
+            for (ParamDefGroup group : paramDefConfig.getGroups()) {
+                for (ParamDef paramDef : group.getParameters()) {
+                    boolean applicable = typeClassNameFilters == null || typeClassNameFilters.length == 0;
+                    if (!applicable && paramDef.getFormatFilters().size() > 0) {
+                        Variable variable = new Variable(paramDef.getLabel(), paramDef.getName(), paramDef.getFormatFilters().get(0), new VariableUserType(paramDef.getFormatFilters().get(0), true));
+                        PluginLogger.logInfo("Add var: " + variable.getScriptingName());
+                        result.add(variable);
+//                        for (String typeClassNameFilter : typeClassNameFilters) {
+//                            PluginLogger.logInfo("typeClassNameFilter: " + typeClassNameFilter);
+//                            if (VariableFormatRegistry.isAssignableFrom(typeClassNameFilter, paramDef.getFormatFilters().get(0))) {
+//                                applicable = true;
+//                                break;
+//                            }
+//                        }
+                    }
+//                    if (applicable) {
+//                        result.add(paramDef.getName());
+//                    }
+                }
+            }
+        }
+        return result;
     }
 
     /**
