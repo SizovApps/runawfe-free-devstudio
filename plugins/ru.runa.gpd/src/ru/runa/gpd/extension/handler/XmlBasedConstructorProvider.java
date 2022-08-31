@@ -162,7 +162,6 @@ public abstract class XmlBasedConstructorProvider<T extends Observable> extends 
         @SuppressWarnings("unchecked")
         @Override
         protected Control createDialogArea(Composite parent) {
-            PluginLogger.logInfo("Enter createDialogArea");
             try {
                 if (dialogEnhancementMode != null && dialogEnhancementMode.checkBotDocxTemplateEnhancementMode()
                         && null != ((DocxDialogEnhancementMode) dialogEnhancementMode).docxModel) {

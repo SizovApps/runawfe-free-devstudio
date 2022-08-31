@@ -114,7 +114,6 @@ public class Variable extends NamedGraphElement implements Describable {
             String raw = format.substring(index + 1, format.length() - 1);
             return raw.split(FORMAT_COMPONENT_TYPE_CONCAT, -1);
         }
-        ru.runa.gpd.PluginLogger.logInfo("Return getFormatComponentClassNames");
         String[] nullClasses = {format};
 
         return nullClasses;

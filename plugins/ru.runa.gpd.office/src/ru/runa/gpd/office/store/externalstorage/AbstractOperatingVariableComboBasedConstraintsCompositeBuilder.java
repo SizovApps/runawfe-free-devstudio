@@ -24,13 +24,11 @@ abstract class AbstractOperatingVariableComboBasedConstraintsCompositeBuilder ex
     }
 
     protected void addCombo() {
-        ru.runa.gpd.PluginLogger.logInfo("Enter AbstractOperatingVariableComboBasedConstraintsCompositeBuilder");
         combo = new Combo(getParent(), SWT.READ_ONLY);
         variableNamesByVariableTypeName(variableTypeName).forEach(combo::add);
 
         combo.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> {
             final String text = combo.getText();
-            ru.runa.gpd.PluginLogger.logInfo("Set text: " + text);
             if (Strings.isNullOrEmpty(text)) {
                 return;
             }
@@ -41,7 +39,6 @@ abstract class AbstractOperatingVariableComboBasedConstraintsCompositeBuilder ex
         if (constraintsModel.getVariableName() != null) {
             combo.setText(constraintsModel.getVariableName());
         }
-        ru.runa.gpd.PluginLogger.logInfo("Exit AbstractOperatingVariableComboBasedConstraintsCompositeBuilder");
     }
 
     protected void onWidgetSelected(String text) {
