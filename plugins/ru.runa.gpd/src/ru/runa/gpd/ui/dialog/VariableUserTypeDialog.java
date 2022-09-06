@@ -70,6 +70,12 @@ public class VariableUserTypeDialog extends Dialog {
             @Override
             protected void onTextChanged(ModifyEvent e) throws Exception {
                 name = nameField.getText();
+
+                if (processDefinition.getName().contains(".")) {
+                    String processName = processDefinition.getName();
+                    processName = processName.substring(1);
+                    name += "(" + processName + ")";
+                }
                 updateButtons();
             }
         });

@@ -3,6 +3,8 @@ package ru.runa.gpd.ui.wizard;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.wizard.WizardPage;
@@ -132,6 +134,7 @@ public class BotTaskParamDefWizardPage extends WizardPage {
                     .forEach(types::add);
         } catch (Exception ignored) {
         }
+
         ProcessCache.getGlobalProcessDefinitions().stream()
                 .map(ProcessDefinition::getVariableUserTypes).flatMap(List::stream)
                 .map(VariableUserType::getName)

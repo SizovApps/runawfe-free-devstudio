@@ -172,7 +172,8 @@ public class VariableFormatRegistry extends ArtifactRegistry<VariableFormatArtif
                 return artifact.getLabel();
             }
         }
-        return getVariableName(javaClassName).orElseThrow(() -> new InternalApplicationException("No filter found by type " + javaClassName));
+        String finalJavaClassName = javaClassName;
+        return getVariableName(javaClassName).orElseThrow(() -> new InternalApplicationException("No filter found by type " + finalJavaClassName));
     }
 
     public String getFilterJavaClassName(String label) {
@@ -181,7 +182,8 @@ public class VariableFormatRegistry extends ArtifactRegistry<VariableFormatArtif
                 return artifact.getJavaClassName();
             }
         }
-        return getVariableName(label).orElseThrow(() -> new InternalApplicationException("No filter found by label " + label));
+        String finalLabel = label;
+        return getVariableName(label).orElseThrow(() -> new InternalApplicationException("No filter found by label " + finalLabel));
     }
 
     private static Optional<String> getVariableName(String name) {
