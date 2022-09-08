@@ -1,15 +1,16 @@
 package ru.runa.gpd.editor;
 
 import com.google.common.collect.Lists;
+
+import java.awt.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.ListIterator;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.stream.Stream;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
@@ -39,6 +40,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
@@ -68,6 +70,7 @@ import ru.runa.gpd.extension.handler.ParamDefGroup;
 import ru.runa.gpd.lang.model.BotTask;
 import ru.runa.gpd.lang.model.BotTaskType;
 import ru.runa.gpd.lang.model.Delegable;
+import ru.runa.gpd.lang.model.bpmn.ScriptTask;
 import ru.runa.gpd.settings.PrefConstants;
 import ru.runa.gpd.ui.custom.Dialogs;
 import ru.runa.gpd.ui.custom.LoggingHyperlinkAdapter;
@@ -87,6 +90,8 @@ import ru.runa.gpd.util.EditorUtils;
 import ru.runa.gpd.util.EmbeddedFileUtils;
 import ru.runa.gpd.util.WorkspaceOperations;
 import ru.runa.gpd.util.XmlUtil;
+import ru.runa.gpd.util.DataTableUtils;
+import ru.runa.gpd.util.IOUtils;
 
 public class BotTaskEditor extends EditorPart implements ISelectionListener, IResourceChangeListener, PropertyChangeListener {
     public static final String ID = "ru.runa.gpd.editor.BotTaskEditor";
@@ -106,6 +111,7 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
     private Button editParameterButton;
     private Button deleteParameterButton;
     private Button readDocxParametersButton;
+    private Combo tablesCombo;
     private String embeddedFileName;
     private DocxDialogEnhancementMode docxDialogEnhancementModeInput, docxDialogEnhancementModeOutput;
     private boolean rebuildingView;
@@ -223,6 +229,8 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
         deleteParameterButton = null;
         readDocxParametersButton = null;
 
+        PluginLogger.logInfo("Enter rebuild!!!");
+
         for (Control control : composite.getChildren()) {
             control.dispose();
         }
@@ -238,6 +246,12 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
             scrolledComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
 
             Composite innerComposite = new Composite(scrolledComposite, SWT.NONE);
+
+            PluginLogger.logInfo("handler: " + botTask.getDelegationClassName());
+            if (botTask.getDelegationClassName().equals(ScriptTask.INTERNAL_STORAGE_HANDLER_CLASS_NAME)) {
+                createSelectTableArea(innerComposite);
+            }
+
             innerComposite.setLayout(new GridLayout());
             createParamteresFields(composite, innerComposite);
             boolean isBotDocxHandlerEnhancement = isBotDocxHandlerEnhancement();
@@ -323,6 +337,7 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
                 ChooseHandlerClassDialog dialog = new ChooseHandlerClassDialog(HandlerArtifact.TASK_HANDLER, handlerText.getText());
                 String className = dialog.openDialog();
                 if (className != null) {
+                    PluginLogger.logInfo("handler name: " + className);
                     boolean taskHandlerParameterized = BotTaskUtils.isTaskHandlerParameterized(className);
                     handlerText.setText(className);
                     botTask.setDelegationClassName(className);
@@ -665,6 +680,7 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
         editConfigurationButton.setEnabled(!botTask.getDelegationClassName().isEmpty());
     }
 
+
     private void createConfigurationArea(Composite parent) {
         if (!Activator.getPrefBoolean(PrefConstants.P_SHOW_XML_BOT_CONFIG)) {
             return;
@@ -726,6 +742,7 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
         }
     }
 
+
     private void createConfTableButtons(Composite dynaConfComposite, TableViewer confTableViewer, final String parameterType) {
         Composite buttonArea = new Composite(dynaConfComposite, SWT.NONE);
         buttonArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -743,6 +760,10 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
         addParameterButtonLocal.addSelectionListener(new LoggingSelectionAdapter() {
             @Override
             protected void onSelection(SelectionEvent e) throws Exception {
+                if (tablesCombo != null && tablesCombo.getText() == "") {
+                    return;
+                }
+                BotTask.usingBotTask = botTask;
                 for (ParamDefGroup group : botTask.getParamDefConfig().getGroups()) {
                     if (parameterType.equals(group.getName())) {
                         BotTaskParamDefWizard wizard = new BotTaskParamDefWizard(group, null, new DocxDialogEnhancementMode(0));
@@ -751,8 +772,10 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
                             setTableInput(parameterType);
                             setDirty(true);
                         }
+
                     }
                 }
+                BotTask.usingBotTask = null;
             }
         });
 
@@ -865,6 +888,39 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
             return outputParamTableViewer;
         }
     }
+
+    private void createSelectTableArea(Composite parent) {
+        Composite tableComposite = new Composite(parent, SWT.NONE);
+        tableComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        tableComposite.setLayout(new GridLayout(3, false));
+        Label label = new Label(tableComposite, SWT.NONE);
+        GridData gridData = new GridData(GridData.BEGINNING);
+        gridData.widthHint = 150;
+        label.setLayoutData(gridData);
+        label.setText("Select table: ");
+
+        List<String> tables = new ArrayList<String>();
+
+        tablesCombo = new Combo(tableComposite, SWT.SINGLE | SWT.READ_ONLY | SWT.BORDER);
+        try {
+            Arrays.stream(DataTableUtils.getDataTableProject().members())
+                    .filter(r -> r instanceof IFile && r.getName().endsWith(DataTableUtils.FILE_EXTENSION))
+                    .map(r -> IOUtils.getWithoutExtension(r.getName()))
+                    .forEach(tables::add);
+        }
+        catch (Exception ignored){}
+        tablesCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        tablesCombo.setItems(tables.toArray(new String[tables.size()]));
+        tablesCombo.setText("Select table");
+        tablesCombo.addSelectionListener(new LoggingSelectionAdapter() {
+            @Override
+            protected void onSelection(SelectionEvent e) throws Exception {
+                botTask.setSelectedDataTable(tablesCombo.getText());
+
+            }
+        });
+    }
+
 
     private static class TableLabelProvider extends LabelProvider implements ITableLabelProvider {
         @Override

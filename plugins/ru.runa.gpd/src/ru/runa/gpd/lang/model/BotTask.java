@@ -25,6 +25,7 @@ import ru.runa.gpd.extension.handler.XmlBasedConstructorProvider;
 import ru.runa.gpd.ui.view.ValidationErrorsView;
 import ru.runa.gpd.util.XmlUtil;
 
+
 public class BotTask implements Delegable, Comparable<BotTask> {
     private BotTaskType type = BotTaskType.SIMPLE;
     private String id;
@@ -33,6 +34,9 @@ public class BotTask implements Delegable, Comparable<BotTask> {
     private String delegationConfiguration = "";
     private ParamDefConfig paramDefConfig;
     private final List<String> filesToSave;
+    private String selectedDataTableName;
+
+    public static BotTask usingBotTask;
 
     public BotTask(String station, String bot, String name) {
         this.id = String.format("%s/%s/%s", station, bot, name);
@@ -58,6 +62,15 @@ public class BotTask implements Delegable, Comparable<BotTask> {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getSelectedDataTableName() {
+        return selectedDataTableName;
+    }
+
+    public void setSelectedDataTable(String selectedDataTableName) {
+        PluginLogger.logInfo("selectedDataTable: " + selectedDataTableName);
+        this.selectedDataTableName = selectedDataTableName;
     }
 
     @Override

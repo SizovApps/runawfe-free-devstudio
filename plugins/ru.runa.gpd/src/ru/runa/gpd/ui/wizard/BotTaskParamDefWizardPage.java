@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
@@ -21,12 +22,16 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.ProcessCache;
+import ru.runa.gpd.DataTableCache;
 import ru.runa.gpd.extension.VariableFormatArtifact;
 import ru.runa.gpd.extension.VariableFormatRegistry;
 import ru.runa.gpd.extension.handler.ParamDef;
 import ru.runa.gpd.extension.handler.ParamDefGroup;
 import ru.runa.gpd.lang.model.ProcessDefinition;
 import ru.runa.gpd.lang.model.VariableUserType;
+import ru.runa.gpd.lang.model.BotTask;
+import ru.runa.gpd.lang.model.Variable;
+import ru.runa.gpd.lang.model.bpmn.ScriptTask;
 import ru.runa.gpd.ui.custom.LoggingSelectionAdapter;
 import ru.runa.gpd.ui.enhancement.DialogEnhancementMode;
 import ru.runa.gpd.ui.enhancement.DocxDialogEnhancementMode;
@@ -121,24 +126,52 @@ public class BotTaskParamDefWizardPage extends WizardPage {
     }
 
     private void createVariableTypeField(Composite parent) {
+        ru.runa.gpd.PluginLogger.logInfo("createVariableTypeField!!!");
         Label label = new Label(parent, SWT.NONE);
         label.setText(Localization.getString("ParamDefWizardPage.page.type"));
         List<String> types = new ArrayList<String>();
-        for (VariableFormatArtifact artifact : VariableFormatRegistry.getInstance().getFilterArtifacts()) {
-            types.add(artifact.getLabel());
-        }
-        try {
-            Arrays.stream(DataTableUtils.getDataTableProject().members())
-                    .filter(r -> r instanceof IFile && r.getName().endsWith(DataTableUtils.FILE_EXTENSION))
-                    .map(r -> IOUtils.getWithoutExtension(r.getName()))
+        IFile tableFile = null;
+        ru.runa.gpd.PluginLogger.logInfo("");
+        if (BotTask.usingBotTask.getDelegationClassName().equals(ScriptTask.INTERNAL_STORAGE_HANDLER_CLASS_NAME)) {
+            ru.runa.gpd.PluginLogger.logInfo("Enter find table!!!");
+            try {
+                for (IResource file : DataTableUtils.getDataTableProject().members()) {
+                    ru.runa.gpd.PluginLogger.logInfo("File name: " + file.getName());
+                    if (file instanceof IFile && file.getName().endsWith(DataTableUtils.FILE_EXTENSION) && IOUtils.getWithoutExtension(file.getName()).equals(BotTask.usingBotTask.getSelectedDataTableName())) {
+                        ru.runa.gpd.PluginLogger.logInfo("Found!!!");
+                        tableFile = (IFile) file;
+                    }
+                }
+                ru.runa.gpd.PluginLogger.logInfo("Table name: " + tableFile.getName());
+
+                String tableFileName = IOUtils.getWithoutExtension(tableFile.getName());
+                String tableFileNameExtension = IOUtils.getExtension(tableFile.getName());
+                VariableUserType userType = DataTableCache.getDataTable(tableFileName);
+                ru.runa.gpd.PluginLogger.logInfo("Names: " + tableFileName + " " + tableFileNameExtension + " " + userType.getName());
+                for (Variable variable : userType.getAttributes()) {
+                    ru.runa.gpd.PluginLogger.logInfo("Variable name: " + variable.getFormatClassName() + " " + variable.getFormat() + " " + variable.getFormatLabel());
+                    types.add(variable.getFormatLabel());
+                }
+            }
+            catch (Exception ignored) {}
+        } else {
+            for (VariableFormatArtifact artifact : VariableFormatRegistry.getInstance().getFilterArtifacts()) {
+                types.add(artifact.getLabel());
+            }
+            try {
+                Arrays.stream(DataTableUtils.getDataTableProject().members())
+                        .filter(r -> r instanceof IFile && r.getName().endsWith(DataTableUtils.FILE_EXTENSION))
+                        .map(r -> IOUtils.getWithoutExtension(r.getName()))
+                        .forEach(types::add);
+            } catch (Exception ignored) {
+            }
+
+            ProcessCache.getGlobalProcessDefinitions().stream()
+                    .map(ProcessDefinition::getVariableUserTypes).flatMap(List::stream)
+                    .map(VariableUserType::getName)
                     .forEach(types::add);
-        } catch (Exception ignored) {
         }
 
-        ProcessCache.getGlobalProcessDefinitions().stream()
-                .map(ProcessDefinition::getVariableUserTypes).flatMap(List::stream)
-                .map(VariableUserType::getName)
-                .forEach(types::add);
         typeCombo = new Combo(parent, SWT.SINGLE | SWT.READ_ONLY | SWT.BORDER);
         typeCombo.setItems(types.toArray(new String[types.size()]));
         typeCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
