@@ -760,7 +760,8 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
         addParameterButtonLocal.addSelectionListener(new LoggingSelectionAdapter() {
             @Override
             protected void onSelection(SelectionEvent e) throws Exception {
-                if (tablesCombo != null && tablesCombo.getText() == "") {
+                PluginLogger.logInfo("Table combo: " + (tablesCombo == null));
+                if (botTask.getDelegationClassName().equals(ScriptTask.INTERNAL_STORAGE_HANDLER_CLASS_NAME) && (tablesCombo == null || tablesCombo.getText() == "")) {
                     return;
                 }
                 BotTask.usingBotTask = botTask;
@@ -825,6 +826,7 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
             protected void onSelection(SelectionEvent e) throws Exception {
                 for (ParamDefGroup group : botTask.getParamDefConfig().getGroups()) {
                     if (parameterType.equals(group.getName())) {
+                        PluginLogger.logInfo("Del: " + parameterType);
                         IStructuredSelection selection = (IStructuredSelection) getParamTableViewer(parameterType).getSelection();
                         String[] row = (String[]) selection.getFirstElement();
                         if (row == null) {
@@ -860,6 +862,7 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
     }
 
     public void setTableInput(String groupType) {
+        PluginLogger.logInfo("setTableInput: " + groupType);
         TableViewer confTableViewer = getParamTableViewer(groupType);
         List<ParamDef> paramDefs = new ArrayList<ParamDef>();
         for (ParamDefGroup group : botTask.getParamDefConfig().getGroups()) {
@@ -916,11 +919,22 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
             @Override
             protected void onSelection(SelectionEvent e) throws Exception {
                 botTask.setSelectedDataTable(tablesCombo.getText());
-
+                deleteBotParams();
             }
         });
     }
 
+    private void deleteBotParams() {
+        PluginLogger.logInfo("Delete!!!");
+        for (ParamDefGroup group : botTask.getParamDefConfig().getGroups()) {
+                for (ParamDef paramDef : group.getParameters()) {
+                        group.getParameters().remove(paramDef);
+                        setTableInput(group.getName());
+                        setDirty(true);
+                        break;
+                }
+        }
+    }
 
     private static class TableLabelProvider extends LabelProvider implements ITableLabelProvider {
         @Override
