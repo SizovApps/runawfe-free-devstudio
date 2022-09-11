@@ -16,6 +16,7 @@ import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 
+import plugins.ru.runa.gpd.src.ru.runa.gpd.ui.wizard.NewGlobalSectionDefinitionWizardPageFromBot;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.PluginLogger;
 import ru.runa.gpd.ProcessCache;
@@ -31,6 +32,7 @@ import ru.runa.gpd.util.IOUtils;
 import ru.runa.gpd.util.SwimlaneDisplayMode;
 import ru.runa.gpd.util.WorkspaceOperations;
 import ru.runa.gpd.util.XmlUtil;
+import ru.runa.gpd.ui.wizard.NewGlobalSectionDefinitionWizardPage;
 import ru.runa.wfe.definition.ProcessDefinitionAccessType;
 
 import com.google.common.collect.Maps;
@@ -38,6 +40,7 @@ import com.google.common.collect.Maps;
 public class NewGlobalSectionDefinitionWizard extends Wizard implements INewWizard {
     private IStructuredSelection selection;
     private NewGlobalSectionDefinitionWizardPage page;
+    private NewGlobalSectionDefinitionWizardPageFromBot botPage;
     private final ProcessDefinitionAccessType accessType;
     private IFolder parentProcessDefinitionFolder;
     private ProcessDefinition parentProcessDefinition;
@@ -50,9 +53,11 @@ public class NewGlobalSectionDefinitionWizard extends Wizard implements INewWiza
 
     @Override
     public void init(IWorkbench workbench, IStructuredSelection currentSelection) {
+        PluginLogger.logInfo("Enter NewGlobalSectionDefinitionWizard!!!");
         this.selection = currentSelection;
         if (accessType == ProcessDefinitionAccessType.EmbeddedSubprocess) {
             Object selectedElement = selection.getFirstElement();
+            PluginLogger.logInfo("selectedElement: " + selectedElement.getClass() + " | " + selectedElement.toString());
             if (selectedElement instanceof EditPart) {
                 IFile file = IOUtils.getCurrentFile();
                 parentProcessDefinitionFolder = (IFolder) (file == null ? null : file.getParent());

@@ -43,6 +43,10 @@ import ru.runa.gpd.ui.wizard.ImportBotTaskWizardPage;
 import ru.runa.gpd.ui.wizard.ImportBotWizardPage;
 import ru.runa.gpd.util.UiUtil;
 import ru.runa.gpd.util.WorkspaceOperations;
+import ru.runa.gpd.util.IOUtils;
+import ru.runa.gpd.globalsection.GlobalSectionUtils;
+import ru.runa.wfe.definition.ProcessDefinitionAccessType;
+
 
 public class BotExplorerTreeView extends ViewPart implements ISelectionListener {
     private TreeViewer viewer;
@@ -88,7 +92,17 @@ public class BotExplorerTreeView extends ViewPart implements ISelectionListener 
             protected void onDoubleClick(DoubleClickEvent event) {
                 Object element = ((IStructuredSelection) event.getSelection()).getFirstElement();
                 if (element instanceof IFile) {
-                    WorkspaceOperations.openBotTask((IFile) element);
+                    if (((IFile) element).getName().contains("process")) {
+                        PluginLogger.logInfo("Opening global...");
+                        PluginLogger.logInfo("GLB!");
+                        WorkspaceOperations.openGlobalSectionDefinition((IFile) element);
+                    }
+                    else {
+                        WorkspaceOperations.openBotTask((IFile) element);
+                    }
+                }
+                else {
+                    openProcessDefinition(element);
                 }
             }
         });
@@ -104,6 +118,22 @@ public class BotExplorerTreeView extends ViewPart implements ISelectionListener 
             }
         });
         viewer.getControl().setMenu(menu);
+    }
+
+    private void openProcessDefinition(Object element) {
+        if (element instanceof IFolder) {
+            IFile definitionFile = IOUtils.getProcessDefinitionFile((IFolder) element);
+            if (definitionFile.exists()) {
+                if (GlobalSectionUtils.isGlobalSectionName(((IFolder) element).getName())) {
+                    WorkspaceOperations.openGlobalSectionDefinition(definitionFile);
+                } else {
+                    WorkspaceOperations.openProcessDefinition(definitionFile);
+                }
+            }
+        }
+        if (element instanceof IFile) {
+            WorkspaceOperations.openProcessDefinition((IFile) element);
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -191,6 +221,13 @@ public class BotExplorerTreeView extends ViewPart implements ISelectionListener 
                 @Override
                 public void run() {
                     WorkspaceOperations.renameBotFolder(selection);
+                }
+            });
+            manager.add(new Action("New global section",
+                    SharedImages.getImageDescriptor("icons/glb.gif")) {
+                @Override
+                public void run() {
+                    WorkspaceOperations.createNewGlobalSectionDefinition(selection, ProcessDefinitionAccessType.Process);
                 }
             });
         }

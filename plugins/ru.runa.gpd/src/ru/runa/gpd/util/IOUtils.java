@@ -482,6 +482,7 @@ public class IOUtils {
         if (resource instanceof IFolder) {
             IFolder folder = (IFolder) resource;
             IFile definitionFile = getProcessDefinitionFile(folder);
+            PluginLogger.logInfo("findProcessDefinitionsRecursive: " + resource.getName() + " | " + definitionFile.getName());
             if (definitionFile.exists()) {
                 result.add(definitionFile);
                 return;

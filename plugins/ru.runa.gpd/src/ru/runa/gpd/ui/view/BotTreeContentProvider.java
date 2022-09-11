@@ -19,11 +19,18 @@ import ru.runa.gpd.util.IOUtils;
 public class BotTreeContentProvider implements ITreeContentProvider {
     @Override
     public Object[] getChildren(Object parentElement) {
+        ru.runa.gpd.PluginLogger.logInfo("Start getChildren content!!! " + parentElement.toString());
         if (parentElement instanceof IProject) {
             List<IFolder> botFolders = IOUtils.getBotFolders((IProject) parentElement);
             return botFolders.toArray();
         } else if (parentElement instanceof IFolder) {
+            ru.runa.gpd.PluginLogger.logInfo("Enter parentFolder: " + ((IFolder)parentElement).getName());
             List<IFile> files = IOUtils.getBotTaskFiles((IFolder) parentElement);
+            List<IFile> botFiles = IOUtils.getProcessDefinitionFiles((IFolder) parentElement);
+            for (IFile f : botFiles) {
+                ru.runa.gpd.PluginLogger.logInfo("Get proc files: " + f.getName());
+            }
+            files.addAll(botFiles);
             return files.toArray();
         }
         return null;
@@ -46,10 +53,12 @@ public class BotTreeContentProvider implements ITreeContentProvider {
 
     @Override
     public Object[] getElements(Object inputElement) {
+        ru.runa.gpd.PluginLogger.logInfo("Start getElements content!!!");
         List<Object> returnList = new ArrayList<Object>();
         IWorkspace workspace = ResourcesPlugin.getWorkspace();
         try {
             for (IResource resource : workspace.getRoot().members()) {
+                ru.runa.gpd.PluginLogger.logInfo("Resource: " + resource.getName());
                 if (resource instanceof IProject && ((IProject) resource).getNature(BotStationNature.NATURE_ID) != null) {
                     returnList.add(resource);
                 }
@@ -58,6 +67,8 @@ public class BotTreeContentProvider implements ITreeContentProvider {
         } catch (CoreException e) {
             return new Object[] {};
         }
+
+//        IOUtils.getProcessDefinitionFiles()
     }
 
     @Override

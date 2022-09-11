@@ -1,10 +1,13 @@
 package ru.runa.gpd.ui.wizard;
 
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Set;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -33,16 +36,17 @@ import ru.runa.gpd.settings.PrefConstants;
 import ru.runa.gpd.ui.custom.FileNameChecker;
 import ru.runa.gpd.util.IOUtils;
 import ru.runa.gpd.util.SwimlaneDisplayMode;
+import ru.runa.gpd.BotCache;
 
 public class NewGlobalSectionDefinitionWizardPage extends WizardPage {
-    private Combo projectCombo;
-    private Text processText;
-    private Combo languageCombo;
-    private Combo bpmnDisplaySwimlaneCombo;
-    private Combo cssTemplateCombo;
-    private final IContainer initialSelection;
-    private final List<IContainer> processContainers;
-    private final ProcessDefinition parentProcessDefinition;
+    protected Combo projectCombo;
+    protected Text processText;
+    protected Combo languageCombo;
+    protected Combo bpmnDisplaySwimlaneCombo;
+    protected Combo cssTemplateCombo;
+    protected final IContainer initialSelection;
+    protected final List<IContainer> processContainers;
+    protected final ProcessDefinition parentProcessDefinition;
 
     public NewGlobalSectionDefinitionWizardPage(IStructuredSelection selection, ProcessDefinition parentProcessDefinition) {
         super(Localization.getString("NewProcessDefinitionWizardPage.page.name"));
@@ -88,6 +92,9 @@ public class NewGlobalSectionDefinitionWizardPage extends WizardPage {
                 }
                 if (!folderContainGlobalSection) {
                     projectCombo.add(IOUtils.getProcessContainerName(container));
+                }
+                for (String botName : BotCache.getAllBotNames()) {
+                    projectCombo.add(botName);
                 }
             } catch (CoreException e) {
                 PluginLogger.logError(e);
@@ -186,7 +193,7 @@ public class NewGlobalSectionDefinitionWizardPage extends WizardPage {
         cssTemplateCombo.setVisible(false);
     }
 
-    private void verifyContentsValid() {
+    protected void verifyContentsValid() {
         if (projectCombo.getText().length() == 0) {
             setErrorMessage(Localization.getString("error.choose_project"));
             setPageComplete(false);
@@ -237,8 +244,36 @@ public class NewGlobalSectionDefinitionWizardPage extends WizardPage {
 
     public IFolder getProcessFolderByCreate() {
         String projectName = projectCombo.getItem(projectCombo.getSelectionIndex());
-        IContainer container = processContainers.stream().filter(p -> String.join("/", p.getFullPath().segments()).equals(projectName)).findFirst()
-                .get();
+        PluginLogger.logInfo("ProjectName: " + projectName);
+        IContainer container = null;
+        if (processContainers.stream().filter(p -> String.join("/", p.getFullPath().segments()).equals(projectName)).count() != 0) {
+            PluginLogger.logInfo("Set container!");
+            container = processContainers.stream().filter(p -> String.join("/", p.getFullPath().segments()).equals(projectName)).findFirst()
+                    .get();
+        }
+        else {
+            PluginLogger.logInfo("Enter file!");
+            try {
+
+            for (IProject botStationProject : IOUtils.getAllBotStationProjects()) {
+                IContainer botStationFolder = botStationProject.getFolder("src/botstation");
+                for (IResource botResource : botStationFolder.members()) {
+                    if (botResource instanceof IFolder) {
+                        if (botResource.getName().equals(projectName)) {
+                            PluginLogger.logInfo("Set file!");
+                            container = (IFolder) botResource;
+                            break;
+                        }
+                    }
+                }
+            }
+            }
+            catch (CoreException e) {
+
+            }
+        }
+
+        PluginLogger.logInfo("BotFolderName: " + container.getName());
         if (parentProcessDefinition != null) {
             return (IFolder) container;
         } else {

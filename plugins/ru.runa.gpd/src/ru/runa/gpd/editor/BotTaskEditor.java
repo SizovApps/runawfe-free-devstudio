@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import java.awt.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
@@ -12,6 +13,9 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -92,6 +96,7 @@ import ru.runa.gpd.util.WorkspaceOperations;
 import ru.runa.gpd.util.XmlUtil;
 import ru.runa.gpd.util.DataTableUtils;
 import ru.runa.gpd.util.IOUtils;
+import com.google.common.collect.Maps;
 
 public class BotTaskEditor extends EditorPart implements ISelectionListener, IResourceChangeListener, PropertyChangeListener {
     public static final String ID = "ru.runa.gpd.editor.BotTaskEditor";
@@ -350,12 +355,24 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
                         botTask.setType(BotTaskType.EXTENDED);
                         botTask.setParamDefConfig(BotTaskUtils.createEmptyParamDefConfig());
                     }
+                    if (className.equals(ScriptTask.INTERNAL_STORAGE_HANDLER_CLASS_NAME)) {
+                        createBotGlobalSection();
+                    }
                     botTask.setDelegationConfiguration("");
                     setDirty(true);
                     rebuildView(parent);
                 }
             }
         });
+    }
+
+    private void createBotGlobalSection() {
+        PluginLogger.logInfo("Start create global!!!");
+//
+//        IFolder botFolder = (IFolder) (botTaskFile == null ? null : botTaskFile.getParent());
+//        IFile definitionFile = IOUtils.getProcessDefinitionFile(botFolder);
+//        PluginLogger.logInfo("Names file: " + botTaskFile.getName() + " | " + botFolder.getName());
+
     }
 
     private void createParamteresFields(final Composite mainComposite, Composite parent) {
