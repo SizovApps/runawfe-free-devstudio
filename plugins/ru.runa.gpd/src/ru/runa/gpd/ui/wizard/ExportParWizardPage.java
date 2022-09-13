@@ -94,7 +94,7 @@ public class ExportParWizardPage extends ExportWizardPage {
         serverConnectorComposite = new WfeServerConnectorComposite(exportGroup, WfeServerProcessDefinitionImporter.getInstance(), null);
         setControl(pageControl);
         IFile adjacentFile = IOUtils.getCurrentFile();
-        if (adjacentFile != null && adjacentFile.getParent().exists()) {
+        if (adjacentFile != null && adjacentFile.getParent().exists() && (adjacentFile.getParent() instanceof IFolder)) {
             IFile definitionFile = IOUtils.getProcessDefinitionFile((IFolder) adjacentFile.getParent());
             if (definitionFile.exists()) {
                 ProcessDefinition currentDefinition = ProcessCache.getProcessDefinition(definitionFile);
