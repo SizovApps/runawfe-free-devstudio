@@ -152,8 +152,11 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
 
     public boolean verySave(boolean showCheckErrorMessage) {
         try {
+            String selectedTableName = botTask.getSelectedDataTableName();
             WorkspaceOperations.saveBotTask(botTaskFile, botTask);
             botTask = BotCache.getBotTaskNotNull(botTaskFile);
+            botTask.setSelectedDataTable(selectedTableName);
+            PluginLogger.logInfo("Saved botTask: " + botTask.getName() + " | " + botTask.getDelegationClassName() + " | " + botTask.getSelectedDataTableName());
             setTitleImage(SharedImages.getImage(botTask.getType() == BotTaskType.SIMPLE ? "icons/bot_task.gif" : "icons/bot_task_formal.gif"));
             setDirty(false);
             if (isBotDocxHandlerEnhancement()) {
@@ -781,6 +784,7 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
                 if (botTask.getDelegationClassName().equals(ScriptTask.INTERNAL_STORAGE_HANDLER_CLASS_NAME) && (tablesCombo == null || tablesCombo.getText() == "")) {
                     return;
                 }
+                PluginLogger.logInfo("Bot task: " + botTask.getName() + " | " + botTask.getDelegationClassName() + " | " + botTask.getSelectedDataTableName());
                 BotTask.usingBotTask = botTask;
                 for (ParamDefGroup group : botTask.getParamDefConfig().getGroups()) {
                     if (parameterType.equals(group.getName())) {
@@ -884,7 +888,10 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
         List<ParamDef> paramDefs = new ArrayList<ParamDef>();
         for (ParamDefGroup group : botTask.getParamDefConfig().getGroups()) {
             if (groupType.equals(group.getName())) {
-                paramDefs.addAll(group.getParameters());
+                PluginLogger.logInfo("Group len: " + group.getParameters().size());
+                if (group.getParameters().size() != 0) {
+                    paramDefs.addAll(group.getParameters());
+                }
             }
         }
         List<String[]> input = new ArrayList<String[]>(paramDefs.size());
@@ -944,11 +951,14 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
     private void deleteBotParams() {
         PluginLogger.logInfo("Delete!!!");
         for (ParamDefGroup group : botTask.getParamDefConfig().getGroups()) {
-                for (ParamDef paramDef : group.getParameters()) {
-                        group.getParameters().remove(paramDef);
-                        setTableInput(group.getName());
-                        setDirty(true);
-                        break;
+            PluginLogger.logInfo("ParamDefGroup: " + group.getName());
+                while (group.getParameters().size() > 0) {
+                    ParamDef paramDef = group.getParameters().get(0);
+                    PluginLogger.logInfo("Paramdef: " + paramDef.getName());
+                    group.getParameters().remove(paramDef);
+                    setTableInput(group.getName());
+                    PluginLogger.logInfo("Set dirty!!!");
+                    setDirty(true);
                 }
         }
     }

@@ -102,6 +102,8 @@ public class VariableEditorPage extends EditorPartBase<Variable> {
 
         Composite allVariablesComposite = createSection(sashForm, "DesignerVariableEditorPage.label.all_variables");
 
+        ru.runa.gpd.PluginLogger.logInfo("Enter variable editor page!!!");
+
         tableViewer = createMainViewer(allVariablesComposite, SWT.MULTI | SWT.BORDER | SWT.V_SCROLL | SWT.FULL_SELECTION);
         tableViewer.setLabelProvider(new VariableLabelProvider());
         TableViewerLocalDragAndDropSupport.enable(tableViewer, new DragAndDropAdapter<Variable>() {

@@ -118,23 +118,15 @@ import ru.runa.gpd.form.FormCSSTemplate;
 import ru.runa.gpd.form.FormCSSTemplateRegistry;
 import com.google.common.collect.Maps;
 import ru.runa.gpd.util.WorkspaceOperations;
+import ru.runa.gpd.lang.model.Variable;
+import ru.runa.gpd.extension.handler.ParamDef;
+import ru.runa.gpd.extension.handler.ParamDefGroup;
 
 public class AutomaticCreationUtils {
 
-    public static ProcessDefinition createNewGlobalSectionDefinitionAutomatic (IStructuredSelection selection, ProcessDefinitionAccessType accessType ) {
+    public static ProcessDefinition createNewGlobalSectionDefinitionAutomatic (BotTask botTask) {
 
-        Object selectedElement = selection.getFirstElement();
-        PluginLogger.logInfo("selectedElement: " + selectedElement.getClass() + " | " + selectedElement.toString());
-        IFolder parentProcessDefinitionFolder = null;
-
-        if (selectedElement instanceof EditPart) {
-            IFile file = ru.runa.gpd.util.IOUtils.getCurrentFile();
-            PluginLogger.logInfo("Currect file: " + file.getName());
-            parentProcessDefinitionFolder = (IFolder) (file == null ? null : file.getParent());
-        }
-        if (selectedElement instanceof IFolder) {
-            parentProcessDefinitionFolder = (IFolder) selectedElement;
-        }
+        IFolder parentProcessDefinitionFolder = BotCache.getBotTaskFolder(botTask);
 
         PluginLogger.logInfo("parentProcessDefinitionFolder: " + parentProcessDefinitionFolder.getName());
         try {
@@ -157,9 +149,12 @@ public class AutomaticCreationUtils {
 
             PluginLogger.logInfo("Enter to end!!!");
             ProcessCache.newProcessDefinitionWasCreated(definitionFile);
+            setGlobalVariables(definitionFile, botTask);
             WorkspaceOperations.openGlobalSectionDefinition(definitionFile);
         }
-        catch (Exception e){}
+        catch (Exception e){
+            PluginLogger.logError(e);
+        }
 
         return null;
     }
@@ -190,6 +185,38 @@ public class AutomaticCreationUtils {
         projectName += " global";
         return IOUtils.getProcessFolder(container, projectName);
     }
+
+    private static void setGlobalVariables(IFile processFile, BotTask botTask) {
+        List<ParamDef> botParams = getBotTaskParams(botTask);
+
+        ProcessDefinition processDefinition = ProcessCache.getProcessDefinition(processFile);
+        PluginLogger.logInfo("Return proc def: " + processDefinition.getFile().getName());
+        for (VariableUserType userType : processDefinition.getVariableUserTypes()) {
+            PluginLogger.logInfo("user type: " + userType.getName());
+        }
+
+        int countOfAddedParam = 0;
+        for (ParamDef paramDef : botParams) {
+            Variable variable = new Variable("Переменная" + countOfAddedParam, "Переменная" + countOfAddedParam, paramDef.getFormatFilters().get(0), processDefinition.getVariableUserType(paramDef.getFormatFilters().get(0)));
+            PluginLogger.logInfo("Created var: " + variable.getScriptingName() + " | " + variable.getFormatClassName());
+            processDefinition.addGlobalVariable(variable);
+            countOfAddedParam += 1;
+        }
+
+    }
+
+    private static List<ParamDef> getBotTaskParams(BotTask botTask) {
+        List<ParamDef> paramDefs = new ArrayList<>();
+        for (ParamDefGroup group : botTask.getParamDefConfig().getGroups()) {
+            PluginLogger.logInfo("ParamDefGroup: " + group.getName());
+            for (ParamDef paramDef : group.getParameters()) {
+                PluginLogger.logInfo("Paramdef: " + paramDef.getFormatFilters().get(0));
+                paramDefs.add(paramDef);
+            }
+        }
+        return paramDefs;
+    }
+
 
 
 }

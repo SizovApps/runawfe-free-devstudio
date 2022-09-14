@@ -168,6 +168,7 @@ public class BotTaskParamDefWizardPage extends WizardPage {
         try {
             for (IResource file : DataTableUtils.getDataTableProject().members()) {
                 ru.runa.gpd.PluginLogger.logInfo("File name: " + file.getName());
+                ru.runa.gpd.PluginLogger.logInfo("Is equal: " + IOUtils.getWithoutExtension(file.getName()) + " | " + BotTask.usingBotTask.getSelectedDataTableName());
                 if (file instanceof IFile && file.getName().endsWith(DataTableUtils.FILE_EXTENSION) && IOUtils.getWithoutExtension(file.getName()).equals(BotTask.usingBotTask.getSelectedDataTableName())) {
                     ru.runa.gpd.PluginLogger.logInfo("Found!!!");
                     tableFile = (IFile) file;

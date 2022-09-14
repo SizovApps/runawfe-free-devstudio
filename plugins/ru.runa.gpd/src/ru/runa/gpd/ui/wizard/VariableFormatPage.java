@@ -213,6 +213,7 @@ public class VariableFormatPage extends DynaContentWizardPage {
                     protected void onSelection(SelectionEvent e) throws Exception {
                         int index = (Integer) combo.getData();
                         String label = combo.getText();
+                        ru.runa.gpd.PluginLogger.logInfo("Combo label: " + label);
                         VariableUserType userType = processDefinition.getVariableUserType(label);
                         if (userType != null) {
                             componentClassNames[index] = label;

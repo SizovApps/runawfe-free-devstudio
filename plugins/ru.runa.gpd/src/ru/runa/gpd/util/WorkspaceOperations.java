@@ -67,6 +67,7 @@ import ru.runa.gpd.extension.bot.IBotFileSupportProvider;
 import ru.runa.gpd.lang.Language;
 import ru.runa.gpd.lang.BpmnSerializer;
 import ru.runa.gpd.lang.ProcessSerializer;
+import ru.runa.gpd.lang.model.bpmn.ScriptTask;
 import ru.runa.gpd.lang.model.BotTask;
 import ru.runa.gpd.lang.model.BotTaskType;
 import ru.runa.gpd.lang.model.ProcessDefinition;
@@ -115,6 +116,7 @@ import ru.runa.wfe.datasource.DataSourceStuff;
 import ru.runa.wfe.definition.ProcessDefinitionAccessType;
 import ru.runa.gpd.util.IOUtils;
 import ru.runa.gpd.util.SwimlaneDisplayMode;
+import ru.runa.gpd.util.AutomaticCreationUtils;
 import ru.runa.gpd.form.FormCSSTemplate;
 import ru.runa.gpd.form.FormCSSTemplateRegistry;
 
@@ -686,6 +688,9 @@ public class WorkspaceOperations {
         try {
             StringBuffer info = new StringBuffer();
             info.append(botTask.getDelegationClassName());
+            if (botTask.getDelegationClassName().equals(ScriptTask.INTERNAL_STORAGE_HANDLER_CLASS_NAME)) {
+                AutomaticCreationUtils.createNewGlobalSectionDefinitionAutomatic(botTask);
+            }
             info.append("\n");
             String configuration = BotTaskUtils.createBotTaskConfiguration(botTask);
             if (!Strings.isNullOrEmpty(configuration)) {

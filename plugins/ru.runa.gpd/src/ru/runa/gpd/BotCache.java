@@ -243,10 +243,16 @@ public class BotCache {
      * @return info file (without extension), not <code>null</code> for existing
      *         bot task
      */
-    public static synchronized IFile  getBotTaskFile(BotTask botTask) {
+    public static synchronized IFile getBotTaskFile(BotTask botTask) {
         if (!BOT_TASK_FILES.containsKey(botTask)) {
             throw new RuntimeException("No file exist for bot task " + botTask.getName());
         }
         return BOT_TASK_FILES.get(botTask);
+    }
+
+    public static synchronized IFolder getBotTaskFolder(BotTask botTask) {
+        IFile botTaskFile = getBotTaskFile(botTask);
+        ru.runa.gpd.PluginLogger.logInfo("Parent name: " + botTaskFile.getParent().getName() + " | " + botTaskFile.getParent().getClass());
+        return (IFolder) botTaskFile.getParent();
     }
 }
