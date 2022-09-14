@@ -115,6 +115,7 @@ public class NewGlobalSectionDefinitionWizard extends Wizard implements INewWiza
                     properties.put(BpmnSerializer.SHOW_SWIMLANE, page.getSwimlaneDisplayMode().name());
                 }
                 properties.put(ProcessSerializer.ACCESS_TYPE, accessType.name());
+                PluginLogger.logInfo("accessType: " + accessType.name());
                 Document document = language.getSerializer().getInitialProcessDefinitionDocument(processName, properties);
                 byte[] bytes = XmlUtil.writeXml(document);
                 definitionFile.create(new ByteArrayInputStream(bytes), true, null);

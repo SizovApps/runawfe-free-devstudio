@@ -180,6 +180,7 @@ public class IOUtils {
         }
         if (!folder.exists()) {
             folder.create(true, true, null);
+            PluginLogger.logInfo("Created folder: " + folder.getName());
         }
     }
 

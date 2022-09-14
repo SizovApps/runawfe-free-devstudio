@@ -9,8 +9,10 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import org.dom4j.Document;
@@ -18,6 +20,7 @@ import org.dom4j.DocumentException;
 import org.dom4j.io.SAXReader;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -36,6 +39,7 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.gef.EditPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IWorkbenchPage;
@@ -61,6 +65,7 @@ import ru.runa.gpd.extension.DelegableProvider;
 import ru.runa.gpd.extension.HandlerRegistry;
 import ru.runa.gpd.extension.bot.IBotFileSupportProvider;
 import ru.runa.gpd.lang.Language;
+import ru.runa.gpd.lang.BpmnSerializer;
 import ru.runa.gpd.lang.ProcessSerializer;
 import ru.runa.gpd.lang.model.BotTask;
 import ru.runa.gpd.lang.model.BotTaskType;
@@ -69,6 +74,7 @@ import ru.runa.gpd.lang.model.Subprocess;
 import ru.runa.gpd.lang.model.SubprocessDefinition;
 import ru.runa.gpd.lang.model.TaskState;
 import ru.runa.gpd.lang.model.VariableUserType;
+import ru.runa.gpd.lang.model.GlobalSectionDefinition;
 import ru.runa.gpd.lang.par.ParContentProvider;
 import ru.runa.gpd.ui.custom.Dialogs;
 import ru.runa.gpd.ui.dialog.DataSourceDialog;
@@ -106,6 +112,12 @@ import ru.runa.gpd.ui.wizard.NewProcessProjectWizard;
 import ru.runa.wfe.InternalApplicationException;
 import ru.runa.wfe.datasource.DataSourceStuff;
 import ru.runa.wfe.definition.ProcessDefinitionAccessType;
+import ru.runa.gpd.util.IOUtils;
+import ru.runa.gpd.util.SwimlaneDisplayMode;
+import ru.runa.gpd.form.FormCSSTemplate;
+import ru.runa.gpd.form.FormCSSTemplateRegistry;
+import com.google.common.collect.Maps;
+
 
 public class WorkspaceOperations {
 
@@ -257,6 +269,7 @@ public class WorkspaceOperations {
         }
         return null;
     }
+
 
     public static void copyProcessDefinition(IStructuredSelection selection) {
         IFolder processDefinitionFolder = (IFolder) selection.getFirstElement();

@@ -22,6 +22,7 @@ public class BotResourcesLabelProvider extends LabelProvider {
         if (element instanceof IFile) {
             if (((IFile) element).getName().contains("process")) {
                 ProcessDefinition definition = ProcessCache.getProcessDefinition((IFile) element);
+                ru.runa.gpd.PluginLogger.logInfo("Process name: " + definition.getName());
                 if (definition != null) {
                     return definition.getName().substring(1);
                 }

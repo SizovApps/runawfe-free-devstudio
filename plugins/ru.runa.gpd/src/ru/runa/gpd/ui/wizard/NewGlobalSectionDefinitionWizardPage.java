@@ -228,17 +228,21 @@ public class NewGlobalSectionDefinitionWizardPage extends WizardPage {
     }
 
     public Language getLanguage() {
+        PluginLogger.logInfo("getLanguage: " + languageCombo.getText());
         return Language.valueOf(languageCombo.getText());
     }
 
     public SwimlaneDisplayMode getSwimlaneDisplayMode() {
+        PluginLogger.logInfo("bpmnDisplaySwimlaneCombo: " + bpmnDisplaySwimlaneCombo.getSelectionIndex());
         return SwimlaneDisplayMode.values()[bpmnDisplaySwimlaneCombo.getSelectionIndex()];
     }
 
     public String getFormCSSTemplateName() {
         if (cssTemplateCombo.getSelectionIndex() == 0) {
+            PluginLogger.logInfo("cssTemplateCombo null");
             return null;
         }
+        PluginLogger.logInfo("cssTemplateCombo: " + cssTemplateCombo.getText());
         return cssTemplateCombo.getText();
     }
 

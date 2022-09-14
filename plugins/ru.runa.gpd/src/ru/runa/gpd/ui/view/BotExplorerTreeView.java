@@ -43,6 +43,7 @@ import ru.runa.gpd.ui.wizard.ImportBotTaskWizardPage;
 import ru.runa.gpd.ui.wizard.ImportBotWizardPage;
 import ru.runa.gpd.util.UiUtil;
 import ru.runa.gpd.util.WorkspaceOperations;
+import ru.runa.gpd.util.AutomaticCreationUtils;
 import ru.runa.gpd.util.IOUtils;
 import ru.runa.gpd.globalsection.GlobalSectionUtils;
 import ru.runa.wfe.definition.ProcessDefinitionAccessType;
@@ -221,6 +222,13 @@ public class BotExplorerTreeView extends ViewPart implements ISelectionListener 
                 @Override
                 public void run() {
                     WorkspaceOperations.renameBotFolder(selection);
+                }
+            });
+            manager.add(new Action("New global section from bot",
+                    SharedImages.getImageDescriptor("icons/glb.gif")) {
+                @Override
+                public void run() {
+                    AutomaticCreationUtils.createNewGlobalSectionDefinitionAutomatic(selection, ProcessDefinitionAccessType.Process);
                 }
             });
             manager.add(new Action("New global section",

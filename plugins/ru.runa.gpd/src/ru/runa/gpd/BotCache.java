@@ -243,7 +243,7 @@ public class BotCache {
      * @return info file (without extension), not <code>null</code> for existing
      *         bot task
      */
-    public static synchronized IFile getBotTaskFile(BotTask botTask) {
+    public static synchronized IFile  getBotTaskFile(BotTask botTask) {
         if (!BOT_TASK_FILES.containsKey(botTask)) {
             throw new RuntimeException("No file exist for bot task " + botTask.getName());
         }
