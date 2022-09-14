@@ -130,30 +130,8 @@ public class BotTaskParamDefWizardPage extends WizardPage {
         Label label = new Label(parent, SWT.NONE);
         label.setText(Localization.getString("ParamDefWizardPage.page.type"));
         List<String> types = new ArrayList<String>();
-        IFile tableFile = null;
-        ru.runa.gpd.PluginLogger.logInfo("");
         if (BotTask.usingBotTask.getDelegationClassName().equals(ScriptTask.INTERNAL_STORAGE_HANDLER_CLASS_NAME)) {
-            ru.runa.gpd.PluginLogger.logInfo("Enter find table!!!");
-            try {
-                for (IResource file : DataTableUtils.getDataTableProject().members()) {
-                    ru.runa.gpd.PluginLogger.logInfo("File name: " + file.getName());
-                    if (file instanceof IFile && file.getName().endsWith(DataTableUtils.FILE_EXTENSION) && IOUtils.getWithoutExtension(file.getName()).equals(BotTask.usingBotTask.getSelectedDataTableName())) {
-                        ru.runa.gpd.PluginLogger.logInfo("Found!!!");
-                        tableFile = (IFile) file;
-                    }
-                }
-                ru.runa.gpd.PluginLogger.logInfo("Table name: " + tableFile.getName());
-
-                String tableFileName = IOUtils.getWithoutExtension(tableFile.getName());
-                String tableFileNameExtension = IOUtils.getExtension(tableFile.getName());
-                VariableUserType userType = DataTableCache.getDataTable(tableFileName);
-                ru.runa.gpd.PluginLogger.logInfo("Names: " + tableFileName + " " + tableFileNameExtension + " " + userType.getName());
-                for (Variable variable : userType.getAttributes()) {
-                    ru.runa.gpd.PluginLogger.logInfo("Variable name: " + variable.getFormatClassName() + " " + variable.getFormat() + " " + variable.getFormatLabel());
-                    types.add(variable.getFormatLabel());
-                }
-            }
-            catch (Exception ignored) {}
+            types = setTypesForInternalStorage();
         } else {
             for (VariableFormatArtifact artifact : VariableFormatRegistry.getInstance().getFilterArtifacts()) {
                 types.add(artifact.getLabel());
@@ -181,6 +159,36 @@ public class BotTaskParamDefWizardPage extends WizardPage {
                 verifyContentsValid();
             }
         });
+    }
+
+    private List<String> setTypesForInternalStorage() {
+        List<String> types = new ArrayList<>();
+        ru.runa.gpd.PluginLogger.logInfo("Enter find table!!!");
+        IFile tableFile = null;
+        try {
+            for (IResource file : DataTableUtils.getDataTableProject().members()) {
+                ru.runa.gpd.PluginLogger.logInfo("File name: " + file.getName());
+                if (file instanceof IFile && file.getName().endsWith(DataTableUtils.FILE_EXTENSION) && IOUtils.getWithoutExtension(file.getName()).equals(BotTask.usingBotTask.getSelectedDataTableName())) {
+                    ru.runa.gpd.PluginLogger.logInfo("Found!!!");
+                    tableFile = (IFile) file;
+                }
+            }
+            if (tableFile == null) {
+                return new ArrayList<>();
+            }
+            ru.runa.gpd.PluginLogger.logInfo("Table name: " + tableFile.getName());
+
+            String tableFileName = IOUtils.getWithoutExtension(tableFile.getName());
+            String tableFileNameExtension = IOUtils.getExtension(tableFile.getName());
+            VariableUserType userType = DataTableCache.getDataTable(tableFileName);
+            ru.runa.gpd.PluginLogger.logInfo("Names: " + tableFileName + " " + tableFileNameExtension + " " + userType.getName());
+            for (Variable variable : userType.getAttributes()) {
+                ru.runa.gpd.PluginLogger.logInfo("Variable name: " + variable.getFormatClassName() + " " + variable.getFormat() + " " + variable.getFormatLabel());
+                types.add(variable.getFormatLabel());
+            }
+        }
+        catch (Exception ignored) {}
+        return types;
     }
 
     private void createUseVariableCheckbox(Composite parent) {

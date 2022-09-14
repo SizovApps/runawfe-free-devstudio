@@ -109,6 +109,7 @@ import ru.runa.gpd.ui.wizard.NewFolderWizard;
 import ru.runa.gpd.ui.wizard.NewProcessDefinitionWizard;
 import ru.runa.gpd.ui.wizard.NewGlobalSectionDefinitionWizard;
 import ru.runa.gpd.ui.wizard.NewProcessProjectWizard;
+import ru.runa.gpd.globalsection.GlobalSectionUtils;
 import ru.runa.wfe.InternalApplicationException;
 import ru.runa.wfe.datasource.DataSourceStuff;
 import ru.runa.wfe.definition.ProcessDefinitionAccessType;
@@ -116,6 +117,7 @@ import ru.runa.gpd.util.IOUtils;
 import ru.runa.gpd.util.SwimlaneDisplayMode;
 import ru.runa.gpd.form.FormCSSTemplate;
 import ru.runa.gpd.form.FormCSSTemplateRegistry;
+
 import com.google.common.collect.Maps;
 
 
@@ -516,6 +518,22 @@ public class WorkspaceOperations {
             PluginLogger.logError("Unable open diagram", e);
         }
         return null;
+    }
+
+    public static void openProcessDefinitionFromBot(Object element) {
+        if (element instanceof IFolder) {
+            IFile definitionFile = IOUtils.getProcessDefinitionFile((IFolder) element);
+            if (definitionFile.exists()) {
+                if (GlobalSectionUtils.isGlobalSectionName(((IFolder) element).getName())) {
+                    WorkspaceOperations.openGlobalSectionDefinition(definitionFile);
+                } else {
+                    WorkspaceOperations.openProcessDefinition(definitionFile);
+                }
+            }
+        }
+        if (element instanceof IFile) {
+            WorkspaceOperations.openProcessDefinition((IFile) element);
+        }
     }
 
     public static ProcessEditorBase openGlobalSectionDefinition(IFile definitionFile) {

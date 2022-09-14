@@ -103,7 +103,8 @@ public class BotExplorerTreeView extends ViewPart implements ISelectionListener 
                     }
                 }
                 else {
-                    openProcessDefinition(element);
+                    PluginLogger.logInfo("Open else!!!");
+                     WorkspaceOperations.openProcessDefinitionFromBot(element);
                 }
             }
         });
@@ -121,21 +122,6 @@ public class BotExplorerTreeView extends ViewPart implements ISelectionListener 
         viewer.getControl().setMenu(menu);
     }
 
-    private void openProcessDefinition(Object element) {
-        if (element instanceof IFolder) {
-            IFile definitionFile = IOUtils.getProcessDefinitionFile((IFolder) element);
-            if (definitionFile.exists()) {
-                if (GlobalSectionUtils.isGlobalSectionName(((IFolder) element).getName())) {
-                    WorkspaceOperations.openGlobalSectionDefinition(definitionFile);
-                } else {
-                    WorkspaceOperations.openProcessDefinition(definitionFile);
-                }
-            }
-        }
-        if (element instanceof IFile) {
-            WorkspaceOperations.openProcessDefinition((IFile) element);
-        }
-    }
 
     @SuppressWarnings("unchecked")
     protected void fillContextMenu(IMenuManager manager) {
