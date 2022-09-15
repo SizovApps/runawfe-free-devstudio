@@ -63,6 +63,7 @@ public class ExportBotWizardPage extends ExportBotElementWizardPage {
             PluginLogger.logErrorWithoutDialog(Localization.getString("DialogEnhancement.exportCanceled"));
         } else if (docxTestResult) {
             if (toFile) {
+                PluginLogger.logInfo("Go to file! " + exportResource.getClass());
                 getContainer().run(true, true, new BotExportCommand(exportResource, new FileOutputStream(getDestinationValue())));
             } else {
                 getContainer().run(true, true, new BotDeployCommand(exportResource, new ByteArrayOutputStream()));

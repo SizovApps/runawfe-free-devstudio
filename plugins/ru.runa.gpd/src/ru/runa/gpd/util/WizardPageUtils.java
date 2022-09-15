@@ -99,6 +99,7 @@ public class WizardPageUtils {
     public static void zip(List<File> files, OutputStream os) throws IOException {
         ZipOutputStream zos = new ZipOutputStream(os);
         for (File file : files) {
+            ru.runa.gpd.PluginLogger.logInfo("Zip global fileName: " + file.getName());
             ZipEntry newEntry = new ZipEntry(file.getName());
             byte[] readBuffer = new byte[1024];
             zos.putNextEntry(newEntry);
@@ -112,4 +113,20 @@ public class WizardPageUtils {
         }
         zos.close();
     }
+    public static void zip(List<File> files, ZipOutputStream zos) throws IOException {
+        for (File file : files) {
+            ru.runa.gpd.PluginLogger.logInfo("Zip fileName: " + file.getName());
+            ZipEntry newEntry = new ZipEntry(file.getName());
+            byte[] readBuffer = new byte[1024];
+            zos.putNextEntry(newEntry);
+            try (InputStream cos = Files.newInputStream(file.toPath())) {
+                int n;
+                while ((n = cos.read(readBuffer)) > 0) {
+                    zos.write(readBuffer, 0, n);
+                }
+            }
+            zos.closeEntry();
+        }
+    }
+
 }

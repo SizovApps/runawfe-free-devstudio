@@ -95,6 +95,7 @@ public abstract class ExportBotElementWizardPage extends ExportWizardPage {
         boolean exportToFile = exportToFileButton.getSelection();
         saveDirtyEditors();
         String selected = getBotElementSelection();
+        PluginLogger.logInfo("Selected: " + selected);
         if (selected == null) {
             setErrorMessage("ExportBotElementWizardPage.error.empty.source.selection");
             return false;
@@ -108,6 +109,7 @@ public abstract class ExportBotElementWizardPage extends ExportWizardPage {
             return false;
         }
         IResource exportResource = exportObjectNameFileMap.get(selected);
+
         try {
             exportResource.refreshLocal(IResource.DEPTH_ONE, null);
             if (exportToFile) {

@@ -210,20 +210,6 @@ public class BotExplorerTreeView extends ViewPart implements ISelectionListener 
                     WorkspaceOperations.renameBotFolder(selection);
                 }
             });
-//            manager.add(new Action("New global section from bot",
-//                    SharedImages.getImageDescriptor("icons/glb.gif")) {
-//                @Override
-//                public void run() {
-//                    AutomaticCreationUtils.createNewGlobalSectionDefinitionAutomatic(selection, ProcessDefinitionAccessType.Process);
-//                }
-//            });
-            manager.add(new Action("New global section",
-                    SharedImages.getImageDescriptor("icons/glb.gif")) {
-                @Override
-                public void run() {
-                    WorkspaceOperations.createNewGlobalSectionDefinition(selection, ProcessDefinitionAccessType.Process);
-                }
-            });
         }
         if (menuOnBotTask) {
             manager.add(new Action(Localization.getString("ExplorerTreeView.menu.label.renameProcess"),

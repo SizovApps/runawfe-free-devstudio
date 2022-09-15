@@ -231,6 +231,7 @@ public class ExportGlbWizardPage extends WizardArchiveFileResourceExportPage1 {
                 IResource[] members = processFolder.members();
                 for (IResource resource : members) {
                     if (resource instanceof IFile) {
+                        PluginLogger.logInfo("Global file: " + ((IFile) resource).getName());
                         resourcesToExport.add((IFile) resource);
                     }
                 }
@@ -241,6 +242,7 @@ public class ExportGlbWizardPage extends WizardArchiveFileResourceExportPage1 {
                         continue;
                     }
                     String outputFileName = getDestinationValue() + definition.getName() + ".glb";
+                    PluginLogger.logInfo("outputFileName: " + outputFileName);
                     new ParExportOperation(resourcesToExport, new FileOutputStream(outputFileName)).run(null);
                     if (ProcessSaveHistory.isActive()) {
                         Map<String, File> savepoints = ProcessSaveHistory.getSavepoints(processFolder);
@@ -248,6 +250,7 @@ public class ExportGlbWizardPage extends WizardArchiveFileResourceExportPage1 {
                             List<File> filesToExport = new ArrayList<>();
                             for (Map.Entry<String, File> savepoint : savepoints.entrySet()) {
                                 filesToExport.add(savepoint.getValue());
+                                ru.runa.gpd.PluginLogger.logInfo("Savepoint: " + savepoint.getValue().getName());
                             }
                             filesToExport.add(new File(outputFileName));
                             String oldestSavepointName = ((NavigableMap<String, File>) savepoints).lastEntry().getValue().getName();
@@ -258,6 +261,9 @@ public class ExportGlbWizardPage extends WizardArchiveFileResourceExportPage1 {
                                 if (oldestTimestamp.compareTo(uaLog.getKey()) <= 0) {
                                     filesToExport.add(uaLog.getValue());
                                 }
+                            }
+                            for (File file : filesToExport) {
+                                ru.runa.gpd.PluginLogger.logInfo("filesToExport: " + file.getName());
                             }
                             WizardPageUtils.zip(filesToExport, new FileOutputStream(getDestinationValue() + definition.getName() + ".har"));
                         }
