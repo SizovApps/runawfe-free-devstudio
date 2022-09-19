@@ -80,7 +80,6 @@ public class BotExportCommand extends BotSyncCommand {
         getGlobalSectionStream(globalStream, botFolder);
         globalStream.close();
         zipStream.write(globalStream.toByteArray());
-        //getBotGlobalSectionStream(botFolder, zipStream);
         ru.runa.gpd.PluginLogger.logInfo("End global write!!!");
 
         zipStream.close();
@@ -118,41 +117,15 @@ public class BotExportCommand extends BotSyncCommand {
             ru.runa.gpd.PluginLogger.logInfo("Files size: " + files.size());
 
 
-            new ExportGlbWizardPage.ParExportOperation(resourcesToExport, zipOutputStream).run(null);
+            new ExportGlbWizardPage.ParExportOperationFromBot(resourcesToExport, zipOutputStream, zipOutputStream).run(null);
 
-            //WizardPageUtils.zip(files, zipStream);
-//            if (ProcessSaveHistory.isActive()) {
-//                Map<String, File> savepoints = ProcessSaveHistory.getSavepoints(globalFolder);
-//                if (savepoints.size() > 0) {
-//                    List<File> filesToExport = new ArrayList<>();
-//                    for (Map.Entry<String, File> savepoint : savepoints.entrySet()) {
-//                        ru.runa.gpd.PluginLogger.logInfo("Savepoint: " + savepoint.getValue().getName());
-//                        filesToExport.add(savepoint.getValue());
-//                        byte[] bytes = Files.readAllBytes(savepoint.getValue().getAbsoluteFile().toPath());
-//                        String fileContent = new String (bytes);
-//                        ru.runa.gpd.PluginLogger.logInfo("Savepoint text: " + fileContent);
-//                    }
-//                    //filesToExport.add(new File(botFolder.getName() + "_global.glb"));
-//                    String oldestSavepointName = ((NavigableMap<String, File>) savepoints).lastEntry().getValue().getName();
-//                    String oldestTimestamp = oldestSavepointName.substring(oldestSavepointName.lastIndexOf("_") + 1,
-//                            oldestSavepointName.lastIndexOf("."));
-//                    Map<String, File> uaLogs = UserActivity.getLogs(globalFolder);
-//                    for (Map.Entry<String, File> uaLog : uaLogs.entrySet()) {
-//                        if (oldestTimestamp.compareTo(uaLog.getKey()) <= 0) {
-//                            filesToExport.add(uaLog.getValue());
-//                        }
-//                    }
-//                    for (File file : filesToExport) {
-//                        ru.runa.gpd.PluginLogger.logInfo("filesToExport: " + file.getName());
-//                    }
-//                    WizardPageUtils.zip(filesToExport, zipStream);
-//                }
-//            }
         } catch (Throwable th) {
             ru.runa.gpd.PluginLogger.logErrorWithoutDialog(ru.runa.gpd.Localization.getString("ExportParWizardPage.error.export"), th);
             ru.runa.gpd.PluginLogger.logErrorWithoutDialog((Throwables.getRootCause(th).getMessage()));
         }
     }
+
+
 
     protected IFolder getBotFolder() {
         return (IFolder) exportResource;
@@ -180,3 +153,5 @@ public class BotExportCommand extends BotSyncCommand {
     }
 
 }
+
+
