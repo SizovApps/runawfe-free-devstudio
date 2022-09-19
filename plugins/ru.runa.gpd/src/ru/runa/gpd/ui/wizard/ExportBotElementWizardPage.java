@@ -95,7 +95,7 @@ public abstract class ExportBotElementWizardPage extends ExportWizardPage {
         boolean exportToFile = exportToFileButton.getSelection();
         saveDirtyEditors();
         String selected = getBotElementSelection();
-        PluginLogger.logInfo("Selected: " + selected);
+        PluginLogger.logInfo("Selected: " + selected + " | " + getDestinationValue());
         if (selected == null) {
             setErrorMessage("ExportBotElementWizardPage.error.empty.source.selection");
             return false;

@@ -243,33 +243,34 @@ public class ExportGlbWizardPage extends WizardArchiveFileResourceExportPage1 {
                     }
                     String outputFileName = getDestinationValue() + definition.getName() + ".glb";
                     PluginLogger.logInfo("outputFileName: " + outputFileName);
-                    new ParExportOperation(resourcesToExport, new FileOutputStream(outputFileName)).run(null);
-                    if (ProcessSaveHistory.isActive()) {
-                        Map<String, File> savepoints = ProcessSaveHistory.getSavepoints(processFolder);
-                        if (savepoints.size() > 0) {
-                            List<File> filesToExport = new ArrayList<>();
-                            for (Map.Entry<String, File> savepoint : savepoints.entrySet()) {
-                                filesToExport.add(savepoint.getValue());
-                                ru.runa.gpd.PluginLogger.logInfo("Savepoint: " + savepoint.getValue().getName());
-                            }
-                            filesToExport.add(new File(outputFileName));
-                            String oldestSavepointName = ((NavigableMap<String, File>) savepoints).lastEntry().getValue().getName();
-                            String oldestTimestamp = oldestSavepointName.substring(oldestSavepointName.lastIndexOf("_") + 1,
-                                    oldestSavepointName.lastIndexOf("."));
-                            Map<String, File> uaLogs = UserActivity.getLogs(processFolder);
-                            for (Map.Entry<String, File> uaLog : uaLogs.entrySet()) {
-                                if (oldestTimestamp.compareTo(uaLog.getKey()) <= 0) {
-                                    filesToExport.add(uaLog.getValue());
-                                }
-                            }
-                            for (File file : filesToExport) {
-                                ru.runa.gpd.PluginLogger.logInfo("filesToExport: " + file.getName());
-                            }
-                            WizardPageUtils.zip(filesToExport, new FileOutputStream(getDestinationValue() + definition.getName() + ".har"));
-                        }
-                    }
+                   // new ParExportOperation(resourcesToExport, new FileOutputStream(outputFileName)).run(null);
+//                    if (ProcessSaveHistory.isActive()) {
+//                        Map<String, File> savepoints = ProcessSaveHistory.getSavepoints(processFolder);
+//                        if (savepoints.size() > 0) {
+//                            List<File> filesToExport = new ArrayList<>();
+//                            for (Map.Entry<String, File> savepoint : savepoints.entrySet()) {
+//                                filesToExport.add(savepoint.getValue());
+//                                ru.runa.gpd.PluginLogger.logInfo("Savepoint: " + savepoint.getValue().getName());
+//                            }
+//                            filesToExport.add(new File(outputFileName));
+//                            String oldestSavepointName = ((NavigableMap<String, File>) savepoints).lastEntry().getValue().getName();
+//                            String oldestTimestamp = oldestSavepointName.substring(oldestSavepointName.lastIndexOf("_") + 1,
+//                                    oldestSavepointName.lastIndexOf("."));
+//                            Map<String, File> uaLogs = UserActivity.getLogs(processFolder);
+//                            for (Map.Entry<String, File> uaLog : uaLogs.entrySet()) {
+//                                if (oldestTimestamp.compareTo(uaLog.getKey()) <= 0) {
+//                                    filesToExport.add(uaLog.getValue());
+//                                }
+//                            }
+//                            for (File file : filesToExport) {
+//                                ru.runa.gpd.PluginLogger.logInfo("filesToExport: " + file.getName());
+//                            }
+//                            WizardPageUtils.zip(filesToExport, new FileOutputStream(getDestinationValue() + definition.getName() + ".har"));
+//                        }
+//                    }
                 } else {
-                    new ParDeployOperation(resourcesToExport, definition.getName(), updateLatestVersionButton.getSelection()).run(null);
+                    return false;
+                    //new ParDeployOperation(resourcesToExport, definition.getName(), updateLatestVersionButton.getSelection()).run(null);
                 }
             } catch (Throwable th) {
                 PluginLogger.logErrorWithoutDialog(Localization.getString("ExportParWizardPage.error.export"), th);
@@ -313,12 +314,13 @@ public class ExportGlbWizardPage extends WizardArchiveFileResourceExportPage1 {
     }
 
     public static class ParExportOperation implements IRunnableWithProgress {
-        protected final OutputStream outputStream;
+        protected final ZipOutputStream outputStream;
         protected final List<IFile> resourcesToExport;
 
-        public ParExportOperation(List<IFile> resourcesToExport, OutputStream outputStream) {
+        public ParExportOperation(List<IFile> resourcesToExport, ZipOutputStream outputStream) {
             this.outputStream = outputStream;
             this.resourcesToExport = resourcesToExport;
+            PluginLogger.logInfo("OutputStream class: " + outputStream.getClass());
         }
 
         protected void exportResource(IFileExporter exporter, IFile fileResource, IProgressMonitor progressMonitor)
@@ -330,6 +332,7 @@ public class ExportGlbWizardPage extends WizardArchiveFileResourceExportPage1 {
                 return;
             }
             String destinationName = fileResource.getName();
+            PluginLogger.logInfo("Destination: " + destinationName);
             exporter.write(fileResource, destinationName);
         }
 
@@ -337,6 +340,7 @@ public class ExportGlbWizardPage extends WizardArchiveFileResourceExportPage1 {
             try {
                 ParFileExporter exporter = new ParFileExporter(outputStream);
                 for (IFile resource : resourcesToExport) {
+                    PluginLogger.logInfo("exportResources IFile: " + resource.getName());
                     exportResource(exporter, resource, progressMonitor);
                 }
                 exporter.finished();
@@ -352,38 +356,41 @@ public class ExportGlbWizardPage extends WizardArchiveFileResourceExportPage1 {
         }
     }
 
-    private class ParDeployOperation extends ParExportOperation {
-        private final String definitionName;
-        private final boolean updateLatestVersion;
-
-        public ParDeployOperation(List<IFile> resourcesToExport, String definitionName, boolean updateLatestVersion) {
-            super(resourcesToExport, new ByteArrayOutputStream());
-            this.definitionName = definitionName;
-            this.updateLatestVersion = updateLatestVersion;
-        }
-
-        @Override
-        public void run(final IProgressMonitor progressMonitor) {
-            exportResources(progressMonitor);
-            final ByteArrayOutputStream baos = (ByteArrayOutputStream) outputStream;
-            WfeServerProcessDefinitionImporter.getInstance().uploadPar(definitionName, updateLatestVersion, baos.toByteArray(), true);
-        }
-    }
+//    private class ParDeployOperation extends ParExportOperation {
+//        private final String definitionName;
+//        private final boolean updateLatestVersion;
+//
+//        public ParDeployOperation(List<IFile> resourcesToExport, String definitionName, boolean updateLatestVersion) {
+//            super(resourcesToExport, new ByteArrayOutputStream());
+//            this.definitionName = definitionName;
+//            this.updateLatestVersion = updateLatestVersion;
+//        }
+//
+//        @Override
+//        public void run(final IProgressMonitor progressMonitor) {
+//            exportResources(progressMonitor);
+//            final ByteArrayOutputStream baos = (ByteArrayOutputStream) outputStream;
+//            WfeServerProcessDefinitionImporter.getInstance().uploadPar(definitionName, updateLatestVersion, baos.toByteArray(), true);
+//        }
+//    }
 
     private static class ParFileExporter implements IFileExporter {
         private final ZipOutputStream outputStream;
 
-        public ParFileExporter(OutputStream outputStream) {
-            this.outputStream = new ZipOutputStream(outputStream);
+        public ParFileExporter(ZipOutputStream outputStream) {
+            this.outputStream = outputStream;
+            PluginLogger.logInfo("OutputStream class from output: " + outputStream.getClass());
         }
 
         @Override
         public void finished() throws IOException {
+            PluginLogger.logInfo("Not finished!");
             outputStream.close();
         }
 
         @Override
         public void write(IFile resource, String destinationPath) throws IOException, CoreException {
+            PluginLogger.logInfo("Enter write: " + destinationPath + " | " + outputStream.getClass());
             WizardPageUtils.write(outputStream, new ZipEntry(destinationPath), resource);
         }
 
