@@ -249,6 +249,12 @@ public class BotCache {
         }
         return BOT_TASK_FILES.get(botTask);
     }
+    public static synchronized boolean isBotTaskFile(BotTask botTask) {
+        if (!BOT_TASK_FILES.containsKey(botTask)) {
+            return false;
+        }
+        return true;
+    }
 
     public static synchronized IFolder getBotTaskFolder(BotTask botTask) {
         IFile botTaskFile = getBotTaskFile(botTask);

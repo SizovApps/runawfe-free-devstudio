@@ -75,11 +75,14 @@ public class BotExportCommand extends BotSyncCommand {
         writeEmbeddedFiles(botFolder, zipStream);
 
         ru.runa.gpd.PluginLogger.logInfo("End bot write!!!");
-        zipStream.putNextEntry(new ZipEntry(botFolder.getName() + ".glb"));
-        ByteArrayOutputStream globalStream = new ByteArrayOutputStream();
-        getGlobalSectionStream(globalStream, botFolder);
-        globalStream.close();
-        zipStream.write(globalStream.toByteArray());
+
+        if (hasGlobalSection(botFolder)) {
+            zipStream.putNextEntry(new ZipEntry(botFolder.getName() + ".glb"));
+            ByteArrayOutputStream globalStream = new ByteArrayOutputStream();
+            getGlobalSectionStream(globalStream, botFolder);
+            globalStream.close();
+            zipStream.write(globalStream.toByteArray());
+        }
         ru.runa.gpd.PluginLogger.logInfo("End global write!!!");
 
         zipStream.close();
@@ -93,14 +96,18 @@ public class BotExportCommand extends BotSyncCommand {
 
     protected void getBotGlobalSectionStream(IFolder botFolder, ZipOutputStream zipOutputStream) throws IOException, CoreException {
         try {
+            boolean hasGlobalSection = false;
             IFolder globalFolder = null;
             IResource[] members = botFolder.members();
             for (IResource resource : members) {
                 if (resource instanceof IFolder) {
+                    hasGlobalSection = true;
                     globalFolder = (IFolder) resource;
                 }
             }
-
+            if (!hasGlobalSection){
+                return;
+            }
             List<IFile> resourcesToExport = new ArrayList<IFile>();
             List<File> files = new ArrayList<>();
             IResource[] globalMembers = globalFolder.members();
@@ -122,6 +129,21 @@ public class BotExportCommand extends BotSyncCommand {
         } catch (Throwable th) {
             ru.runa.gpd.PluginLogger.logErrorWithoutDialog(ru.runa.gpd.Localization.getString("ExportParWizardPage.error.export"), th);
             ru.runa.gpd.PluginLogger.logErrorWithoutDialog((Throwables.getRootCause(th).getMessage()));
+        }
+    }
+
+    private boolean hasGlobalSection(IFolder botFolder) {
+        try {
+            IResource[] members = botFolder.members();
+            for (IResource resource : members) {
+                if (resource instanceof IFolder) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        catch (Exception e) {
+            return false;
         }
     }
 

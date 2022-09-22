@@ -3,14 +3,16 @@ package ru.runa.gpd.util;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.InputStream;
 import java.util.regex.Pattern;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IResource;
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 import org.dom4j.io.OutputFormat;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -231,4 +233,5 @@ public class BotTaskUtils {
         botTask.setName(newName);
         WorkspaceOperations.saveBotTask(targetBotFolder.getFile(newName), botTask);
     }
+
 }

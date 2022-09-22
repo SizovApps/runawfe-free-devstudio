@@ -4,9 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import org.eclipse.core.resources.IFile;
@@ -50,18 +48,35 @@ public class BotImportCommand extends BotSyncCommand {
     protected void importBot(IProgressMonitor progressMonitor) throws IOException, CoreException {
         validate();
         Map<String, byte[]> files = IOUtils.getArchiveFiles(inputStream, true);
+        Map<String, byte[]> globalSections = new HashMap<>();
+        for (String cur : files.keySet()) {
+            ru.runa.gpd.PluginLogger.logInfo("Import files: " + cur + " | " + new String(files.get(cur)));
+        }
         byte[] scriptXml = files.remove("script.xml");
+
         Preconditions.checkNotNull(scriptXml, "No script.xml");
+
+        for (String fileName: files.keySet()) {
+            if (fileName.endsWith(".glb")) {
+                globalSections.put(fileName, files.get(fileName));
+                files.remove(fileName);
+            }
+        }
+
+
+
         List<BotTask> botTasks = BotScriptUtils.getBotTasksFromScript(botStationName, botName, scriptXml, files);
 
         // create bot
         IPath path = new Path(botStationName).append("/src/botstation/").append(botName);
+        ru.runa.gpd.PluginLogger.logInfo("Imported folder path: " + path.toString());
         IFolder folder = ResourcesPlugin.getWorkspace().getRoot().getFolder(path);
         if (!folder.exists()) {
             folder.create(true, true, null);
         }
 
         for (BotTask botTask : botTasks) {
+            ru.runa.gpd.PluginLogger.logInfo("Imported botTask: " + botTask.getName());
             IFile file = folder.getFile(botTask.getName());
             WorkspaceOperations.saveBotTask(file, botTask);
 
@@ -73,6 +88,10 @@ public class BotImportCommand extends BotSyncCommand {
                 IOUtils.createOrUpdateFile(folder.getFile(fileToSave), new ByteArrayInputStream(files.get(fileToSave)));
             }
             botTask.getFilesToSave().clear();
+        }
+
+        for (String globalSectionName : globalSections.keySet()) {
+            ru.runa.gpd.PluginLogger.logInfo("globalSectionName: " + globalSectionName);
         }
     }
 

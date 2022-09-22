@@ -24,6 +24,7 @@ public final class ParFileImporter implements FileImporter {
 
     @Override
     public IFolder importFile(final FileImportInfo file) throws Exception {
+        ru.runa.gpd.PluginLogger.logInfo("Import file name: " + file.getName());
         final IFolder processFolder = IOUtils.getProcessFolder(container, file.getPath());
         if (processFolder.exists()) {
             return null;

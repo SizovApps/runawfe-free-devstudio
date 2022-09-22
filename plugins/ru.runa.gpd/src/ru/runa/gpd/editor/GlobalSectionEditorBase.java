@@ -87,6 +87,7 @@ public abstract class GlobalSectionEditorBase extends ProcessEditorBase {
             if (!(definition instanceof SubprocessDefinition)) {
                 swimlanePage = super.addNewPage(new SwimlaneEditorPage((ProcessEditorBase) this), "DesignerEditor.title.swimlanes");
                 variablePage = super.addNewPage(new VariableEditorPage((ProcessEditorBase) this), "DesignerEditor.title.variables");
+
                 variableTypeEditorPage = super.addNewPage(new VariableTypeEditorPage((ProcessEditorBase) this), "VariableUserType.collection");
             }
             ProcessDefinitionValidator.validateDefinition(definition);

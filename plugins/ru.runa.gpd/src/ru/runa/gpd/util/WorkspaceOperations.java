@@ -550,6 +550,7 @@ public class WorkspaceOperations {
             IEditorPart editorPart = IDE.openEditor(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(), definitionFile, editorId,
                     true);
             if (editorPart instanceof ProcessEditorBase) {
+                PluginLogger.logInfo("ProcessEditorBase!");
                 return (ProcessEditorBase) editorPart;
             }
         } catch (PartInitException e) {

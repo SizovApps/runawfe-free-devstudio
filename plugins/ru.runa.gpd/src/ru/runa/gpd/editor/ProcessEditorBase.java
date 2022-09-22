@@ -230,6 +230,7 @@ public abstract class ProcessEditorBase extends MultiPageEditorPart implements I
         }
     }
 
+
     public void refresh() {
         IFigure figure = getRootFigure();
         figure.revalidate();

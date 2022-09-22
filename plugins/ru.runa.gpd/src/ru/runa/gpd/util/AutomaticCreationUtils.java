@@ -126,14 +126,22 @@ public class AutomaticCreationUtils {
 
     public static ProcessDefinition createNewGlobalSectionDefinitionAutomatic (BotTask botTask) {
 
+        if (!BotCache.isBotTaskFile(botTask)) {
+            return null;
+        }
         IFolder parentProcessDefinitionFolder = BotCache.getBotTaskFolder(botTask);
 
         PluginLogger.logInfo("parentProcessDefinitionFolder: " + parentProcessDefinitionFolder.getName());
         try {
-            IFolder folder = getProcessFolderByCreateFromBot(parentProcessDefinitionFolder.getName());;
-            folder.create(true, true, null);
+            IFolder folder = isAlreadyCreatedGlobalSetion(parentProcessDefinitionFolder);
+            boolean wasGlobalCreatedBefore = true;
+            if (folder == null) {
+                wasGlobalCreatedBefore = false;
+                folder = getProcessFolderByCreateFromBot(parentProcessDefinitionFolder.getName());;
+                folder.create(true, true, null);
+            }
             PluginLogger.logInfo("Create from start: " + folder.getName());
-            IFile definitionFile = ru.runa.gpd.util.IOUtils.getProcessDefinitionFile(folder);
+            IFile definitionFile = IOUtils.getProcessDefinitionFile(folder);
             PluginLogger.logInfo("definitionFile: " + definitionFile.getName());
             String processName = folder.getName();
             ru.runa.gpd.lang.Language language = ru.runa.gpd.lang.Language.valueOf("BPMN");
@@ -144,8 +152,11 @@ public class AutomaticCreationUtils {
             properties.put(ru.runa.gpd.lang.ProcessSerializer.ACCESS_TYPE, "Process");
             Document document = language.getSerializer().getInitialProcessDefinitionDocument(processName, properties);
             byte[] bytes = XmlUtil.writeXml(document);
-            definitionFile.create(new ByteArrayInputStream(bytes), true, null);
-            String cssTemplateName = null;
+            if (!wasGlobalCreatedBefore) {
+                definitionFile.create(new ByteArrayInputStream(bytes), true, null);
+            } else {
+                definitionFile.setContents(new ByteArrayInputStream(bytes), IResource.FORCE, null);
+            }
 
             PluginLogger.logInfo("Enter to end!!!");
             ProcessCache.newProcessDefinitionWasCreated(definitionFile);
@@ -184,6 +195,20 @@ public class AutomaticCreationUtils {
         PluginLogger.logInfo("BotFolderName: " + container.getName());
         projectName += " global";
         return IOUtils.getProcessFolder(container, projectName);
+    }
+
+    private static IFolder isAlreadyCreatedGlobalSetion(IFolder parentFolder) {
+        try {
+            for (IResource resource : parentFolder.members()) {
+                if (resource instanceof IFolder) {
+                    PluginLogger.logInfo("Child folder: " + ((IFolder) resource).getName());
+                    return (IFolder) resource;
+                }
+            }
+        }catch (Exception e) {
+            return null;
+        }
+        return null;
     }
 
     private static void setGlobalVariables(IFile processFile, BotTask botTask) {
