@@ -25,6 +25,7 @@ abstract class AbstractOperatingVariableComboBasedConstraintsCompositeBuilder ex
 
     protected void addCombo() {
         combo = new Combo(getParent(), SWT.READ_ONLY);
+        ru.runa.gpd.PluginLogger.logInfo("Abstract variableTypeName: " + variableTypeName);
         variableNamesByVariableTypeName(variableTypeName).forEach(combo::add);
 
         combo.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> {

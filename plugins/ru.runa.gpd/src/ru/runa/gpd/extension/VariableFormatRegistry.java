@@ -179,9 +179,11 @@ public class VariableFormatRegistry extends ArtifactRegistry<VariableFormatArtif
     public String getFilterJavaClassName(String label) {
         for (VariableFormatArtifact artifact : filterArtifacts) {
             PluginLogger.logInfo("artifact.getLabel(): " + artifact.getLabel());
-            if (Objects.equal(label, artifact.getLabel()) || artifact.getLabel().contains(label)) {
+
+            if (Objects.equal(label, artifact.getLabel()) || artifact.getLabel().contains(label) || Objects.equal(label, artifact.getJavaClassName()) || artifact.getJavaClassName().contains(label)) {
                 return artifact.getJavaClassName();
             }
+
         }
         String finalLabel = label;
         return getVariableName(label).orElseThrow(() -> new InternalApplicationException("No filter found by label " + finalLabel));

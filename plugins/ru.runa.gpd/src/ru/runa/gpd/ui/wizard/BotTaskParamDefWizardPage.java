@@ -54,6 +54,7 @@ public class BotTaskParamDefWizardPage extends WizardPage {
         this.paramDefGroup = paramDefGroup;
         this.paramDef = paramDef;
         this.dialogEnhancementMode = dialogEnhancementMode;
+        ru.runa.gpd.PluginLogger.logInfo("Param group: " + paramDefGroup.getName());
     }
 
     @Override
@@ -134,6 +135,7 @@ public class BotTaskParamDefWizardPage extends WizardPage {
             types = setTypesForInternalStorage();
         } else {
             for (VariableFormatArtifact artifact : VariableFormatRegistry.getInstance().getFilterArtifacts()) {
+                ru.runa.gpd.PluginLogger.logInfo("Artifact label: " + artifact.getLabel() + " | " + artifact.getJavaClassName());
                 types.add(artifact.getLabel());
             }
             try {
@@ -166,26 +168,36 @@ public class BotTaskParamDefWizardPage extends WizardPage {
         ru.runa.gpd.PluginLogger.logInfo("Enter find table!!!");
         IFile tableFile = null;
         try {
-            for (IResource file : DataTableUtils.getDataTableProject().members()) {
-                ru.runa.gpd.PluginLogger.logInfo("File name: " + file.getName());
-                ru.runa.gpd.PluginLogger.logInfo("Is equal: " + IOUtils.getWithoutExtension(file.getName()) + " | " + BotTask.usingBotTask.getSelectedDataTableName());
-                if (file instanceof IFile && file.getName().endsWith(DataTableUtils.FILE_EXTENSION) && IOUtils.getWithoutExtension(file.getName()).equals(BotTask.usingBotTask.getSelectedDataTableName())) {
-                    ru.runa.gpd.PluginLogger.logInfo("Found!!!");
-                    tableFile = (IFile) file;
-                }
-            }
-            if (tableFile == null) {
-                return new ArrayList<>();
-            }
-            ru.runa.gpd.PluginLogger.logInfo("Table name: " + tableFile.getName());
+            if (paramDefGroup.getName().equals("output")) {
+                Arrays.stream(DataTableUtils.getDataTableProject().members())
+                        .filter(r -> r instanceof IFile && r.getName().endsWith(DataTableUtils.FILE_EXTENSION))
+                        .map(r -> IOUtils.getWithoutExtension(r.getName()))
+                        .forEach(types::add);
 
-            String tableFileName = IOUtils.getWithoutExtension(tableFile.getName());
-            String tableFileNameExtension = IOUtils.getExtension(tableFile.getName());
-            VariableUserType userType = DataTableCache.getDataTable(tableFileName);
-            ru.runa.gpd.PluginLogger.logInfo("Names: " + tableFileName + " " + tableFileNameExtension + " " + userType.getName());
-            for (Variable variable : userType.getAttributes()) {
-                ru.runa.gpd.PluginLogger.logInfo("Variable name: " + variable.getFormatClassName() + " " + variable.getFormat() + " " + variable.getFormatLabel());
-                types.add(variable.getFormatLabel());
+                types.add(VariableFormatRegistry.getInstance().getFilterLabel("java.util.List"));
+
+            } else {
+                for (IResource file : DataTableUtils.getDataTableProject().members()) {
+                    ru.runa.gpd.PluginLogger.logInfo("File name: " + file.getName());
+                    ru.runa.gpd.PluginLogger.logInfo("Is equal: " + IOUtils.getWithoutExtension(file.getName()) + " | " + BotTask.usingBotTask.getSelectedDataTableName());
+                    if (file instanceof IFile && file.getName().endsWith(DataTableUtils.FILE_EXTENSION) && IOUtils.getWithoutExtension(file.getName()).equals(BotTask.usingBotTask.getSelectedDataTableName())) {
+                        ru.runa.gpd.PluginLogger.logInfo("Found!!!");
+                        tableFile = (IFile) file;
+                    }
+                }
+                if (tableFile == null) {
+                    return new ArrayList<>();
+                }
+                ru.runa.gpd.PluginLogger.logInfo("Table name: " + tableFile.getName());
+
+                String tableFileName = IOUtils.getWithoutExtension(tableFile.getName());
+                String tableFileNameExtension = IOUtils.getExtension(tableFile.getName());
+                VariableUserType userType = DataTableCache.getDataTable(tableFileName);
+                ru.runa.gpd.PluginLogger.logInfo("Names: " + tableFileName + " " + tableFileNameExtension + " " + userType.getName());
+                for (Variable variable : userType.getAttributes()) {
+                    ru.runa.gpd.PluginLogger.logInfo("Variable name: " + variable.getFormatClassName() + " " + variable.getFormat() + " " + variable.getFormatLabel());
+                    types.add(variable.getFormatLabel());
+                }
             }
         }
         catch (Exception ignored) {}

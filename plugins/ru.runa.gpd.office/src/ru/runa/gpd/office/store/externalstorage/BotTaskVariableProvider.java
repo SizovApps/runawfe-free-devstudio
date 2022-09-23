@@ -1,5 +1,6 @@
 package ru.runa.gpd.office.store.externalstorage;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -29,11 +30,13 @@ public class BotTaskVariableProvider implements VariableProvider{
 
     @Override
     public VariableUserType getUserType(String name) {
+        ru.runa.gpd.PluginLogger.logInfo("Varibale provider: " + name);
         return botTask.getVariableUserType(name);
     }
 
     @Override
     public List<Variable> getVariables(boolean expandComplexTypes, boolean includeSwimlanes, String... typeClassNameFilters) {
+        ru.runa.gpd.PluginLogger.logInfo("Get variable: " + typeClassNameFilters);
         return botTask.getVariabels(expandComplexTypes, includeSwimlanes, typeClassNameFilters);
     }
 }

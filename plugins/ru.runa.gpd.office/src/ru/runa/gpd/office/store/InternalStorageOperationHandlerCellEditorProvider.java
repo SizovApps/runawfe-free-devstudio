@@ -42,6 +42,7 @@ import ru.runa.gpd.office.store.externalstorage.BotTaskVariableProvider;
 import ru.runa.gpd.lang.model.BotTask;
 import ru.runa.gpd.ui.custom.SwtUtils;
 import ru.runa.gpd.util.EmbeddedFileUtils;
+import ru.runa.gpd.extension.VariableFormatRegistry;
 
 public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedConstructorProvider<InternalStorageDataModel> {
     public static final String INTERNAL_STORAGE_DATASOURCE_PATH = "datasource:InternalStorage";
@@ -67,6 +68,7 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
         final boolean isUseExternalStorageOut = (delegable instanceof StorageAware) ? ((StorageAware) delegable).isUseExternalStorageOut() : false;
 
         Optional<ProcessDefinition> processDefinition = Optional.empty();
+
         Optional<BotTask> botTask = Optional.empty();
         if (delegable instanceof ProcessDefinitionAware) {
             processDefinition = Optional.ofNullable(((ProcessDefinitionAware) delegable).getProcessDefinition());
@@ -78,7 +80,7 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
             processDefinition = ((VariableContainer) delegable).getVariables(false, true).stream().map(variable -> variable.getProcessDefinition())
                     .findAny();
         }
-
+        PluginLogger.logInfo("Config botTask: " + botTask.get().getName());
         if (delegable instanceof StorageAware) {
             if (delegable instanceof VariableUserTypeNameAware) {
                 return new ConstructorView(parent, delegable, model,
@@ -92,9 +94,16 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
                             processDefinition.orElseThrow(() -> new IllegalStateException("process definition unavailable"))),
                     isUseExternalStorageIn, isUseExternalStorageOut).build();
         } else {
-            return new ConstructorView(parent, delegable, model,
+            PluginLogger.logInfo("Enter BotTaskVariableProvider!");
+            if (botTask.get().getSelectedDataTableName() != null) {
+                return new ConstructorView(parent, delegable, model,
                         new BotTaskVariableProvider(botTask.orElseThrow(() -> new IllegalStateException("bot task unavailable"))),
-                    isUseExternalStorageIn, isUseExternalStorageOut).build();
+                        isUseExternalStorageIn, isUseExternalStorageOut, botTask.get().getSelectedDataTableName()).build();
+            } else {
+                return new ConstructorView(parent, delegable, model,
+                        new BotTaskVariableProvider(botTask.orElseThrow(() -> new IllegalStateException("bot task unavailable"))),
+                        isUseExternalStorageIn, isUseExternalStorageOut).build();
+            }
         }
     }
 
@@ -141,6 +150,7 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
 
         private final boolean isUseExternalStorageIn;
         private final boolean isUseExternalStorageOut;
+        private String botTableName;
 
         private StorageConstraintsModel constraintsModel;
         private VariableUserTypeInfo variableUserTypeInfo = new VariableUserTypeInfo(false, "");
@@ -153,6 +163,16 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
             this.variableProvider = variableProvider;
             this.isUseExternalStorageIn = isUseExternalStorageIn;
             this.isUseExternalStorageOut = isUseExternalStorageOut;
+            model.getInOutModel().inputPath = INTERNAL_STORAGE_DATASOURCE_PATH;
+            setLayout(new GridLayout(2, false));
+        }
+        public ConstructorView(Composite parent, Delegable delegable, InternalStorageDataModel model, VariableProvider variableProvider,
+                               boolean isUseExternalStorageIn, boolean isUseExternalStorageOut, String botTableName) {
+            super(parent, delegable, model);
+            this.variableProvider = variableProvider;
+            this.isUseExternalStorageIn = isUseExternalStorageIn;
+            this.isUseExternalStorageOut = isUseExternalStorageOut;
+            this.botTableName = botTableName;
             model.getInOutModel().inputPath = INTERNAL_STORAGE_DATASOURCE_PATH;
             setLayout(new GridLayout(2, false));
         }
@@ -200,6 +220,7 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
                 constraintsModel.setVariableName(null);
                 model.setMode(FilesSupplierMode.IN);
             } else {
+                PluginLogger.logInfo("Call addDataTypeCombo!!!");
                 addDataTypeCombo();
             }
             initConstraintsCompositeBuilder();
@@ -255,7 +276,24 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
 
         private void addDataTypeCombo() {
             final Combo combo = new Combo(this, SWT.READ_ONLY);
-            variableProvider.complexUserTypeNames().collect(Collectors.toSet()).forEach(combo::add);
+            if (botTableName != null) {
+                if (constraintsModel.getQueryType() != QueryType.valueOf("SELECT")) {
+                    PluginLogger.logInfo("Not select!");
+                    for (String varName : variableProvider.complexUserTypeNames().collect(Collectors.toSet())) {
+                        if (!varName.equals("java.util.List") && !varName.equals(botTableName)) {
+                            combo.add(varName);
+                            PluginLogger.logInfo("Added varName: " + varName);
+                        }
+                    }
+                }
+                else {
+                    PluginLogger.logInfo("Select!");
+                    combo.add(VariableFormatRegistry.getInstance().getFilterLabel("java.util.List"));
+                    combo.add(botTableName);
+                }
+            } else {
+                variableProvider.complexUserTypeNames().collect(Collectors.toSet()).forEach(combo::add);
+            }
             combo.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> {
                 final String text = combo.getText();
                 if (Strings.isNullOrEmpty(text)) {
@@ -268,8 +306,13 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
                 }
                 buildFromModel();
             }));
-            final VariableUserType userType = variableProvider.getUserType(constraintsModel.getSheetName());
+            PluginLogger.logInfo("constraintsModel name: " + constraintsModel.getSheetName());
+            VariableUserType userType = variableProvider.getUserType(constraintsModel.getSheetName());
+            if (userType == null && botTableName != null) {
+                userType = new VariableUserType(constraintsModel.getSheetName(), true);
+            }
             if (userType != null) {
+                PluginLogger.logInfo("Combo userType: " + userType.getName());
                 combo.setText(userType.getName());
                 variableUserTypeInfo.setVariableTypeName(userType.getName());
             }
@@ -290,6 +333,7 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
                 constraintsModel.setQueryType(QueryType.valueOf(combo.getText()));
                 model.setMode(constraintsModel.getQueryType().equals(QueryType.SELECT) ? FilesSupplierMode.BOTH : FilesSupplierMode.IN);
                 model.getInOutModel().outputVariable = null;
+                addDataTypeCombo();
                 buildFromModel();
                 if (constraintsCompositeBuilder != null) {
                     constraintsCompositeBuilder.clearConstraints();

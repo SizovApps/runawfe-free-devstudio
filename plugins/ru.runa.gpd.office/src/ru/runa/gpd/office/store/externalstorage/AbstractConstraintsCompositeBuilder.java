@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 
 import java.util.Arrays;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;

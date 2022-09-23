@@ -108,6 +108,7 @@ public class BotTask implements Delegable, Comparable<BotTask> {
     public VariableUserType getVariableUserType(String name) {
         for (ParamDefGroup group : paramDefConfig.getGroups()) {
             for (ParamDef paramDef : group.getParameters()) {
+                PluginLogger.logInfo("ParamDef: " + paramDef.getFormatFilters().get(0));
                 if (name.equals(paramDef.getFormatFilters().get(0))) {
                     return new VariableUserType(paramDef.getFormatFilters().get(0), true);
                 }
@@ -131,13 +132,18 @@ public class BotTask implements Delegable, Comparable<BotTask> {
         if (paramDefConfig != null) {
             for (ParamDefGroup group : paramDefConfig.getGroups()) {
                 for (ParamDef paramDef : group.getParameters()) {
+                    PluginLogger.logInfo("first param: " + paramDef.getFormatFilters().get(0));
                     boolean applicable = typeClassNameFilters == null || typeClassNameFilters.length == 0;
                     if (!applicable && paramDef.getFormatFilters().size() > 0) {
+                        PluginLogger.logInfo("second param: " + paramDef.getFormatFilters().get(0));
                         Variable variable = new Variable(paramDef.getLabel(), paramDef.getName(), paramDef.getFormatFilters().get(0), new VariableUserType(paramDef.getFormatFilters().get(0), true));
                         result.add(variable);
                     }
                 }
             }
+        }
+        for (Variable variable : result) {
+            PluginLogger.logInfo("Result variables: " + variable.getScriptingName() + " | " + variable.getUserType().getName());
         }
         return result;
     }
