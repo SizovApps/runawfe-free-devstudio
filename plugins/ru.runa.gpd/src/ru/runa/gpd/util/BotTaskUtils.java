@@ -60,7 +60,12 @@ public class BotTaskUtils {
             Document document = DocumentHelper.createDocument();
             Element root = document.addElement(EXTENDED_ELEMENT);
             Element parametersElement = root.addElement(PARAMETERS_ELEMENT);
-            botTask.getParamDefConfig().writeXml(parametersElement);
+            if (botTask.getSelectedDataTableName() != null && !botTask.getSelectedDataTableName().equals("")) {
+                botTask.getParamDefConfig().writeXml(parametersElement, botTask.getSelectedDataTableName());
+            }
+            else {
+                botTask.getParamDefConfig().writeXml(parametersElement);
+            }
             Element botConfigElement = root.addElement(BOTCONFIG_ELEMENT);
             if (XmlUtil.isXml(botTask.getDelegationConfiguration())) {
                 Document conf = XmlUtil.parseWithoutValidation(botTask.getDelegationConfiguration());
@@ -75,7 +80,12 @@ public class BotTaskUtils {
                 return botTask.getDelegationConfiguration();
             }
             Document document = DocumentHelper.createDocument();
-            botTask.getParamDefConfig().writeXml(document);
+            if (botTask.getSelectedDataTableName() != null && !botTask.getSelectedDataTableName().equals("")) {
+                botTask.getParamDefConfig().writeXml(document, botTask.getSelectedDataTableName());
+            }
+            else {
+                botTask.getParamDefConfig().writeXml(document);
+            }
             return XmlUtil.toString(document);
         } else {
             return botTask.getDelegationConfiguration();
@@ -115,6 +125,10 @@ public class BotTaskUtils {
             botTask.setType(BotTaskType.PARAMETERIZED);
             Document document = XmlUtil.parseWithoutValidation(configuration);
             botTask.setParamDefConfig(ParamDefConfig.parse(document));
+            if (botTask.getParamDefConfig().getSelectedTableName() != null && !botTask.getParamDefConfig().getSelectedTableName().equals("")) {
+                PluginLogger.logInfo("Set getSelectedDataTableName!");
+                botTask.setSelectedDataTable(botTask.getParamDefConfig().getSelectedTableName());
+            }
             botTask.setDelegationConfiguration(configuration);
         } else if (isBotTaskExtendedConfiguration(configuration)) {
             botTask.setType(BotTaskType.EXTENDED);
@@ -123,6 +137,10 @@ public class BotTaskUtils {
             Element element = botElement.element(PARAMETERS_ELEMENT).element(ParamDefConfig.NAME_CONFIG);
             Preconditions.checkNotNull(element);
             botTask.setParamDefConfig(ParamDefConfig.parse(element));
+            if (botTask.getParamDefConfig().getSelectedTableName() != null && !botTask.getParamDefConfig().getSelectedTableName().equals("")) {
+                PluginLogger.logInfo("Set getSelectedDataTableName!");
+                botTask.setSelectedDataTable(botTask.getParamDefConfig().getSelectedTableName());
+            }
             Element botConfigElement = botElement.element(BOTCONFIG_ELEMENT);
             if (botConfigElement.elements().size() > 0) {
                 Element configElement = (Element) botConfigElement.elements().get(0);
@@ -136,6 +154,7 @@ public class BotTaskUtils {
             botTask.setType(BotTaskType.SIMPLE);
             botTask.setDelegationConfiguration(configuration);
         }
+        PluginLogger.logInfo("getSelectedDataTableName from create: " + botTask.getSelectedDataTableName());
         return botTask;
     }
 

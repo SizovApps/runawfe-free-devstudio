@@ -36,6 +36,7 @@ public class BotResourcesLabelProvider extends LabelProvider {
         return super.getText(element);
     }
 
+
     @Override
     public Image getImage(Object element) {
         ru.runa.gpd.PluginLogger.logInfo("Start getImage label!!!");

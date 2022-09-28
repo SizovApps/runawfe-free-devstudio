@@ -23,7 +23,8 @@ public class BotTreeContentProvider implements ITreeContentProvider {
         if (parentElement instanceof IProject) {
             List<IFolder> botFolders = IOUtils.getBotFolders((IProject) parentElement);
             return botFolders.toArray();
-        } else if (parentElement instanceof IFolder) {
+        }
+        else if (parentElement instanceof IFolder) {
             ru.runa.gpd.PluginLogger.logInfo("Enter parentFolder: " + ((IFolder)parentElement).getName());
             List<IFile> files = IOUtils.getBotTaskFiles((IFolder) parentElement);
             List<IFile> botFiles = IOUtils.getProcessDefinitionFiles((IFolder) parentElement);
@@ -35,6 +36,7 @@ public class BotTreeContentProvider implements ITreeContentProvider {
         }
         return null;
     }
+
 
     @Override
     public Object getParent(Object element) {

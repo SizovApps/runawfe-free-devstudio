@@ -117,6 +117,7 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
     private Button deleteParameterButton;
     private Button readDocxParametersButton;
     private Combo tablesCombo;
+    private String previuosTableName;
     private String embeddedFileName;
     private DocxDialogEnhancementMode docxDialogEnhancementModeInput, docxDialogEnhancementModeOutput;
     private boolean rebuildingView;
@@ -139,6 +140,7 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
         setDirty(false);
         getSite().getPage().addSelectionListener(this);
         ResourcesPlugin.getWorkspace().addResourceChangeListener(this, IResourceChangeEvent.POST_CHANGE);
+        previuosTableName = "";
 
         if (isBotDocxHandlerEnhancement()) {
             // initEmbeddedFileNameTimer();
@@ -943,9 +945,29 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
             @Override
             protected void onSelection(SelectionEvent e) throws Exception {
                 botTask.setSelectedDataTable(tablesCombo.getText());
-                deleteBotParams();
+                if (!previuosTableName.equals("") && !previuosTableName.equals(tablesCombo.getText())) {
+                    deleteBotParams();
+                }
+                previuosTableName = tablesCombo.getText();
             }
         });
+        PluginLogger.logInfo("getSelectedDataTableName from editor: " + botTask.getSelectedDataTableName());
+        if (botTask.getSelectedDataTableName() != null) {
+            tablesCombo.select(getIndexOfSelectedTable(tables));
+            previuosTableName = tablesCombo.getText();
+            PluginLogger.logInfo("Set previuosTableName: " + previuosTableName);
+        }
+    }
+
+    private int getIndexOfSelectedTable(List<String> tables) {
+        int pos = 0;
+        for (String curTable : tables) {
+            if (curTable.equals(botTask.getSelectedDataTableName())) {
+                return pos;
+            }
+            pos += 1;
+        }
+        return 0;
     }
 
     private void deleteBotParams() {

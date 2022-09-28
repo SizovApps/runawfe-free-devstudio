@@ -42,6 +42,7 @@ import ru.runa.gpd.util.VariableUtils;
 import ru.runa.gpd.util.XmlUtil;
 import ru.runa.wfe.InternalApplicationException;
 
+
 @SuppressWarnings("unchecked")
 public class ParamDefConfig {
     public static final String NAME_CONFIG = "config";
@@ -53,8 +54,10 @@ public class ParamDefConfig {
     private static final String ATTRIBUTE_ELEMENT_NAME = "variable";
     private static final String USER_TYPE = "usertype";
     private static final String GLOBAL = "global";
+    private static final String TABLE_NAME = "tableName";
     private static final Pattern VARIABLE_REGEXP = Pattern.compile("\\$\\{(.*?[^\\\\])\\}");
     private final String name;
+    private String selectedTableName;
     private final List<ParamDefGroup> groups = new ArrayList<ParamDefGroup>();
 
     public ParamDefConfig(String name) {
@@ -67,6 +70,10 @@ public class ParamDefConfig {
 
     public static ParamDefConfig parse(String xml) {
         return parse(XmlUtil.parseWithoutValidation(xml));
+    }
+
+    public String getSelectedTableName() {
+        return selectedTableName;
     }
 
     public static ParamDefConfig parse(Document document) {
@@ -131,6 +138,10 @@ public class ParamDefConfig {
                     } catch (Exception e) {
                         throw new RuntimeException("No selected process definition!");
                     }
+            } else if (groupElement.getName() == "selectedTable") {
+                String nameOfTable = groupElement.attributeValue("tableName");
+                PluginLogger.logInfo("Find selectedTable! " + nameOfTable);
+                config.selectedTableName = nameOfTable;
             }
         }
         return config;
@@ -379,6 +390,15 @@ public class ParamDefConfig {
 
     public void writeXml(Branch parent) {
         Element root = parent.addElement("config");
+        writeXMLFromRoot(root, "");
+    }
+
+    public void writeXml(Branch parent, String selectedTableName) {
+        Element root = parent.addElement("config");
+        writeXMLFromRoot(root, selectedTableName);
+    }
+
+    public void writeXMLFromRoot(Element root, String selectedTableName) {
         List<String> usedUserTypesNames = new ArrayList<String>();
         for (ParamDefGroup group : getGroups()) {
             if ("usertypes".equals(group.getName())) {
@@ -406,6 +426,11 @@ public class ParamDefConfig {
         IProject dtProject = DataTableUtils.getDataTableProject();
         Element usertypes = root.addElement("usertypes");
         Element globals = root.addElement("globals");
+
+        if (!selectedTableName.equals("")) {
+            Element table = root.addElement("selectedTable");
+            table.addAttribute(TABLE_NAME, selectedTableName);
+        }
 
         VariablesXmlContentProvider variablesXmlContentProvider = new VariablesXmlContentProvider();
         for (String usedTypeName : usedUserTypesNames) {
@@ -449,6 +474,7 @@ public class ParamDefConfig {
             }
         }
     }
+
 
     public Set<String> getAllParameterNames(boolean excludeOptional) {
         Set<String> result = Sets.newHashSet();
