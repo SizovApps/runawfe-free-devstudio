@@ -3,6 +3,7 @@ package ru.runa.gpd.extension.handler;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import java.io.ByteArrayInputStream;
+import java.lang.annotation.Documented;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -27,6 +28,7 @@ import ru.runa.gpd.DataTableNature;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.PluginLogger;
 import ru.runa.gpd.ProcessCache;
+import ru.runa.gpd.extension.VariableFormatRegistry;
 import ru.runa.gpd.extension.handler.ParamDef.Presentation;
 import ru.runa.gpd.lang.ValidationError;
 import ru.runa.gpd.lang.model.Delegable;
@@ -41,6 +43,8 @@ import ru.runa.gpd.util.UserTypeXmlContentProvider;
 import ru.runa.gpd.util.VariableUtils;
 import ru.runa.gpd.util.XmlUtil;
 import ru.runa.wfe.InternalApplicationException;
+
+import javax.print.Doc;
 
 
 @SuppressWarnings("unchecked")
@@ -145,6 +149,57 @@ public class ParamDefConfig {
             }
         }
         return config;
+    }
+
+    public static void createTablesForInternalStorageHandler(Document document, String nameOfTable) {
+        Element rootElement = document.getRootElement();
+        createTablesForInternalStorageHandler(rootElement, nameOfTable);
+    }
+    public static void createTablesForInternalStorageHandler(Element rootElement, String nameOfTable) {
+        List<Element> groupElements = rootElement.elements();
+        for (Element groupElement : groupElements) {
+            ParamDefGroup group = new ParamDefGroup(groupElement);
+            if (groupElement.getName() == "input") {
+                List<Element> inputParamElements = groupElement.elements("param");
+
+                IProject dtProject = DataTableUtils.getDataTableProject();
+                try {
+                    if (!dtProject.exists()) {
+                        IProjectDescription description = ResourcesPlugin.getWorkspace().newProjectDescription(dtProject.getName());
+                        description.setNatureIds(new String[] { DataTableNature.NATURE_ID });
+                        dtProject.create(description, null);
+                        dtProject.open(IResource.BACKGROUND_REFRESH, null);
+                        dtProject.refreshLocal(IResource.DEPTH_ONE, null);
+                    }
+                } catch (CoreException ex) {
+                    throw new InternalApplicationException(ex);
+                }
+
+                IFile dataTableFile = dtProject.getFile(nameOfTable + DataTableUtils.FILE_EXTENSION);
+                VariableUserType dataTable = new VariableUserType(nameOfTable);
+
+                for (Element variable : inputParamElements) {
+                    String name = variable.attributeValue("name");
+                    String scriptingName = variable.attributeValue("label");
+                    ru.runa.gpd.extension.VariableFormatRegistry variableFormatRegistry = new VariableFormatRegistry();
+                    String format = variable.attributeValue("formatFilter");
+                    String correctFormat = variableFormatRegistry.getFilterLabel(format);
+                    PluginLogger.logInfo("formats: " + format + " | " + correctFormat);
+                    Variable newVariable = new Variable(name, scriptingName, correctFormat, dataTable);
+                    newVariable.setFormat(format);
+                    dataTable.addAttribute(newVariable);
+                }
+
+                Document document = UserTypeXmlContentProvider.save(dataTableFile, dataTable);
+                try {
+                    IOUtils.createOrUpdateFile(dataTableFile, new ByteArrayInputStream(XmlUtil.writeXml(document)));
+                } catch (CoreException e) {
+                    throw new InternalApplicationException(e);
+                }
+                DataTableCache.reload();
+            }
+        }
+
     }
 
     public String getName() {

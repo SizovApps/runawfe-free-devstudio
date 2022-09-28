@@ -128,6 +128,7 @@ public class BotTaskUtils {
             if (botTask.getParamDefConfig().getSelectedTableName() != null && !botTask.getParamDefConfig().getSelectedTableName().equals("")) {
                 PluginLogger.logInfo("Set getSelectedDataTableName!");
                 botTask.setSelectedDataTable(botTask.getParamDefConfig().getSelectedTableName());
+                ParamDefConfig.createTablesForInternalStorageHandler(document, botTask.getSelectedDataTableName());
             }
             botTask.setDelegationConfiguration(configuration);
         } else if (isBotTaskExtendedConfiguration(configuration)) {
@@ -140,6 +141,7 @@ public class BotTaskUtils {
             if (botTask.getParamDefConfig().getSelectedTableName() != null && !botTask.getParamDefConfig().getSelectedTableName().equals("")) {
                 PluginLogger.logInfo("Set getSelectedDataTableName!");
                 botTask.setSelectedDataTable(botTask.getParamDefConfig().getSelectedTableName());
+                ParamDefConfig.createTablesForInternalStorageHandler(element, botTask.getSelectedDataTableName());
             }
             Element botConfigElement = botElement.element(BOTCONFIG_ELEMENT);
             if (botConfigElement.elements().size() > 0) {
