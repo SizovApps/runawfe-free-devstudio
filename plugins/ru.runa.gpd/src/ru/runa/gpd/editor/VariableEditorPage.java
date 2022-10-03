@@ -162,6 +162,7 @@ public class VariableEditorPage extends EditorPartBase<Variable> {
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
+        ru.runa.gpd.PluginLogger.logInfo("Property: " + evt.getPropertyName() + " | " + evt.getOldValue().toString() + " | " + evt.getNewValue().toString());
         String type = evt.getPropertyName();
         if (PropertyNames.PROPERTY_CHILDREN_CHANGED.equals(type)) {
             updateViewer();

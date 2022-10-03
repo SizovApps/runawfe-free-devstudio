@@ -163,6 +163,7 @@ public class AutomaticCreationUtils {
             setGlobalVariables(definitionFile, botTask);
             botTask.setGlobalSectionDefinitionFile(definitionFile);
             WorkspaceOperations.openGlobalSectionDefinition(definitionFile);
+            //ProcessEditorBase processEditorBase =
             PluginLogger.logInfo("Set global to bot: " + botTask.getGlobalSectionDefinitionFile().getName() + " | " + botTask.getName());
         }
         catch (Exception e){

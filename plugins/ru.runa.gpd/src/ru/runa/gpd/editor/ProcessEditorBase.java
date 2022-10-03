@@ -66,7 +66,7 @@ public abstract class ProcessEditorBase extends MultiPageEditorPart implements I
     protected IFile definitionFile;
     protected GraphicalEditor graphPage;
     protected SwimlaneEditorPage swimlanePage;
-    protected VariableEditorPage variablePage;
+    public VariableEditorPage variablePage;
     protected VariableTypeEditorPage variableTypeEditorPage;
     protected TextEditor sourcePage;
     private OutlineViewer outlineViewer;
