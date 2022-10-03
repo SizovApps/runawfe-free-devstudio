@@ -4,6 +4,9 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.window.Window;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Shell;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.ui.dialog.InfoWithDetailsDialog;
 import ru.runa.gpd.util.ThrowableCauseExtractor;
@@ -11,7 +14,14 @@ import ru.runa.gpd.util.ThrowableCauseExtractor;
 public class Dialogs {
 
     private static int open(int dialogType, String title, String message, String details) {
+        ru.runa.gpd.PluginLogger.logInfo("Display open: " + Display.getCurrent().getActiveShell().toString());
         InfoWithDetailsDialog dialog = new InfoWithDetailsDialog(dialogType, title, message, details);
+        return dialog.open();
+    }
+
+    private static int open(int dialogType, String title, String message, String details, Shell shell) {
+        ru.runa.gpd.PluginLogger.logInfo("Display open: " + shell.toString());
+        InfoWithDetailsDialog dialog = new InfoWithDetailsDialog(dialogType, title, message, details, shell);
         return dialog.open();
     }
 
@@ -59,6 +69,9 @@ public class Dialogs {
     public static void information(String message) {
         open(MessageDialog.INFORMATION, Localization.getString("message.information"), message, null);
     }
+    public static void information(String message, Shell shell) {
+        open(MessageDialog.INFORMATION, Localization.getString("message.information"), message, null, shell);
+    }
 
     // public static int confirmWithAction(String message, String actionTitle, String details, boolean showDetails) {
     // return openWithAction(MessageDialog.CONFIRM, Localization.getString("message.confirm"), message, actionTitle, details, showDetails);
@@ -66,6 +79,10 @@ public class Dialogs {
 
     public static boolean confirm(String message, String details) {
         return open(MessageDialog.CONFIRM, Localization.getString("message.confirm"), message, details) == Window.OK;
+    }
+
+    public static boolean confirm2(String message, String details, Shell shell) {
+        return open(MessageDialog.CONFIRM, Localization.getString("message.confirm"), message, details, shell) == Window.OK;
     }
 
     public static boolean confirm(String message) {

@@ -39,10 +39,13 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorInput;
 import org.eclipse.gef.EditPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IFileEditorInput;
+import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
@@ -129,6 +132,7 @@ public class WorkspaceOperations {
     private final static int REMOVE_DOT = 1;
 
     public static void deleteResources(List<IResource> resources) {
+        PluginLogger.logInfo("Resource size: " + resources.size());
         List<IFile> deletedDefinitions = new ArrayList<IFile>();
         for (IResource resource : resources) {
             try {
@@ -628,21 +632,31 @@ public class WorkspaceOperations {
         new ProcessSaveHistoryDialog((IFolder) selection.getFirstElement()).open();
     }
 
+    public static IEditorPart lastEditor;
+    public static IWorkbenchPage page;
     public static void deleteBotResources(List<IResource> resources) {
         for (IResource resource : resources) {
             try {
                 resource.refreshLocal(IResource.DEPTH_INFINITE, null);
                 if (Dialogs.confirm(Localization.getString(getConfirmMessage(resource), resource.getName()))) {
                     if (resource instanceof IFile) {
-                        IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+                        PluginLogger.logInfo("Deleted resource: " + ((IFile) resource).getName());
                         IFile botTaskFile = (IFile) resource;
+                        if (botTaskFile.getName().endsWith(".conf")) {
+                            continue;
+                        }
+                        IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
                         IEditorPart editor = page.findEditor(new FileEditorInput(botTaskFile));
                         if (editor != null) {
                             page.closeEditor(editor, false);
                         }
+
                         BotTask botTask = BotCache.getBotTaskNotNull(botTaskFile.getParent().getName(), botTaskFile.getName());
                         deleteBotTask(botTaskFile, botTask);
                     } else {
+//                        PluginLogger.logInfo("Page to close: " + page.toString() + " | " + lastEditor.getSite().getPage().toString());
+                        //page.closeEditor(lastEditor, false);
+                        PluginLogger.logInfo(((IFolder)resource) + " del");
                         resource.delete(true, null);
                     }
                 }
@@ -650,6 +664,33 @@ public class WorkspaceOperations {
                 PluginLogger.logError("Error deleting", e);
             }
         }
+//        IWorkbench workbench = PlatformUI.getWorkbench();
+//
+//        IWorkbenchWindow[] windows = workbench.getWorkbenchWindows();
+//
+//        for (IWorkbenchWindow window : windows)
+//        {
+//            IWorkbenchPage[] pages = window.getPages();
+//
+//            for (IWorkbenchPage page : pages)
+//            {
+//                IEditorPart[] editors = page.getDirtyEditors();
+//
+//                for (IEditorPart editor : editors)
+//                {
+//                    IEditorInput input = editor.getEditorInput();
+//
+//                    if (input instanceof FileEditorInput)
+//                    {
+//                        IFile file = ((FileEditorInput)input).getFile();
+//
+//                        PluginLogger.logInfo("File from Workbench: " + file.getName());
+//                    }
+//                }
+//                page.close();
+//                PluginLogger.logInfo("Close page!!!");
+//            }
+//        }
         BotCache.reload();
     }
 
@@ -755,7 +796,10 @@ public class WorkspaceOperations {
 
     public static void openBotTask(IFile botTaskFile) {
         try {
-            IDE.openEditor(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(), botTaskFile, BotTaskEditor.ID, true);
+            page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+            PluginLogger.logInfo("Set page: " + (page == null));
+            lastEditor = IDE.openEditor(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(), botTaskFile, BotTaskEditor.ID, true);
+            PluginLogger.logInfo("Set lastEditor: " + (lastEditor == null));
         } catch (PartInitException e) {
             PluginLogger.logError("Unable open bot task", e);
         }

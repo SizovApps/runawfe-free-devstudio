@@ -25,6 +25,18 @@ public class InfoWithDetailsDialog extends IconAndMessageDialog {
 
     public InfoWithDetailsDialog(int dialogType, String dialogTitle, String infoMessage, String details/* , boolean showDetails */) {
         super(Display.getCurrent().getActiveShell());
+        ru.runa.gpd.PluginLogger.logInfo("Display: " + Display.getCurrent().getActiveShell().toString());
+        this.dialogType = dialogType;
+        this.title = dialogTitle;
+        this.message = infoMessage;
+        this.details = details;
+        // this.showDetails = showDetails;
+        setShellStyle(getShellStyle() | SWT.RESIZE);
+    }
+
+    public InfoWithDetailsDialog(int dialogType, String dialogTitle, String infoMessage, String details/* , boolean showDetails */, Shell shell) {
+        super(shell);
+        ru.runa.gpd.PluginLogger.logInfo("Display: " + shell.toString());
         this.dialogType = dialogType;
         this.title = dialogTitle;
         this.message = infoMessage;

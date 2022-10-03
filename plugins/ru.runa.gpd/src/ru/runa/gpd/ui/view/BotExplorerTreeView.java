@@ -245,6 +245,7 @@ public class BotExplorerTreeView extends ViewPart implements ISelectionListener 
             manager.add(new Action(Localization.getString("button.delete"), SharedImages.getImageDescriptor("icons/delete.gif")) {
                 @Override
                 public void run() {
+                    PluginLogger.logInfo("resources count: " + resources.size());
                     WorkspaceOperations.deleteBotResources(resources);
                 }
             });

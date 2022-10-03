@@ -50,6 +50,7 @@ public class NewBotTaskWizard extends Wizard implements INewWizard {
                         IFile botTaskFile = botFolder.getFile(botTask.getName());
                         WorkspaceOperations.saveBotTask(botTaskFile, botTask);
                         monitor.worked(1);
+//                        WorkspaceOperations.page = getActivePage();
                         IDE.openEditor(getActivePage(), botTaskFile, BotTaskEditor.ID, true);
                         monitor.done();
                     } catch (Exception e) {
