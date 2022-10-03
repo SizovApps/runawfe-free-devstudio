@@ -5,6 +5,9 @@ import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Optional;
+
+import javafx.scene.PointLight;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
@@ -15,6 +18,8 @@ import ru.runa.gpd.PluginConstants;
 import ru.runa.gpd.PluginLogger;
 import ru.runa.gpd.lang.model.Variable;
 import ru.runa.gpd.lang.model.VariableUserType;
+import ru.runa.gpd.lang.model.GlobalSectionDefinition;
+import ru.runa.gpd.lang.model.ProcessDefinition;
 import ru.runa.gpd.extension.HandlerArtifact;
 import ru.runa.gpd.extension.HandlerRegistry;
 import ru.runa.gpd.extension.VariableFormatRegistry;
@@ -35,6 +40,7 @@ public class BotTask implements Delegable, Comparable<BotTask> {
     private ParamDefConfig paramDefConfig;
     private final List<String> filesToSave;
     private String selectedDataTableName;
+    private IFile globalSectionDefinitionFile;
 
     public static BotTask usingBotTask;
 
@@ -42,6 +48,7 @@ public class BotTask implements Delegable, Comparable<BotTask> {
         this.id = String.format("%s/%s/%s", station, bot, name);
         this.name = name;
         filesToSave = Lists.newArrayList();
+        globalSectionDefinitionFile = null;
     }
 
     public BotTaskType getType() {
@@ -71,6 +78,19 @@ public class BotTask implements Delegable, Comparable<BotTask> {
     public void setSelectedDataTable(String selectedDataTableName) {
         PluginLogger.logInfo("selectedDataTable: " + selectedDataTableName);
         this.selectedDataTableName = selectedDataTableName;
+    }
+
+    public void setGlobalSectionDefinitionFile(IFile globalSectionDefinitionFile) {
+        PluginLogger.logInfo("Set from task: " + globalSectionDefinitionFile.getName());
+        this.globalSectionDefinitionFile = globalSectionDefinitionFile;
+    }
+    public IFile getGlobalSectionDefinitionFile() {
+        if (globalSectionDefinitionFile != null) {
+            PluginLogger.logInfo("Get from task: " + globalSectionDefinitionFile.getName());
+        } else {
+            PluginLogger.logInfo("Global file null!!!");
+        }
+        return globalSectionDefinitionFile;
     }
 
     @Override

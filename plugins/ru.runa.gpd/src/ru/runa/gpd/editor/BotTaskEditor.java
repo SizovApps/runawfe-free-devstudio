@@ -232,6 +232,7 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
     }
 
     private void rebuildView(Composite composite) {
+        PluginLogger.logInfo("Enter rebuild bot editor!");
         rebuildingView = true;
         configurationText = null;
         addParameterButton = null;
@@ -800,6 +801,12 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
                     }
                 }
                 BotTask.usingBotTask = null;
+                PluginLogger.logInfo("Need rebuild!");
+                PluginLogger.logInfo("Bot global: " + botTask.getGlobalSectionDefinitionFile() + " | " + botTask.getName());
+                if (botTask.getGlobalSectionDefinitionFile() != null) {
+                    PluginLogger.logInfo("Open def from botEditor!");
+                    WorkspaceOperations.openGlobalSectionDefinition(botTask.getGlobalSectionDefinitionFile());
+                }
             }
         });
 

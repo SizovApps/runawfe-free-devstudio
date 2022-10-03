@@ -69,6 +69,7 @@ public abstract class GlobalSectionEditorBase extends ProcessEditorBase {
 
     @Override
     public void init(IEditorSite site, IEditorInput input) throws PartInitException {
+        PluginLogger.logInfo("Init GlobalSectionEditorBase!");
         definitionFile = ((FileEditorInput) input).getFile();
         definition = ProcessCache.getProcessDefinition(definitionFile);
         definition.setDirty(false);

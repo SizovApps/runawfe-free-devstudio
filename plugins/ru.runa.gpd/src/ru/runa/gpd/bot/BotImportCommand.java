@@ -111,7 +111,7 @@ public class BotImportCommand extends BotSyncCommand {
 
 
 //            if (res[0] == 1) {
-            if (Dialogs.confirm2("Обнарежен бот с таким же именем! Хотите перезаписать старого бота?", botName, shell)) {
+            if (Dialogs.confirm2("Обнаружен бот с таким же именем! Хотите перезаписать старого бота?", botName, shell)) {
                 if (folder.exists()) {
                     ru.runa.gpd.PluginLogger.logInfo("Need to delete old bot!");
                     Dialogs.information("Необходимо сначала удалить старого бота!", shell);

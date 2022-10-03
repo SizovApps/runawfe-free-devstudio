@@ -161,7 +161,9 @@ public class AutomaticCreationUtils {
             PluginLogger.logInfo("Enter to end!!!");
             ProcessCache.newProcessDefinitionWasCreated(definitionFile);
             setGlobalVariables(definitionFile, botTask);
+            botTask.setGlobalSectionDefinitionFile(definitionFile);
             WorkspaceOperations.openGlobalSectionDefinition(definitionFile);
+            PluginLogger.logInfo("Set global to bot: " + botTask.getGlobalSectionDefinitionFile().getName() + " | " + botTask.getName());
         }
         catch (Exception e){
             PluginLogger.logError(e);
