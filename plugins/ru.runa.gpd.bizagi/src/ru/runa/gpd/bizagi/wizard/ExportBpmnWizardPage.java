@@ -45,7 +45,7 @@ public class ExportBpmnWizardPage extends WizardFileSystemResourceExportPage1 {
     protected ExportBpmnWizardPage(IStructuredSelection selection) {
         super(selection);
         setTitle(Messages.getString("ExportBpmnWizardPage.page.title"));
-        setDescription(Localization.getString("ExportParWizardPage.page.description"));
+        setDescription(Messages.getString("ExportBpmnWizardPage.page.description"));
         setImageDescriptor(SharedImages.getImageDescriptor(Activator.getDefault().getBundle(), "icons/process.png", false));
         this.definitionNameFileMap = new TreeMap<String, IFile>();
         for (IFile file : ProcessCache.getAllProcessDefinitionsMap().keySet()) {
@@ -114,7 +114,7 @@ public class ExportBpmnWizardPage extends WizardFileSystemResourceExportPage1 {
 
     @Override
     protected String getDestinationLabel() {
-        return Localization.getString("ExportParWizardPage.label.destination_file");
+        return Messages.getString("ExportBpmnWizardPage.label.destination_file");
     }
 
     @Override
@@ -144,11 +144,11 @@ public class ExportBpmnWizardPage extends WizardFileSystemResourceExportPage1 {
         saveWidgetValues();
         List<String> selectedDefinitionNames = ((IStructuredSelection) definitionListViewer.getSelection()).toList();
         if (selectedDefinitionNames.size() == 0) {
-            setErrorMessage(Localization.getString("ExportParWizardPage.error.selectProcess"));
+            setErrorMessage(Messages.getString("ExportBpmnWizardPage.error.selectProcess"));
             return false;
         }
         if (Strings.isNullOrEmpty(getDestinationValue())) {
-            setErrorMessage(Localization.getString("ExportParWizardPage.error.selectDestinationPath"));
+            setErrorMessage(Messages.getString("ExportBpmnWizardPage.error.selectDestinationPath"));
             return false;
         }
         for (String selectedDefinitionName : selectedDefinitionNames) {
@@ -161,7 +161,7 @@ public class ExportBpmnWizardPage extends WizardFileSystemResourceExportPage1 {
                 String outputFileName = getDestinationValue() + definition.getName() + ".bpmn";
                 new BpmnExporter().go(definition, outputFileName, expandMinimizedNodes.getBooleanValue());
             } catch (Throwable th) {
-                PluginLogger.logErrorWithoutDialog(Localization.getString("ExportParWizardPage.error.export"), th);
+                PluginLogger.logErrorWithoutDialog(Messages.getString("ExportBpmnWizardPage.error.export"), th);
                 setErrorMessage(Throwables.getRootCause(th).getMessage());
                 return false;
             }
