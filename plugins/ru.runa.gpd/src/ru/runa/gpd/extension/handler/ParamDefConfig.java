@@ -156,6 +156,7 @@ public class ParamDefConfig {
         createTablesForInternalStorageHandler(rootElement, nameOfTable);
     }
     public static void createTablesForInternalStorageHandler(Element rootElement, String nameOfTable) {
+        PluginLogger.logInfo("createTablesForInternalStorageHandler");
         List<Element> groupElements = rootElement.elements();
         for (Element groupElement : groupElements) {
             ParamDefGroup group = new ParamDefGroup(groupElement);
@@ -163,8 +164,10 @@ public class ParamDefConfig {
                 List<Element> inputParamElements = groupElement.elements("param");
 
                 IProject dtProject = DataTableUtils.getDataTableProject();
+                boolean isNewTable = false;
                 try {
                     if (!dtProject.exists()) {
+                        isNewTable = true;
                         IProjectDescription description = ResourcesPlugin.getWorkspace().newProjectDescription(dtProject.getName());
                         description.setNatureIds(new String[] { DataTableNature.NATURE_ID });
                         dtProject.create(description, null);
@@ -175,26 +178,28 @@ public class ParamDefConfig {
                     throw new InternalApplicationException(ex);
                 }
 
-                IFile dataTableFile = dtProject.getFile(nameOfTable + DataTableUtils.FILE_EXTENSION);
-                VariableUserType dataTable = new VariableUserType(nameOfTable);
+                if (isNewTable) {
+                    IFile dataTableFile = dtProject.getFile(nameOfTable + DataTableUtils.FILE_EXTENSION);
+                    VariableUserType dataTable = new VariableUserType(nameOfTable);
 
-                for (Element variable : inputParamElements) {
-                    String name = variable.attributeValue("name");
-                    String scriptingName = variable.attributeValue("label");
-                    ru.runa.gpd.extension.VariableFormatRegistry variableFormatRegistry = new VariableFormatRegistry();
-                    String format = variable.attributeValue("formatFilter");
-                    String correctFormat = variableFormatRegistry.getFilterLabel(format);
-                    PluginLogger.logInfo("formats: " + format + " | " + correctFormat);
-                    Variable newVariable = new Variable(name, scriptingName, correctFormat, dataTable);
-                    newVariable.setFormat(format);
-                    dataTable.addAttribute(newVariable);
-                }
+                    for (Element variable : inputParamElements) {
+                        String name = variable.attributeValue("name");
+                        String scriptingName = variable.attributeValue("label");
+                        ru.runa.gpd.extension.VariableFormatRegistry variableFormatRegistry = new VariableFormatRegistry();
+                        String format = variable.attributeValue("formatFilter");
+                        String correctFormat = variableFormatRegistry.getFilterLabel(format);
+                        PluginLogger.logInfo("formats: " + format + " | " + correctFormat);
+                        Variable newVariable = new Variable(name, scriptingName, correctFormat, dataTable);
+                        newVariable.setFormat(format);
+                        dataTable.addAttribute(newVariable);
+                    }
 
-                Document document = UserTypeXmlContentProvider.save(dataTableFile, dataTable);
-                try {
-                    IOUtils.createOrUpdateFile(dataTableFile, new ByteArrayInputStream(XmlUtil.writeXml(document)));
-                } catch (CoreException e) {
-                    throw new InternalApplicationException(e);
+                    Document document = UserTypeXmlContentProvider.save(dataTableFile, dataTable);
+                    try {
+                        IOUtils.createOrUpdateFile(dataTableFile, new ByteArrayInputStream(XmlUtil.writeXml(document)));
+                    } catch (CoreException e) {
+                        throw new InternalApplicationException(e);
+                    }
                 }
                 DataTableCache.reload();
             }

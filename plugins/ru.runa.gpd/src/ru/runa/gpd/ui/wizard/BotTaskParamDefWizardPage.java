@@ -172,6 +172,7 @@ public class BotTaskParamDefWizardPage extends WizardPage {
                 Arrays.stream(DataTableUtils.getDataTableProject().members())
                         .filter(r -> r instanceof IFile && r.getName().endsWith(DataTableUtils.FILE_EXTENSION))
                         .map(r -> IOUtils.getWithoutExtension(r.getName()))
+                        .filter(r -> r.equals(BotTask.usingBotTask.getSelectedDataTableName()))
                         .forEach(types::add);
 
                 types.add(VariableFormatRegistry.getInstance().getFilterLabel("java.util.List"));
