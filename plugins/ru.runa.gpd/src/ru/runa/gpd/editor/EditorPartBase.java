@@ -11,6 +11,7 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerComparator;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -177,6 +178,9 @@ public abstract class EditorPartBase<T> extends EditorPart implements PropertyCh
 
     protected ProcessDefinition getDefinition() {
         return editor.getDefinition();
+    }
+    protected IFile getDefinitionFile() {
+        return editor.getDefinitionFile();
     }
 
     protected Button addButton(Composite parent, String buttonKey, SelectionAdapter selectionListener, boolean addToMenu) {

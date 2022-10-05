@@ -162,8 +162,22 @@ public class AutomaticCreationUtils {
             ProcessCache.newProcessDefinitionWasCreated(definitionFile);
             setGlobalVariables(definitionFile, botTask);
             botTask.setGlobalSectionDefinitionFile(definitionFile);
-            WorkspaceOperations.openGlobalSectionDefinition(definitionFile);
-            //ProcessEditorBase processEditorBase =
+            try {
+                GlobalSectionEditorBase processEditorBase = WorkspaceOperations.openGlobalSectionDefinition(definitionFile);
+                if (processEditorBase == null) {
+                    PluginLogger.logInfo("processEditorBase null!");
+                }
+                else if (processEditorBase.variablePage == null) {
+                    PluginLogger.logInfo("processEditorBase variablePage null!");
+                }
+                else {
+                    processEditorBase.variablePage.updateViewer();
+                    PluginLogger.logInfo(processEditorBase.toString() + " | ");
+                }
+            }
+            catch (NullPointerException ex) {
+                PluginLogger.logError(ex.getMessage(), ex);
+            }
             PluginLogger.logInfo("Set global to bot: " + botTask.getGlobalSectionDefinitionFile().getName() + " | " + botTask.getName());
         }
         catch (Exception e){
@@ -229,6 +243,12 @@ public class AutomaticCreationUtils {
             PluginLogger.logInfo("Created var: " + variable.getScriptingName() + " | " + variable.getFormatClassName());
             processDefinition.addGlobalVariable(variable);
             countOfAddedParam += 1;
+        }
+        try {
+            WorkspaceOperations.saveProcessDefinition(processDefinition);
+        }
+        catch (Exception e) {
+            PluginLogger.logError(e.getMessage(), e);
         }
 
     }

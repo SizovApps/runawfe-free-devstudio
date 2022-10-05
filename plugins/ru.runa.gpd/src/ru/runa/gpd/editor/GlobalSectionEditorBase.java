@@ -64,7 +64,7 @@ public abstract class GlobalSectionEditorBase extends ProcessEditorBase {
     protected ProcessDefinition definition;
     protected IFile definitionFile;
     protected SwimlaneEditorPage swimlanePage;
-    protected VariableEditorPage variablePage;
+    public VariableEditorPage variablePage;
     protected VariableTypeEditorPage variableTypeEditorPage;
 
     @Override
@@ -84,9 +84,11 @@ public abstract class GlobalSectionEditorBase extends ProcessEditorBase {
 
     @Override
     protected void createPages() {
+        PluginLogger.logInfo("Create pages!");
         try {
             if (!(definition instanceof SubprocessDefinition)) {
                 swimlanePage = super.addNewPage(new SwimlaneEditorPage((ProcessEditorBase) this), "DesignerEditor.title.swimlanes");
+                PluginLogger.logInfo("Create variablePage!");
                 variablePage = super.addNewPage(new VariableEditorPage((ProcessEditorBase) this), "DesignerEditor.title.variables");
 
                 variableTypeEditorPage = super.addNewPage(new VariableTypeEditorPage((ProcessEditorBase) this), "VariableUserType.collection");

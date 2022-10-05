@@ -36,6 +36,7 @@ import com.google.common.collect.Lists;
 
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.PropertyNames;
+import ru.runa.gpd.ProcessCache;
 import ru.runa.gpd.editor.clipboard.VariableTransfer;
 import ru.runa.gpd.globalsection.GlobalSectionUtils;
 import ru.runa.gpd.lang.model.FormNode;
@@ -176,7 +177,7 @@ public class VariableEditorPage extends EditorPartBase<Variable> {
 
     @Override
     protected void updateUI() {
-
+        ru.runa.gpd.PluginLogger.logInfo("Enter update UI!");
         List<?> variables = (List<?>) tableViewer.getInput();
         List<?> selected = ((IStructuredSelection) tableViewer.getSelection()).toList();
         boolean isWithoutGlobalVars = isWithoutGlobalVars(selected);
@@ -203,8 +204,16 @@ public class VariableEditorPage extends EditorPartBase<Variable> {
         return variables.stream().filter(v -> v instanceof Variable).noneMatch(v -> ((Variable) v).isGlobal());
     }
 
-    private void updateViewer() {
-        List<Variable> variables = getDefinition().getVariables(false, false);
+    public void updateViewer() {
+        ru.runa.gpd.PluginLogger.logInfo("Enter updateViewer! " + getDefinition().toString());
+        ProcessDefinition definition = ProcessCache.getProcessDefinition(getDefinitionFile());
+        List<Variable> variables = definition.getVariables(false, false);
+        if (variables == null) {
+            ru.runa.gpd.PluginLogger.logInfo("Variables == null!!!");
+        }
+        for (Variable var : variables) {
+            ru.runa.gpd.PluginLogger.logInfo("Variable: " + var.getScriptingName());
+        }
         tableViewer.setInput(variables);
         for (Variable variable : variables) {
             variable.addPropertyChangeListener(this);

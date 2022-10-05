@@ -542,7 +542,8 @@ public class WorkspaceOperations {
         }
     }
 
-    public static ProcessEditorBase openGlobalSectionDefinition(IFile definitionFile) {
+    public static GlobalSectionEditorBase openGlobalSectionDefinition(IFile definitionFile) {
+        PluginLogger.logInfo("Enter openGlobalSectionDefinition");
         try {
             ProcessDefinition processDefinition = ProcessCache.getProcessDefinition(definitionFile);
             String editorId;
@@ -551,12 +552,18 @@ public class WorkspaceOperations {
             } else {
                 editorId = GEFProcessEditor.ID;
             }
+            PluginLogger.logInfo("Editor id: " + editorId);
             IEditorPart editorPart = IDE.openEditor(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(), definitionFile, editorId,
                     true);
-            if (editorPart instanceof ProcessEditorBase) {
-                PluginLogger.logInfo("ProcessEditorBase!");
-                return (ProcessEditorBase) editorPart;
+            PluginLogger.logInfo("EditorPart instance: " + editorPart.getClass() );
+            if (editorPart instanceof GlobalSectionEditorBase) {
+                PluginLogger.logInfo("GlobalSectionEditorBase! " + editorPart.toString());
+                return (GlobalSectionEditorBase) editorPart;
             }
+//            else if (editorPart instanceof ProcessEditorBase) {
+//                PluginLogger.logInfo("ProcessEditorBase! " + editorPart.toString());
+//                return (ProcessEditorBase) editorPart;
+//            }
         } catch (PartInitException e) {
             PluginLogger.logError("Unable open diagram", e);
         }

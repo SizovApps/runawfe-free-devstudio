@@ -71,7 +71,7 @@ public class ProcessCache {
         }
     }
 
-    private static void cacheProcessDefinition(IFile file, ProcessDefinition definition) throws Exception {
+    public static void cacheProcessDefinition(IFile file, ProcessDefinition definition) throws Exception {
         ParContentProvider.readAuxInfo(file, definition);
         CACHE_BY_FILE.put(file, definition);
         CACHE_BY_NAME.put(definition.getName(), definition);

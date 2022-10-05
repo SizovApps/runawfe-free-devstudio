@@ -241,6 +241,9 @@ public abstract class ProcessEditorBase extends MultiPageEditorPart implements I
     public ProcessDefinition getDefinition() {
         return definition;
     }
+    public IFile getDefinitionFile() {
+        return definitionFile;
+    }
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
@@ -303,9 +306,6 @@ public abstract class ProcessEditorBase extends MultiPageEditorPart implements I
         }
     }
 
-    public IFile getDefinitionFile() {
-        return definitionFile;
-    }
 
     @Override
     public void doSaveAs() {
