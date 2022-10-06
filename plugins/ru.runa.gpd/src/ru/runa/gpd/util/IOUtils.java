@@ -56,6 +56,11 @@ import ru.runa.gpd.lang.model.ProcessDefinition;
 import ru.runa.gpd.lang.model.SubprocessDefinition;
 import ru.runa.gpd.lang.par.ParContentProvider;
 
+import java.nio.charset.StandardCharsets;
+import java.util.stream.Collectors;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+
 public class IOUtils {
     public static final String GLOBAL_OBJECT_PREFIX = "Global_";
     private static final ByteArrayInputStream EMPTY_STREAM = new ByteArrayInputStream(new byte[0]);
@@ -197,9 +202,13 @@ public class IOUtils {
     }
 
     public static void createOrUpdateFile(IFile file, InputStream stream) throws CoreException {
+
+        PluginLogger.logInfo("createOrUpdateFile enter! ");
         if (file.exists()) {
+            PluginLogger.logInfo("createOrUpdateFile exists!");
             file.setContents(stream, true, false, null);
         } else {
+            PluginLogger.logInfo("createOrUpdateFile not exists!");
             file.create(stream, true, null);
             Assert.isTrue(Charsets.UTF_8.name().equalsIgnoreCase(file.getCharset()));
         }

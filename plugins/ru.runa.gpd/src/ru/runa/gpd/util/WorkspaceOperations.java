@@ -652,6 +652,12 @@ public class WorkspaceOperations {
                         if (botTaskFile.getName().endsWith(".conf")) {
                             continue;
                         }
+                        if (botTaskFile.getName() == "processdefinition.xml") {
+                            PluginLogger.logInfo("ParentName: " + botTaskFile.getParent().getName());
+                            IResource parentResource = botTaskFile.getParent();
+                            parentResource.delete(true, null);
+
+                        }
                         IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
                         IEditorPart editor = page.findEditor(new FileEditorInput(botTaskFile));
                         if (editor != null) {
@@ -663,7 +669,6 @@ public class WorkspaceOperations {
                     } else {
 //                        PluginLogger.logInfo("Page to close: " + page.toString() + " | " + lastEditor.getSite().getPage().toString());
                         //page.closeEditor(lastEditor, false);
-                        PluginLogger.logInfo(((IFolder)resource) + " del");
                         resource.delete(true, null);
                     }
                 }
@@ -671,33 +676,6 @@ public class WorkspaceOperations {
                 PluginLogger.logError("Error deleting", e);
             }
         }
-//        IWorkbench workbench = PlatformUI.getWorkbench();
-//
-//        IWorkbenchWindow[] windows = workbench.getWorkbenchWindows();
-//
-//        for (IWorkbenchWindow window : windows)
-//        {
-//            IWorkbenchPage[] pages = window.getPages();
-//
-//            for (IWorkbenchPage page : pages)
-//            {
-//                IEditorPart[] editors = page.getDirtyEditors();
-//
-//                for (IEditorPart editor : editors)
-//                {
-//                    IEditorInput input = editor.getEditorInput();
-//
-//                    if (input instanceof FileEditorInput)
-//                    {
-//                        IFile file = ((FileEditorInput)input).getFile();
-//
-//                        PluginLogger.logInfo("File from Workbench: " + file.getName());
-//                    }
-//                }
-//                page.close();
-//                PluginLogger.logInfo("Close page!!!");
-//            }
-//        }
         BotCache.reload();
     }
 
@@ -755,6 +733,39 @@ public class WorkspaceOperations {
             IOUtils.createOrUpdateFile(botTaskFile, infoStream);
             BotCache.invalidateBotTask(botTaskFile, botTask);
             infoStream.close();
+        } catch (CoreException | IOException e) {
+            throw new InternalApplicationException(e);
+        }
+    }
+
+    // Есть ли какой-нибудь подходящий паттерн, чтобы можно устанавливать значения входных параметров функции по умолчанию? Сейчас доблируется код с метода saveBotTask().
+    // Необходимо вызывать разные функции invalidateBotTaskFromImport и invalidateBotTaskFromImport. Нужно как то указать, какой именно метод вызывать.
+    // Можно вынести почти весь метод в отдельный и вызывать его из importBotTask и saveBotTask, но это может нарушить логику. Можно изменить сигнатуру saveBotTask,
+    // но это, как я понимаю, тоже не лучшая идея.
+    public static void importBotTask(IFile botTaskFile, BotTask botTask) {
+        try {
+            StringBuffer info = new StringBuffer();
+            info.append(botTask.getDelegationClassName());
+            info.append("\n");
+            String configuration = BotTaskUtils.createBotTaskConfiguration(botTask);
+            if (!Strings.isNullOrEmpty(configuration)) {
+                String configurationFileName = botTask.getName() + "." + BotCache.CONFIGURATION_FILE_EXTENSION;
+                IFile configurationFile = ((IFolder) botTaskFile.getParent()).getFile(configurationFileName);
+                ByteArrayInputStream stream = new ByteArrayInputStream(configuration.getBytes(Charsets.UTF_8));
+                IOUtils.createOrUpdateFile(configurationFile, stream);
+                info.append(configurationFileName);
+                stream.close();
+            }
+            PluginLogger.logInfo("importBotTask: " + botTask.getDelegationClassName());
+            if (botTask.getDelegationClassName().equals(ScriptTask.INTERNAL_STORAGE_HANDLER_CLASS_NAME)) {
+                AutomaticCreationUtils.createNewGlobalSectionDefinitionAutomatic(botTask);
+            }
+            info.append("\n");
+            InputStream infoStream = new ByteArrayInputStream(info.toString().getBytes(Charsets.UTF_8));
+            IOUtils.createOrUpdateFile(botTaskFile, infoStream);
+            BotCache.invalidateBotTaskFromImport(botTaskFile, botTask);
+            infoStream.close();
+            saveBotTask(botTaskFile, botTask);
         } catch (CoreException | IOException e) {
             throw new InternalApplicationException(e);
         }

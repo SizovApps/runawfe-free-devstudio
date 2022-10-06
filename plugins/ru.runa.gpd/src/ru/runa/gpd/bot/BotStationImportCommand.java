@@ -51,6 +51,7 @@ public class BotStationImportCommand extends BotSyncCommand {
                 String botFileName = entry.getName();
                 try {
                     Preconditions.checkNotNull(botStationName, "botStationName");
+                    ru.runa.gpd.PluginLogger.logInfo("BotStationImportCommand: " + botFileName + " | " + botStationName);
                     botImportCommand.init(new ByteArrayInputStream(ByteStreams.toByteArray(zin)), botFileName, botStationName);
                     botImportCommand.importBot(progressMonitor);
                 } catch (Exception e) {
@@ -58,6 +59,7 @@ public class BotStationImportCommand extends BotSyncCommand {
                     messages.append(System.lineSeparator());
                     messages.append(e.getMessage());
                     messages.append(System.lineSeparator());
+                    ru.runa.gpd.PluginLogger.logError(e.getMessage(), e);
                 }
             }
             if (messages.length() > 0) {

@@ -118,7 +118,7 @@ public class BotTaskUtils {
         return new ByteArrayInputStream(buffer.toString().getBytes());
     }
 
-    public static BotTask createBotTask(String botStationName, String botName, String botTaskName, String handlerClassName, String configuration) {
+    public static BotTask createBotTask(String botStationName, String botName, String botTaskName, String handlerClassName, String configuration, boolean isImport) {
         BotTask botTask = new BotTask(botStationName, botName, botTaskName);
         botTask.setDelegationClassName(handlerClassName);
         if (isTaskHandlerParameterized(botTask.getDelegationClassName())) {
@@ -126,9 +126,9 @@ public class BotTaskUtils {
             Document document = XmlUtil.parseWithoutValidation(configuration);
             botTask.setParamDefConfig(ParamDefConfig.parse(document));
             if (botTask.getParamDefConfig().getSelectedTableName() != null && !botTask.getParamDefConfig().getSelectedTableName().equals("")) {
-                PluginLogger.logInfo("Set getSelectedDataTableName!");
+                PluginLogger.logInfo("Set getSelectedDataTableName! " + isImport);
                 botTask.setSelectedDataTable(botTask.getParamDefConfig().getSelectedTableName());
-                ParamDefConfig.createTablesForInternalStorageHandler(document, botTask.getSelectedDataTableName());
+                ParamDefConfig.createTablesForInternalStorageHandler(document, botTask.getSelectedDataTableName(), isImport);
             }
             botTask.setDelegationConfiguration(configuration);
         } else if (isBotTaskExtendedConfiguration(configuration)) {
@@ -139,9 +139,9 @@ public class BotTaskUtils {
             Preconditions.checkNotNull(element);
             botTask.setParamDefConfig(ParamDefConfig.parse(element));
             if (botTask.getParamDefConfig().getSelectedTableName() != null && !botTask.getParamDefConfig().getSelectedTableName().equals("")) {
-                PluginLogger.logInfo("Set getSelectedDataTableName!");
+                PluginLogger.logInfo("Set getSelectedDataTableName! " + isImport);
                 botTask.setSelectedDataTable(botTask.getParamDefConfig().getSelectedTableName());
-                ParamDefConfig.createTablesForInternalStorageHandler(element, botTask.getSelectedDataTableName());
+                ParamDefConfig.createTablesForInternalStorageHandler(element, botTask.getSelectedDataTableName(), isImport);
             }
             Element botConfigElement = botElement.element(BOTCONFIG_ELEMENT);
             if (botConfigElement.elements().size() > 0) {

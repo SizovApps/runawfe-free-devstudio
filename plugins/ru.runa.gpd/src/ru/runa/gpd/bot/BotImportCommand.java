@@ -148,7 +148,7 @@ public class BotImportCommand extends BotSyncCommand {
         for (BotTask botTask : botTasks) {
             ru.runa.gpd.PluginLogger.logInfo("Imported botTask: " + botTask.getName());
             IFile file = folder.getFile(botTask.getName());
-            WorkspaceOperations.saveBotTask(file, botTask);
+            WorkspaceOperations.importBotTask(file, botTask);
 
             // Save embedded files too.
             for (String fileToSave : botTask.getFilesToSave()) {

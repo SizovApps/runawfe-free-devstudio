@@ -151,11 +151,16 @@ public class ParamDefConfig {
         return config;
     }
 
-    public static void createTablesForInternalStorageHandler(Document document, String nameOfTable) {
+    public static void createTablesForInternalStorageHandler(Document document, String nameOfTable, boolean isImport) {
         Element rootElement = document.getRootElement();
-        createTablesForInternalStorageHandler(rootElement, nameOfTable);
+        createTablesForInternalStorageHandler(rootElement, nameOfTable, isImport);
     }
-    public static void createTablesForInternalStorageHandler(Element rootElement, String nameOfTable) {
+    public static void createTablesForInternalStorageHandler(Element rootElement, String nameOfTable, boolean isImport){
+        if (!isImport) {
+            PluginLogger.logInfo("Not import!");
+            return;
+        }
+        PluginLogger.logInfo("Import!");
         PluginLogger.logInfo("createTablesForInternalStorageHandler");
         List<Element> groupElements = rootElement.elements();
         for (Element groupElement : groupElements) {
@@ -164,10 +169,8 @@ public class ParamDefConfig {
                 List<Element> inputParamElements = groupElement.elements("param");
 
                 IProject dtProject = DataTableUtils.getDataTableProject();
-                boolean isNewTable = false;
                 try {
                     if (!dtProject.exists()) {
-                        isNewTable = true;
                         IProjectDescription description = ResourcesPlugin.getWorkspace().newProjectDescription(dtProject.getName());
                         description.setNatureIds(new String[] { DataTableNature.NATURE_ID });
                         dtProject.create(description, null);
@@ -178,29 +181,37 @@ public class ParamDefConfig {
                     throw new InternalApplicationException(ex);
                 }
 
-                if (isNewTable) {
-                    IFile dataTableFile = dtProject.getFile(nameOfTable + DataTableUtils.FILE_EXTENSION);
-                    VariableUserType dataTable = new VariableUserType(nameOfTable);
-
-                    for (Element variable : inputParamElements) {
-                        String name = variable.attributeValue("name");
-                        String scriptingName = variable.attributeValue("label");
-                        ru.runa.gpd.extension.VariableFormatRegistry variableFormatRegistry = new VariableFormatRegistry();
-                        String format = variable.attributeValue("formatFilter");
-                        String correctFormat = variableFormatRegistry.getFilterLabel(format);
-                        PluginLogger.logInfo("formats: " + format + " | " + correctFormat);
-                        Variable newVariable = new Variable(name, scriptingName, correctFormat, dataTable);
-                        newVariable.setFormat(format);
-                        dataTable.addAttribute(newVariable);
-                    }
-
-                    Document document = UserTypeXmlContentProvider.save(dataTableFile, dataTable);
-                    try {
-                        IOUtils.createOrUpdateFile(dataTableFile, new ByteArrayInputStream(XmlUtil.writeXml(document)));
-                    } catch (CoreException e) {
-                        throw new InternalApplicationException(e);
+                try {
+                    for (IResource resource : dtProject.members()) {
+                        PluginLogger.logInfo("Dt file: " + ((IFile)resource).toString());
                     }
                 }
+                catch (CoreException ex) {
+                    PluginLogger.logInfo(ex.toString());
+                }
+                IFile dataTableFile = dtProject.getFile(nameOfTable + DataTableUtils.FILE_EXTENSION);
+                VariableUserType dataTable = new VariableUserType(nameOfTable);
+
+                for (Element variable : inputParamElements) {
+                    String name = variable.attributeValue("name");
+                    String scriptingName = variable.attributeValue("label");
+                    ru.runa.gpd.extension.VariableFormatRegistry variableFormatRegistry = new VariableFormatRegistry();
+                    String format = variable.attributeValue("formatFilter");
+                    String correctFormat = variableFormatRegistry.getFilterLabel(format);
+                    PluginLogger.logInfo("formats: " + format + " | " + correctFormat);
+                    Variable newVariable = new Variable(name, scriptingName, correctFormat, dataTable);
+                    newVariable.setFormat(format);
+                    dataTable.addAttribute(newVariable);
+                }
+
+                Document document = UserTypeXmlContentProvider.save(dataTableFile, dataTable);
+                try {
+                    IOUtils.createOrUpdateFile(dataTableFile, new ByteArrayInputStream(XmlUtil.writeXml(document)));
+                } catch (CoreException e) {
+                    throw new InternalApplicationException(e);
+                }
+
+
                 DataTableCache.reload();
             }
         }
