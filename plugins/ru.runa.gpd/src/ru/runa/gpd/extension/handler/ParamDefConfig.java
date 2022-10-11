@@ -200,7 +200,7 @@ public class ParamDefConfig {
                     String correctFormat = variableFormatRegistry.getFilterLabel(format);
                     PluginLogger.logInfo("formats: " + format + " | " + correctFormat);
                     Variable newVariable = new Variable(name, scriptingName, correctFormat, dataTable);
-                    newVariable.setFormat(format);
+                    newVariable.setFormat(correctFormat);
                     dataTable.addAttribute(newVariable);
                 }
 
