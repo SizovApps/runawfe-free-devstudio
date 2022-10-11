@@ -63,6 +63,7 @@ import ru.runa.gpd.editor.graphiti.GraphitiProcessEditor;
 import ru.runa.gpd.editor.graphiti.GraphitiGlobalSectionEditor;
 import ru.runa.gpd.extension.DelegableProvider;
 import ru.runa.gpd.extension.HandlerRegistry;
+import ru.runa.gpd.extension.VariableFormatRegistry;
 import ru.runa.gpd.extension.bot.IBotFileSupportProvider;
 import ru.runa.gpd.lang.Language;
 import ru.runa.gpd.lang.BpmnSerializer;
@@ -121,6 +122,7 @@ import ru.runa.gpd.util.WorkspaceOperations;
 import ru.runa.gpd.lang.model.Variable;
 import ru.runa.gpd.extension.handler.ParamDef;
 import ru.runa.gpd.extension.handler.ParamDefGroup;
+import ru.runa.gpd.extension.VariableFormatRegistry;
 
 public class AutomaticCreationUtils {
 
@@ -238,9 +240,11 @@ public class AutomaticCreationUtils {
         }
 
         int countOfAddedParam = 0;
+        ru.runa.gpd.extension.VariableFormatRegistry variableFormatRegistry = new VariableFormatRegistry();
         for (ParamDef paramDef : botParams) {
-            Variable variable = new Variable("Переменная" + countOfAddedParam, "Переменная" + countOfAddedParam, paramDef.getFormatFilters().get(0), processDefinition.getVariableUserType(paramDef.getFormatFilters().get(0)));
-            PluginLogger.logInfo("Created var: " + variable.getScriptingName() + " | " + variable.getFormatClassName());
+            PluginLogger.logInfo("Var to create: " + " | " + paramDef.getFormatFilters().get(0));
+            Variable variable = new Variable("Переменная" + countOfAddedParam, "Переменная" + countOfAddedParam, variableFormatRegistry.getFilterLabel(paramDef.getFormatFilters().get(0)), processDefinition.getVariableUserType(paramDef.getFormatFilters().get(0)));
+            PluginLogger.logInfo("Created var: " + variable.getScriptingName() + " | " + variable.getFormatClassName() + " | " + variable.getFormatLabel());
             processDefinition.addGlobalVariable(variable);
             countOfAddedParam += 1;
         }

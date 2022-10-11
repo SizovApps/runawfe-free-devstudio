@@ -174,8 +174,10 @@ public class BotTaskParamDefWizardPage extends WizardPage {
                         .map(r -> IOUtils.getWithoutExtension(r.getName()))
                         .filter(r -> r.equals(BotTask.usingBotTask.getSelectedDataTableName()))
                         .forEach(types::add);
-
-                types.add(VariableFormatRegistry.getInstance().getFilterLabel("java.util.List"));
+                String filterLabel = VariableFormatRegistry.getInstance().getFilterLabel("java.util.List");
+                filterLabel += "(" + BotTask.usingBotTask.getSelectedDataTableName() + ")";
+                ru.runa.gpd.PluginLogger.logInfo("filterLabel: " + filterLabel);
+                types.add(filterLabel);
 
             } else {
                 for (IResource file : DataTableUtils.getDataTableProject().members()) {
@@ -201,7 +203,9 @@ public class BotTaskParamDefWizardPage extends WizardPage {
                 }
             }
         }
-        catch (Exception ignored) {}
+        catch (Exception ignored) {
+            ru.runa.gpd.PluginLogger.logError(ignored.getMessage(), ignored);
+        }
         return types;
     }
 

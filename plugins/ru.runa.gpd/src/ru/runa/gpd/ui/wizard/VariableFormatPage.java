@@ -196,7 +196,14 @@ public class VariableFormatPage extends DynaContentWizardPage {
 
     @Override
     protected void createDynaContent() {
+        ru.runa.gpd.PluginLogger.logInfo("Enter Dyna!");
         String[] labels = containerFormats.get(type.getName());
+        ru.runa.gpd.PluginLogger.logInfo("Dyna labels: ");
+        if (labels != null) {
+            for (String label : labels){
+                ru.runa.gpd.PluginLogger.logInfo("Dyna label: " + label);
+            }
+        }
         if (labels != null) {
             GridData strokeData = new GridData(GridData.FILL_HORIZONTAL);
             strokeData.horizontalSpan = 2;
@@ -217,6 +224,7 @@ public class VariableFormatPage extends DynaContentWizardPage {
                         VariableUserType userType = processDefinition.getVariableUserType(label);
                         if (userType != null) {
                             componentClassNames[index] = label;
+                            ru.runa.gpd.PluginLogger.logInfo("Dyna type: " + userType.getName() + " | ");
                         } else {
                             componentClassNames[index] = VariableFormatRegistry.getInstance().getArtifactNotNullByLabel(label).getName();
                         }

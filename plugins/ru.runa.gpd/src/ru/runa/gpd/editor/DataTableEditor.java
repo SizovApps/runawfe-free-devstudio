@@ -356,6 +356,7 @@ public class DataTableEditor extends EditorPart implements IResourceChangeListen
             CompactWizardDialog dialog = new CompactWizardDialog(wizard);
             if (dialog.open() == Window.OK) {
                 Variable variable = wizard.getVariable();
+                PluginLogger.logInfo("Created table var: " + variable.getFormatLabel() + " | " + variable.getJavaClassName() + " | " + variable.getScriptingName());
                 dataTable.addAttribute(variable);
                 WorkspaceOperations.saveDataTable(dataTableFile, dataTable);
                 tableViewer.setSelection(new StructuredSelection(variable));
