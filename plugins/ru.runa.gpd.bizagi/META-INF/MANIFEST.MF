@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: RunaWFE Developer Studio Bizagi integration
 Bundle-SymbolicName: ru.runa.gpd.bizagi;singleton:=true
-Bundle-Version: 4.4.3.qualifier
+Bundle-Version: 4.5.0.qualifier
 Bundle-Activator: ru.runa.gpd.bizagi.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
