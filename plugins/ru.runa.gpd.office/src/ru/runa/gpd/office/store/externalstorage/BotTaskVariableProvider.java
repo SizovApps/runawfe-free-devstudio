@@ -29,6 +29,13 @@ public class BotTaskVariableProvider implements VariableProvider{
     }
 
     @Override
+    public Stream<String> complexUserTypeNames() {
+        ru.runa.gpd.PluginLogger.logInfo("Enter complexUserTypeNames in bot task provider");
+        Stream<String> stream = botTask.getVariableUserTypesNames().stream();
+        return stream;
+    }
+
+    @Override
     public VariableUserType getUserType(String name) {
         ru.runa.gpd.PluginLogger.logInfo("Varibale provider: " + name);
         return botTask.getVariableUserType(name);

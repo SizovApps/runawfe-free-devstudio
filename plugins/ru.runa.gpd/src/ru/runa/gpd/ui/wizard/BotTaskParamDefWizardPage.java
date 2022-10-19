@@ -7,6 +7,7 @@ import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
@@ -32,6 +33,7 @@ import ru.runa.gpd.lang.model.VariableUserType;
 import ru.runa.gpd.lang.model.BotTask;
 import ru.runa.gpd.lang.model.Variable;
 import ru.runa.gpd.lang.model.bpmn.ScriptTask;
+import ru.runa.wfe.var.format.ListFormat;
 import ru.runa.gpd.ui.custom.LoggingSelectionAdapter;
 import ru.runa.gpd.ui.enhancement.DialogEnhancementMode;
 import ru.runa.gpd.ui.enhancement.DocxDialogEnhancementMode;
@@ -131,6 +133,9 @@ public class BotTaskParamDefWizardPage extends WizardPage {
         Label label = new Label(parent, SWT.NONE);
         label.setText(Localization.getString("ParamDefWizardPage.page.type"));
         List<String> types = new ArrayList<String>();
+        if (BotTask.usingBotTask.getSelectedDataTableName() != null) {
+            ru.runa.gpd.PluginLogger.logInfo("create selected table check: " + BotTask.usingBotTask.getSelectedDataTableName());
+        }
         if (BotTask.usingBotTask.getDelegationClassName().equals(ScriptTask.INTERNAL_STORAGE_HANDLER_CLASS_NAME)) {
             types = setTypesForInternalStorage();
         } else {
@@ -198,6 +203,9 @@ public class BotTaskParamDefWizardPage extends WizardPage {
                 VariableUserType userType = DataTableCache.getDataTable(tableFileName);
                 ru.runa.gpd.PluginLogger.logInfo("Names: " + tableFileName + " " + tableFileNameExtension + " " + userType.getName());
                 for (Variable variable : userType.getAttributes()) {
+                    if (!checkNotTableTypeVariable(variable)) {
+                        continue;
+                    }
                     ru.runa.gpd.PluginLogger.logInfo("Variable name: " + variable.getFormatClassName() + " " + variable.getFormat() + " " + variable.getFormatLabel());
                     types.add(variable.getFormatLabel());
                 }
@@ -207,6 +215,42 @@ public class BotTaskParamDefWizardPage extends WizardPage {
             ru.runa.gpd.PluginLogger.logError(ignored.getMessage(), ignored);
         }
         return types;
+    }
+
+    private boolean checkNotTableTypeVariable(Variable variable) {
+        ru.runa.gpd.PluginLogger.logInfo("checkNotTableTypeVariable: " + variable.getFormatLabel() + " | " + variable.getFormatClassName() + " | " + variable.getFormat() + " | " + ListFormat.class.getName());
+        ru.runa.gpd.PluginLogger.logInfo("Indexes: " + variable.getFormat().indexOf('(') + " | " + variable.getFormat().indexOf(')'));
+        if (ListFormat.class.getName().equals(variable.getFormatClassName())) {
+            String innerTypeName = VariableFormatRegistry.getInstance().getUserTypeOfList(variable.getFormat());
+            ru.runa.gpd.PluginLogger.logInfo("innerTypeName: " + innerTypeName);
+            try {
+                for (IResource file : DataTableUtils.getDataTableProject().members()) {
+                    if (file instanceof IFile && file.getName().endsWith(DataTableUtils.FILE_EXTENSION)) {
+                        if (IOUtils.getWithoutExtension(file.getName()).equals(innerTypeName)) {
+                            return false;
+                        }
+                    }
+                }
+            }
+            catch (CoreException exception) {
+                ru.runa.gpd.PluginLogger.logErrorWithoutDialog("Can't open tables!");
+            }
+            return true;
+        }
+
+        try {
+            for (IResource file : DataTableUtils.getDataTableProject().members()) {
+                if (file instanceof IFile && file.getName().endsWith(DataTableUtils.FILE_EXTENSION)) {
+                    if (IOUtils.getWithoutExtension(file.getName()).equals(variable.getFormatLabel())) {
+                        return false;
+                    }
+                }
+            }
+        }
+        catch (CoreException exception) {
+            ru.runa.gpd.PluginLogger.logErrorWithoutDialog("Can't open tables!");
+        }
+        return true;
     }
 
     private void createUseVariableCheckbox(Composite parent) {

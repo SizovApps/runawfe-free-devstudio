@@ -62,6 +62,7 @@ public class Variable extends NamedGraphElement implements Describable {
     }
 
     public VariableUserType getUserType() {
+        ru.runa.gpd.PluginLogger.logInfo("Get user type: " + userType);
         return userType;
     }
 

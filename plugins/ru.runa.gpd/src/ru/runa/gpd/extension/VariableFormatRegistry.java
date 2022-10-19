@@ -224,4 +224,10 @@ public class VariableFormatRegistry extends ArtifactRegistry<VariableFormatArtif
                 .filter(n -> n.equals(name))
                 .findFirst();
     }
+
+    public String getUserTypeOfList(String userTypeName) {
+        String usertype = userTypeName.substring(userTypeName.indexOf('(') + 1, userTypeName.indexOf(')'));
+        PluginLogger.logInfo("Inner usertype: " + usertype);
+        return usertype;
+    }
 }

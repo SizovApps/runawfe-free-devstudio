@@ -81,6 +81,21 @@ public class VariableUtils {
         return scriptingName;
     }
 
+    public static String generateNameForScripting(List<Variable> variableList, String variableName, Variable excludedVariable) {
+        String scriptingName = toScriptingName(variableName);
+        if (excludedVariable != null) {
+            if (excludedVariable.getScriptingName() == null || Objects.equal(excludedVariable.getScriptingName(), scriptingName)) {
+                return scriptingName;
+            }
+        }
+        while (getVariableByScriptingName(variableList, scriptingName) != null) {
+            scriptingName += "_";
+        }
+        return scriptingName;
+    }
+
+
+
     public static List<String> getVariableNamesForScripting(List<Variable> variables) {
         List<String> result = Lists.newArrayListWithExpectedSize(variables.size());
         for (Variable variable : variables) {

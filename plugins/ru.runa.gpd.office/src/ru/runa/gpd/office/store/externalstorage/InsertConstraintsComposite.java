@@ -6,6 +6,7 @@ import org.eclipse.swt.widgets.Composite;
 import ru.runa.gpd.lang.model.Variable;
 import ru.runa.gpd.office.Messages;
 import ru.runa.gpd.office.store.StorageConstraintsModel;
+import ru.runa.gpd.extension.VariableFormatRegistry;
 import ru.runa.wfe.var.UserTypeMap;
 
 public class InsertConstraintsComposite extends AbstractOperatingVariableComboBasedConstraintsCompositeBuilder {
@@ -16,8 +17,11 @@ public class InsertConstraintsComposite extends AbstractOperatingVariableComboBa
 
     @Override
     protected Predicate<? super Variable> getFilterPredicate(String variableTypeName) {
-        return variable -> variable.isComplex() ? variable.getUserType().getName().equals(variableTypeName)
+        ru.runa.gpd.PluginLogger.logInfo("Insert getFilterPredicate: " + variableTypeName);
+        return variable -> variable.isComplex() ? variable.getUserType().getName().equals(variableTypeName) ||
+                variable.getUserType().getName().equals(VariableFormatRegistry.getInstance().getFilterJavaClassName(variableTypeName))
                 : variable.getFormatComponentClassNames()[0].equals(variableTypeName);
+
     }
 
     @Override

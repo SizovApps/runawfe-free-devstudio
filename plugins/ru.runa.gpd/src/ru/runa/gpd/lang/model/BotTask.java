@@ -128,7 +128,7 @@ public class BotTask implements Delegable, Comparable<BotTask> {
     public VariableUserType getVariableUserType(String name) {
         for (ParamDefGroup group : paramDefConfig.getGroups()) {
             for (ParamDef paramDef : group.getParameters()) {
-                PluginLogger.logInfo("ParamDef: " + paramDef.getFormatFilters().get(0));
+                PluginLogger.logInfo("ParamDef getVariableUserType: " + paramDef.getFormatFilters().get(0) + " | " + name);
                 if (name.equals(paramDef.getFormatFilters().get(0))) {
                     return new VariableUserType(paramDef.getFormatFilters().get(0), true);
                 }
@@ -145,6 +145,16 @@ public class BotTask implements Delegable, Comparable<BotTask> {
             }
         }
         return userTypes;
+    }
+
+    public List<String> getVariableUserTypesNames() {
+        List<String> userTypesName = new ArrayList<>();
+        for (ParamDefGroup group : paramDefConfig.getGroups()) {
+            for (ParamDef paramDef : group.getParameters()) {
+                 userTypesName.add(VariableFormatRegistry.getInstance().getFilterLabel(paramDef.getFormatFilters().get(0)));
+            }
+        }
+        return userTypesName;
     }
 
     public List<Variable> getVariabels(boolean expandComplexTypes, boolean includeSwimlanes, String... typeClassNameFilters) {

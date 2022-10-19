@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
+import ru.runa.gpd.util.VariableUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.io.SAXReader;
@@ -122,7 +123,6 @@ import ru.runa.gpd.util.WorkspaceOperations;
 import ru.runa.gpd.lang.model.Variable;
 import ru.runa.gpd.extension.handler.ParamDef;
 import ru.runa.gpd.extension.handler.ParamDefGroup;
-import ru.runa.gpd.extension.VariableFormatRegistry;
 
 public class AutomaticCreationUtils {
 
@@ -164,22 +164,23 @@ public class AutomaticCreationUtils {
             ProcessCache.newProcessDefinitionWasCreated(definitionFile);
             setGlobalVariables(definitionFile, botTask);
             botTask.setGlobalSectionDefinitionFile(definitionFile);
-            try {
-                GlobalSectionEditorBase processEditorBase = WorkspaceOperations.openGlobalSectionDefinition(definitionFile);
-                if (processEditorBase == null) {
-                    PluginLogger.logInfo("processEditorBase null!");
-                }
-                else if (processEditorBase.variablePage == null) {
-                    PluginLogger.logInfo("processEditorBase variablePage null!");
-                }
-                else {
-                    processEditorBase.variablePage.updateViewer();
-                    PluginLogger.logInfo(processEditorBase.toString() + " | ");
-                }
-            }
-            catch (NullPointerException ex) {
-                PluginLogger.logError(ex.getMessage(), ex);
-            }
+            //WorkspaceOperations.openGlobalSectionDefinition(definitionFile);
+//            try {
+//                GlobalSectionEditorBase processEditorBase = WorkspaceOperations.openGlobalSectionDefinition(definitionFile);
+//                if (processEditorBase == null) {
+//                    PluginLogger.logInfo("processEditorBase null!");
+//                }
+//                else if (processEditorBase.variablePage == null) {
+//                    PluginLogger.logInfo("processEditorBase variablePage null!");
+//                }
+//                else {
+//                    processEditorBase.variablePage.updateViewer();
+//                    PluginLogger.logInfo(processEditorBase.toString() + " | ");
+//                }
+//            }
+//            catch (NullPointerException ex) {
+//                PluginLogger.logError(ex.getMessage(), ex);
+//            }
             PluginLogger.logInfo("Set global to bot: " + botTask.getGlobalSectionDefinitionFile().getName() + " | " + botTask.getName());
         }
         catch (Exception e){
@@ -238,16 +239,23 @@ public class AutomaticCreationUtils {
         for (VariableUserType userType : processDefinition.getVariableUserTypes()) {
             PluginLogger.logInfo("user type: " + userType.getName());
         }
-
         int countOfAddedParam = 0;
-        ru.runa.gpd.extension.VariableFormatRegistry variableFormatRegistry = new VariableFormatRegistry();
-        for (ParamDef paramDef : botParams) {
-            PluginLogger.logInfo("Var to create: " + " | " + paramDef.getFormatFilters().get(0));
-            Variable variable = new Variable("Переменная" + countOfAddedParam, "Переменная" + countOfAddedParam, variableFormatRegistry.getFilterLabel(paramDef.getFormatFilters().get(0)), processDefinition.getVariableUserType(paramDef.getFormatFilters().get(0)));
-            PluginLogger.logInfo("Created var: " + variable.getScriptingName() + " | " + variable.getFormatClassName() + " | " + variable.getFormatLabel());
-            processDefinition.addGlobalVariable(variable);
-            countOfAddedParam += 1;
+        for (ParamDefGroup group : botTask.getParamDefConfig().getGroups()) {
+            PluginLogger.logInfo("ParamDefGroup: " + group.getName());
+            for (ParamDef paramDef : group.getParameters()) {
+                String variableName = paramDef.getLabel();
+                if (group.getName() == "output") {
+                    variableName += "_out";
+                }
+                String scriptingName = VariableUtils.generateNameForScripting(processDefinition.getGlobalVariables(), variableName, null);
+                PluginLogger.logInfo("Var to create: " + " | " + paramDef.getFormatFilters().get(0) + " | " + paramDef.getLabel() + " | " + paramDef.getName());
+                Variable variable = new Variable(variableName, scriptingName, VariableFormatRegistry.getInstance().getFilterLabel(paramDef.getFormatFilters().get(0)), processDefinition.getVariableUserType(paramDef.getFormatFilters().get(0)));
+                PluginLogger.logInfo("Created var: " + variable.getScriptingName() + " | " + variable.getFormatClassName() + " | " + variable.getFormatLabel());
+                processDefinition.addGlobalVariable(variable);
+                countOfAddedParam += 1;
+            }
         }
+
         try {
             WorkspaceOperations.saveProcessDefinition(processDefinition);
         }

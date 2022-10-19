@@ -207,6 +207,7 @@ public class VariableEditorPage extends EditorPartBase<Variable> {
     public void updateViewer() {
         ru.runa.gpd.PluginLogger.logInfo("Enter updateViewer! " + getDefinition().toString());
         ProcessDefinition definition = ProcessCache.getProcessDefinition(getDefinitionFile());
+        ru.runa.gpd.PluginLogger.logInfo("Enter updateViewer after! " + getDefinition().toString());
         List<Variable> variables = definition.getVariables(false, false);
         if (variables == null) {
             ru.runa.gpd.PluginLogger.logInfo("Variables == null!!!");

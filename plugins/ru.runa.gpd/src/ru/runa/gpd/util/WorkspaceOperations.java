@@ -498,6 +498,7 @@ public class WorkspaceOperations {
     }
 
     public static void saveProcessDefinition(ProcessDefinition definition) throws Exception {
+        PluginLogger.logInfo("saveProcessDefinition!!!");
         ProcessSerializer serializer = definition.getLanguage().getSerializer();
         Document document = serializer.getInitialProcessDefinitionDocument(definition.getName(), null);
         serializer.saveToXML(definition, document);

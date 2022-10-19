@@ -267,11 +267,17 @@ public class ProcessDefinition extends NamedGraphElement implements Describable,
     @Override
     public void validate(List<ValidationError> errors, IFile definitionFile) {
         super.validate(errors, definitionFile);
+        for (ValidationError error : errors) {
+            PluginLogger.logInfo("Before validate error: " + error.getMessage());
+        }
         List<StartState> startStates = getChildren(StartState.class);
         if (startStates.size() == 0) {
             errors.add(ValidationError.createLocalizedError(this, "startState.doesNotExist"));
         } else if (startStates.stream().filter(StartState::isStartByTimer).count() > 1) {
             errors.add(ValidationError.createLocalizedError(this, "startState.multipleStartStatesWithTimerNotAllowed"));
+        }
+        for (ValidationError error : errors) {
+            PluginLogger.logInfo("Before validate error: " + error.getMessage());
         }
         boolean invalid = false;
         for (ValidationError validationError : errors) {

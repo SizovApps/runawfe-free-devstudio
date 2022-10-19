@@ -784,7 +784,7 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
             @Override
             protected void onSelection(SelectionEvent e) throws Exception {
                 PluginLogger.logInfo("Table combo: " + (tablesCombo == null));
-                if (botTask.getDelegationClassName().equals(ScriptTask.INTERNAL_STORAGE_HANDLER_CLASS_NAME) && (tablesCombo == null || tablesCombo.getText() == "")) {
+                if (!checkSelectionOfTable()) {
                     return;
                 }
                 PluginLogger.logInfo("Bot task: " + botTask.getName() + " | " + botTask.getDelegationClassName() + " | " + botTask.getSelectedDataTableName());
@@ -803,10 +803,10 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
                 BotTask.usingBotTask = null;
                 PluginLogger.logInfo("Need rebuild!");
                 PluginLogger.logInfo("Bot global: " + botTask.getGlobalSectionDefinitionFile() + " | " + botTask.getName());
-                if (botTask.getGlobalSectionDefinitionFile() != null) {
-                    PluginLogger.logInfo("Open def from botEditor!");
-                    WorkspaceOperations.openGlobalSectionDefinition(botTask.getGlobalSectionDefinitionFile());
-                }
+//                if (botTask.getGlobalSectionDefinitionFile() != null) {
+//                    PluginLogger.logInfo("Open def from botEditor!");
+//                    WorkspaceOperations.openGlobalSectionDefinition(botTask.getGlobalSectionDefinitionFile());
+//                }
             }
         });
 
@@ -821,6 +821,11 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
 
             @Override
             protected void onSelection(SelectionEvent e) throws Exception {
+                PluginLogger.logInfo("Enter edit param!");
+                if (!checkSelectionOfTable()) {
+                    return;
+                }
+                BotTask.usingBotTask = botTask;
                 for (ParamDefGroup group : botTask.getParamDefConfig().getGroups()) {
                     if (parameterType.equals(group.getName())) {
                         IStructuredSelection selection = (IStructuredSelection) getParamTableViewer(parameterType).getSelection();
@@ -841,6 +846,7 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
                         }
                     }
                 }
+                BotTask.usingBotTask = null;
             }
         });
 
@@ -915,6 +921,13 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
             input.add(new String[] { paramDef.getName(), typeLabel, required, useVariable });
         }
         confTableViewer.setInput(input);
+    }
+
+    private boolean checkSelectionOfTable() {
+        if (botTask.getDelegationClassName().equals(ScriptTask.INTERNAL_STORAGE_HANDLER_CLASS_NAME) && (tablesCombo == null || tablesCombo.getText() == "")) {
+            return false;
+        }
+        return true;
     }
 
     private TableViewer getParamTableViewer(String parameterType) {

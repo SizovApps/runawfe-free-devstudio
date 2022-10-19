@@ -15,6 +15,9 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import ru.runa.gpd.PluginLogger;
 import ru.runa.gpd.extension.handler.XmlBasedConstructorProvider;
 import ru.runa.gpd.lang.ValidationError;
@@ -278,9 +281,18 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
             final Combo combo = new Combo(this, SWT.READ_ONLY);
             if (botTableName != null) {
                 if (constraintsModel.getQueryType() != QueryType.valueOf("SELECT")) {
-                    PluginLogger.logInfo("Not select!");
+                    PluginLogger.logInfo("Not select! ");
                     for (String varName : variableProvider.complexUserTypeNames().collect(Collectors.toSet())) {
-                        if (!varName.equals("java.util.List") && !varName.equals(botTableName)) {
+                        PluginLogger.logInfo("varName: " + varName);
+                        String listLabel = VariableFormatRegistry.getInstance().getFilterLabel("java.util.List");
+                        if (varName.contains(listLabel)) {
+                            String typeOfList = VariableFormatRegistry.getInstance().getUserTypeOfList(varName);
+                            if (!isFromDataTables(typeOfList)) {
+                                combo.add(varName);
+                                PluginLogger.logInfo("Added varName: " + varName);
+                            }
+                        }
+                        if (!varName.equals(listLabel) && !varName.equals(botTableName) && !varName.contains(listLabel)) {
                             combo.add(varName);
                             PluginLogger.logInfo("Added varName: " + varName);
                         }
@@ -288,7 +300,10 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
                 }
                 else {
                     PluginLogger.logInfo("Select!");
-                    combo.add(VariableFormatRegistry.getInstance().getFilterLabel("java.util.List"));
+                    String filterLabel = VariableFormatRegistry.getInstance().getFilterLabel("java.util.List");
+                    filterLabel += "(" + botTableName + ")";
+                    ru.runa.gpd.PluginLogger.logInfo("filterLabel: " + filterLabel);
+                    combo.add(filterLabel);
                     combo.add(botTableName);
                 }
             } else {
@@ -330,6 +345,7 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
                 if (Strings.isNullOrEmpty(text)) {
                     return;
                 }
+                PluginLogger.logInfo("Changed action type!");
                 constraintsModel.setQueryType(QueryType.valueOf(combo.getText()));
                 model.setMode(constraintsModel.getQueryType().equals(QueryType.SELECT) ? FilesSupplierMode.BOTH : FilesSupplierMode.IN);
                 model.getInOutModel().outputVariable = null;
@@ -346,6 +362,22 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
                 combo.setText(types.get(0).name());
                 constraintsModel.setQueryType(types.get(0));
             }
+        }
+
+        private boolean isFromDataTables(String typeLabel) {
+            try {
+                for (IResource file : ru.runa.gpd.util.DataTableUtils.getDataTableProject().members()) {
+                    if (file instanceof IFile && file.getName().endsWith(ru.runa.gpd.util.DataTableUtils.FILE_EXTENSION)) {
+                        if (ru.runa.gpd.util.IOUtils.getWithoutExtension(file.getName()).equals(typeLabel)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            catch (CoreException exception) {
+                ru.runa.gpd.PluginLogger.logErrorWithoutDialog("Can't open tables!");
+            }
+            return false;
         }
     }
 
