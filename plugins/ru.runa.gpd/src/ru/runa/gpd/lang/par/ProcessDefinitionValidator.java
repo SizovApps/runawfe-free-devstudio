@@ -33,6 +33,7 @@ public class ProcessDefinitionValidator {
      */
     public static int validateDefinition(ProcessDefinition processDefinition) {
         try {
+            PluginLogger.logInfo("processDefinition type: " + processDefinition.getClass());
             boolean hasErrors = false;
             boolean hasWarnings = false;
             IFile definitionFile = processDefinition.getFile();
@@ -40,6 +41,7 @@ public class ProcessDefinitionValidator {
             List<ValidationError> errors = Lists.newArrayList();
             PluginLogger.logInfo("process definition before validate: " + processDefinition.getFile().getName());
             processDefinition.validate(errors, definitionFile);
+            PluginLogger.logInfo("process definition before after!!!");
             for (ValidationError validationError : errors) {
                 PluginLogger.logInfo("Validation error: " + validationError.getMessage());
                 addError(definitionFile, processDefinition, validationError);

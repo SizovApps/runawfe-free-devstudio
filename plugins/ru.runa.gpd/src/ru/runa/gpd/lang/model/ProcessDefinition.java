@@ -36,6 +36,7 @@ import ru.runa.gpd.util.VariableUtils;
 import ru.runa.wfe.InternalApplicationException;
 import ru.runa.wfe.definition.ProcessDefinitionAccessType;
 import ru.runa.wfe.var.format.ListFormat;
+import org.eclipse.core.runtime.CoreException;
 
 @SuppressWarnings("unchecked")
 public class ProcessDefinition extends NamedGraphElement implements Describable, GlobalObjectAware {
@@ -267,6 +268,7 @@ public class ProcessDefinition extends NamedGraphElement implements Describable,
     @Override
     public void validate(List<ValidationError> errors, IFile definitionFile) {
         super.validate(errors, definitionFile);
+        PluginLogger.logInfo("Exit default validation");
         for (ValidationError error : errors) {
             PluginLogger.logInfo("Before validate error: " + error.getMessage());
         }

@@ -49,6 +49,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.FileEditorInput;
 import ru.runa.gpd.BotCache;
+import ru.runa.gpd.lang.Language;
 import ru.runa.gpd.DataTableCache;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.PluginLogger;
@@ -66,7 +67,6 @@ import ru.runa.gpd.extension.DelegableProvider;
 import ru.runa.gpd.extension.HandlerRegistry;
 import ru.runa.gpd.extension.VariableFormatRegistry;
 import ru.runa.gpd.extension.bot.IBotFileSupportProvider;
-import ru.runa.gpd.lang.Language;
 import ru.runa.gpd.lang.BpmnSerializer;
 import ru.runa.gpd.lang.ProcessSerializer;
 import ru.runa.gpd.lang.model.BotTask;
@@ -146,12 +146,12 @@ public class AutomaticCreationUtils {
             IFile definitionFile = IOUtils.getProcessDefinitionFile(folder);
             PluginLogger.logInfo("definitionFile: " + definitionFile.getName());
             String processName = folder.getName();
-            ru.runa.gpd.lang.Language language = ru.runa.gpd.lang.Language.valueOf("BPMN");
+            Language language = Language.valueOf("BPMN");
             Map<String, String> properties = Maps.newHashMap();
-            if (language == ru.runa.gpd.lang.Language.BPMN) {
-                properties.put(ru.runa.gpd.lang.BpmnSerializer.SHOW_SWIMLANE, ru.runa.gpd.util.SwimlaneDisplayMode.values()[0].name());
+            if (language == Language.BPMN) {
+                properties.put(BpmnSerializer.SHOW_SWIMLANE, SwimlaneDisplayMode.values()[0].name());
             }
-            properties.put(ru.runa.gpd.lang.ProcessSerializer.ACCESS_TYPE, "Process");
+            properties.put(ProcessSerializer.ACCESS_TYPE, "Process");
             Document document = language.getSerializer().getInitialProcessDefinitionDocument(processName, properties);
             byte[] bytes = XmlUtil.writeXml(document);
             if (!wasGlobalCreatedBefore) {
@@ -160,27 +160,27 @@ public class AutomaticCreationUtils {
                 definitionFile.setContents(new ByteArrayInputStream(bytes), IResource.FORCE, null);
             }
 
+
             PluginLogger.logInfo("Enter to end!!!");
             ProcessCache.newProcessDefinitionWasCreated(definitionFile);
             setGlobalVariables(definitionFile, botTask);
             botTask.setGlobalSectionDefinitionFile(definitionFile);
-            //WorkspaceOperations.openGlobalSectionDefinition(definitionFile);
-//            try {
-//                GlobalSectionEditorBase processEditorBase = WorkspaceOperations.openGlobalSectionDefinition(definitionFile);
-//                if (processEditorBase == null) {
-//                    PluginLogger.logInfo("processEditorBase null!");
-//                }
-//                else if (processEditorBase.variablePage == null) {
-//                    PluginLogger.logInfo("processEditorBase variablePage null!");
-//                }
-//                else {
-//                    processEditorBase.variablePage.updateViewer();
-//                    PluginLogger.logInfo(processEditorBase.toString() + " | ");
-//                }
-//            }
-//            catch (NullPointerException ex) {
-//                PluginLogger.logError(ex.getMessage(), ex);
-//            }
+            try {
+                GlobalSectionEditorBase processEditorBase = WorkspaceOperations.openGlobalSectionDefinition(definitionFile);
+                if (processEditorBase == null) {
+                    PluginLogger.logInfo("processEditorBase null!");
+                }
+                else if (processEditorBase.variablePage == null) {
+                    PluginLogger.logInfo("processEditorBase variablePage null!");
+                }
+                else {
+                    processEditorBase.variablePage.updateViewer();
+                    PluginLogger.logInfo(processEditorBase.toString() + " | ");
+                }
+            }
+            catch (NullPointerException ex) {
+                PluginLogger.logError(ex.getMessage(), ex);
+            }
             PluginLogger.logInfo("Set global to bot: " + botTask.getGlobalSectionDefinitionFile().getName() + " | " + botTask.getName());
         }
         catch (Exception e){
@@ -214,6 +214,8 @@ public class AutomaticCreationUtils {
 
         PluginLogger.logInfo("BotFolderName: " + container.getName());
         projectName += " global";
+        projectName = "." + projectName;
+        PluginLogger.logInfo("Project name: " + projectName);
         return IOUtils.getProcessFolder(container, projectName);
     }
 
