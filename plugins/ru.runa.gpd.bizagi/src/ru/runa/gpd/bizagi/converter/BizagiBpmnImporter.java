@@ -48,6 +48,7 @@ import ru.runa.gpd.lang.model.TaskState;
 import ru.runa.gpd.lang.model.Timer;
 import ru.runa.gpd.lang.model.Transition;
 import ru.runa.gpd.lang.model.Variable;
+import ru.runa.gpd.lang.model.VariableUserType;
 import ru.runa.gpd.lang.model.bpmn.CatchEventNode;
 import ru.runa.gpd.lang.model.bpmn.DataStore;
 import ru.runa.gpd.lang.model.bpmn.EventNodeType;
@@ -133,6 +134,9 @@ public class BizagiBpmnImporter implements GEFConstants {
             SwimlaneDisplayMode swimlaneDisplayMode = SwimlaneDisplayMode.none;
             Element collaborationElement = definitionsElement.element(COLLABORATION);
             String processName = collaborationElement.attributeValue(NAME);
+            if (processName == null) {
+            	processName = collaborationElement.attributeValue("id");
+            }
             nextParticipant: for (Element participant : (List<Element>) collaborationElement.elements(PARTICIPANT)) {
                 if (Strings.isNullOrEmpty(processName)) {
                     processName = participant.attributeValue(NAME);
@@ -168,7 +172,7 @@ public class BizagiBpmnImporter implements GEFConstants {
                 }
                 break;
             }
-
+            
             IFolder folder = IOUtils.getProcessFolder(dstFolder, processName);
             folder.create(true, true, null);
             IFile definitionFile = IOUtils.getProcessDefinitionFile(folder);
@@ -458,42 +462,88 @@ public class BizagiBpmnImporter implements GEFConstants {
                     varElement = varElement.element(QName.get(BIZAGI_EXTENSIONS, BIZAGI_NAMESPACE));
                     if (varElement != null) {
                         varElement = varElement.element(QName.get("BizagiExtendedAttributeDefinitions", BIZAGI_NAMESPACE));
-                        for (Element element : (List<Element>) varElement
-                                .elements(QName.get("BizagiExtendedAttributeDefinition", BIZAGI_NAMESPACE))) {
-                            String type = element.attributeValue("Type");
-                            String name = element.element(QName.get("Name", BIZAGI_NAMESPACE)).getText();
-                            String description = element.element(QName.get("Description", BIZAGI_NAMESPACE)).getText();
-                            Variable variable = new Variable();
-                            variable.setName(name);
-                            switch (type) {
-                            case "Text": {
-                                variable.setFormat("ru.runa.wfe.var.format.StringFormat");
-                                break;
-                            }
-                            case "LongText": {
-                                variable.setFormat("ru.runa.wfe.var.format.TextFormat");
-                                break;
-                            }
+                        if (varElement != null) {
+                            for (Element element : (List<Element>) varElement
+                                    .elements(QName.get("BizagiExtendedAttributeDefinition", BIZAGI_NAMESPACE))) {
+                                String type = element.attributeValue("Type");
+                                String name = element.element(QName.get("Name", BIZAGI_NAMESPACE)).getText();
+                                String description = element.element(QName.get("Description", BIZAGI_NAMESPACE)).getText();
+                                Variable variable = new Variable();
+                                variable.setName(name);
+                                variable.setDescription(description);
+                                switch (type) {
+                                case "Text": {
+                                    variable.setFormat("ru.runa.wfe.var.format.StringFormat");
+                                    break;
+                                }
+                                case "LongText": {
+                                    variable.setFormat("ru.runa.wfe.var.format.TextFormat");
+                                    break;
+                                }
 
-                            case "Date": {
-                                variable.setFormat("ru.runa.wfe.var.format.DateFormat");
-                                break;
-                            }
+                                case "Date": {
+                                    variable.setFormat("ru.runa.wfe.var.format.DateFormat");
+                                    break;
+                                }
 
-                            case "Number": {
-                                variable.setFormat("ru.runa.wfe.var.format.DoubleFormat");
-                                break;
+                                case "Number": {
+                                    variable.setFormat("ru.runa.wfe.var.format.DoubleFormat");
+                                    break;
+                                }
+                                case "FileLinked": {
+                                    variable.setFormat("ru.runa.wfe.var.format.FileFormat");
+                                    break;
+                                }
+                                case "Table": {
+                                    VariableUserType userType = new VariableUserType();
+                                    userType.setName("Table_" + name);
+                                    userType.setStoreInExternalStorage(true);
+                                    variable.setName(name);
+                                    variable.setDescription(description);
+                                    variable.setUserType(userType);
+                                    variable.setFormat("ru.runa.wfe.var.format.UserTypeFormat");
+                                    varElement = element.element(QName.get("TableColumns", BIZAGI_NAMESPACE));
+                                    for (Element tableElement : (List<Element>) varElement.elements(QName.get("ColumnAttribute", BIZAGI_NAMESPACE))) {
+                                        Variable userTypeVariable = new Variable();
+                                        type = tableElement.attributeValue("Type");
+                                        name = tableElement.element(QName.get("Name", BIZAGI_NAMESPACE)).getText();
+                                        description = tableElement.element(QName.get("Description", BIZAGI_NAMESPACE)).getText();
+                                        userTypeVariable.setName(name);
+                                        switch (type) {
+                                        case "Text": {
+                                            userTypeVariable.setFormat("ru.runa.wfe.var.format.StringFormat");
+                                            break;
+                                        }
+                                        case "LongText": {
+                                            userTypeVariable.setFormat("ru.runa.wfe.var.format.TextFormat");
+                                            break;
+                                        }
+
+                                        case "Date": {
+                                            userTypeVariable.setFormat("ru.runa.wfe.var.format.DateFormat");
+                                            break;
+                                        }
+
+                                        case "Number": {
+                                            userTypeVariable.setFormat("ru.runa.wfe.var.format.DoubleFormat");
+                                            break;
+                                        }
+                                        default: {
+                                            userTypeVariable.setFormat("ru.runa.wfe.var.format.StringFormat");
+                                        }
+                                        }
+                                        userTypeVariable.setDescription(description);
+                                        userType.addAttribute(userTypeVariable);
+                                    }
+                                    definition.addVariableUserType(userType);
+                                    break;
+                                }
+                                default: {
+                                    variable.setFormat("ru.runa.wfe.var.format.StringFormat");
+                                }
+                                }
+                                definition.addChild(variable);
                             }
-                            case "FileLinked": {
-                                variable.setFormat("ru.runa.wfe.var.format.FileFormat");
-                                break;
-                            }
-                            default: {
-                                variable.setFormat("ru.runa.wfe.var.format.StringFormat");
-                            }
-                            }
-                            variable.setDescription(description);
-                            definition.addChild(variable);
                         }
                     }
                 }
@@ -515,7 +565,7 @@ public class BizagiBpmnImporter implements GEFConstants {
     private static void setConstraint(GraphElement ge, String id) {
         NodeTypeDefinition typeDefinition = NodeRegistry.getNodeTypeDefinition(ge.getClass());
         GraphitiEntry entry = typeDefinition.getGraphitiEntry();
-        Dimension defaultSize = entry.getDefaultSize();
+        Dimension defaultSize = entry.getDefaultSize(ge);
         Rectangle bounds = bounds(id);
         if (bounds.width < defaultSize.width || entry.isFixedSize()) {
             bounds.x -= (defaultSize.width - bounds.width) / 2;

@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: RunaWFE Developer Studio core plugin
 Bundle-SymbolicName: ru.runa.gpd; singleton:=true
-Bundle-Version: 4.4.3.qualifier
+Bundle-Version: 4.5.0.qualifier
 Bundle-Activator: ru.runa.gpd.Activator
 Bundle-Vendor: Runa
 Bundle-Localization: plugin
@@ -252,13 +252,13 @@ Export-Package: antlr,
  ru.runa.gpd.editor.gef.figure,
  ru.runa.gpd.editor.gef.figure.uml,
  ru.runa.gpd.editor.gef.part.graph,
- ru.runa.gpd.editor.gef.part.tree,
  ru.runa.gpd.editor.gef.policy,
  ru.runa.gpd.editor.graphiti,
  ru.runa.gpd.editor.graphiti.add,
  ru.runa.gpd.editor.graphiti.create,
  ru.runa.gpd.editor.graphiti.layout,
  ru.runa.gpd.editor.graphiti.update,
+ ru.runa.gpd.editor.outline,
  ru.runa.gpd.extension,
  ru.runa.gpd.extension.assign,
  ru.runa.gpd.extension.bot,

@@ -153,7 +153,6 @@ public class VariablesXmlContentProvider extends AuxContentProvider {
 
     private Variable parse(Element element, ProcessDefinition processDefinition) {
         String variableName = element.attributeValue(NAME);
-        PluginLogger.logErrorWithoutDialog(variableName + "_No swimlane", null);
         String format;
         String userTypeName = element.attributeValue(USER_TYPE);
         VariableUserType userType = null;

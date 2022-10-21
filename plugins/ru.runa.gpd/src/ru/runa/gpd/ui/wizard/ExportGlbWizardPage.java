@@ -4,8 +4,10 @@ import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -231,7 +233,6 @@ public class ExportGlbWizardPage extends WizardArchiveFileResourceExportPage1 {
                 IResource[] members = processFolder.members();
                 for (IResource resource : members) {
                     if (resource instanceof IFile) {
-                        PluginLogger.logInfo("Global file: " + ((IFile) resource).getName());
                         resourcesToExport.add((IFile) resource);
                     }
                 }
@@ -242,7 +243,6 @@ public class ExportGlbWizardPage extends WizardArchiveFileResourceExportPage1 {
                         continue;
                     }
                     String outputFileName = getDestinationValue() + definition.getName() + ".glb";
-                    PluginLogger.logInfo("outputFileName: " + outputFileName);
                     new ParExportOperation(resourcesToExport, new FileOutputStream(outputFileName)).run(null);
                     if (ProcessSaveHistory.isActive()) {
                         Map<String, File> savepoints = ProcessSaveHistory.getSavepoints(processFolder);
@@ -250,7 +250,6 @@ public class ExportGlbWizardPage extends WizardArchiveFileResourceExportPage1 {
                             List<File> filesToExport = new ArrayList<>();
                             for (Map.Entry<String, File> savepoint : savepoints.entrySet()) {
                                 filesToExport.add(savepoint.getValue());
-                                ru.runa.gpd.PluginLogger.logInfo("Savepoint: " + savepoint.getValue().getName());
                             }
                             filesToExport.add(new File(outputFileName));
                             String oldestSavepointName = ((NavigableMap<String, File>) savepoints).lastEntry().getValue().getName();
@@ -261,9 +260,6 @@ public class ExportGlbWizardPage extends WizardArchiveFileResourceExportPage1 {
                                 if (oldestTimestamp.compareTo(uaLog.getKey()) <= 0) {
                                     filesToExport.add(uaLog.getValue());
                                 }
-                            }
-                            for (File file : filesToExport) {
-                                ru.runa.gpd.PluginLogger.logInfo("filesToExport: " + file.getName());
                             }
                             WizardPageUtils.zip(filesToExport, new FileOutputStream(getDestinationValue() + definition.getName() + ".har"));
                         }
@@ -319,7 +315,6 @@ public class ExportGlbWizardPage extends WizardArchiveFileResourceExportPage1 {
         public ParExportOperation(List<IFile> resourcesToExport, OutputStream outputStream) {
             this.outputStream = outputStream;
             this.resourcesToExport = resourcesToExport;
-            PluginLogger.logInfo("OutputStream class: " + outputStream.getClass());
         }
 
         protected void exportResource(IFileExporter exporter, IFile fileResource, IProgressMonitor progressMonitor)
@@ -331,7 +326,6 @@ public class ExportGlbWizardPage extends WizardArchiveFileResourceExportPage1 {
                 return;
             }
             String destinationName = fileResource.getName();
-            PluginLogger.logInfo("Destination: " + destinationName);
             exporter.write(fileResource, destinationName);
         }
 
@@ -339,7 +333,6 @@ public class ExportGlbWizardPage extends WizardArchiveFileResourceExportPage1 {
             try {
                 ParFileExporter exporter = new ParFileExporter(outputStream);
                 for (IFile resource : resourcesToExport) {
-                    PluginLogger.logInfo("exportResources IFile: " + resource.getName());
                     exportResource(exporter, resource, progressMonitor);
                 }
                 exporter.finished();
@@ -401,18 +394,15 @@ public class ExportGlbWizardPage extends WizardArchiveFileResourceExportPage1 {
 
         public ParFileExporter(OutputStream outputStream) {
             this.outputStream = new ZipOutputStream(outputStream);
-            PluginLogger.logInfo("OutputStream class from output: " + outputStream.getClass());
         }
 
         @Override
         public void finished() throws IOException {
-            PluginLogger.logInfo("Not finished!");
             outputStream.close();
         }
 
         @Override
         public void write(IFile resource, String destinationPath) throws IOException, CoreException {
-            PluginLogger.logInfo("Enter write: " + destinationPath + " | " + outputStream.getClass());
             WizardPageUtils.write(outputStream, new ZipEntry(destinationPath), resource);
         }
 

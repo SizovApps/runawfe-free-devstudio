@@ -9,6 +9,7 @@ import org.eclipse.ui.views.properties.ComboBoxPropertyDescriptor;
 import org.eclipse.ui.views.properties.IPropertyDescriptor;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.lang.ValidationError;
+import ru.runa.gpd.lang.model.EmbeddedSubprocess.Behavior;
 import ru.runa.gpd.lang.model.bpmn.AbstractEndTextDecorated;
 import ru.runa.gpd.lang.model.bpmn.EndEventType;
 import ru.runa.gpd.util.Duration;
@@ -22,8 +23,9 @@ public class EndTokenState extends AbstractEndTextDecorated implements VariableM
     protected void populateCustomPropertyDescriptors(List<IPropertyDescriptor> descriptors) {
         super.populateCustomPropertyDescriptors(descriptors);
         descriptors.add(new ComboBoxPropertyDescriptor(PROPERTY_EVENT_TYPE, Localization.getString("property.eventType"), EndEventType.LABELS));
-        if (getProcessDefinition() instanceof SubprocessDefinition) {
-            descriptors.add(new ComboBoxPropertyDescriptor(PROPERTY_END_TOKEN_BEHAVIOR, Localization.getString("EndTokenState.property.behaviour"),
+        if (getProcessDefinition() instanceof SubprocessDefinition
+                && ((SubprocessDefinition) getProcessDefinition()).getBehavior() == Behavior.GraphPart) {
+            descriptors.add(new ComboBoxPropertyDescriptor(PROPERTY_BEHAVIOR, Localization.getString("EndTokenState.property.behaviour"),
                     EndTokenSubprocessDefinitionBehavior.getLabels()));
         }
     }
@@ -33,7 +35,7 @@ public class EndTokenState extends AbstractEndTextDecorated implements VariableM
         if (PROPERTY_EVENT_TYPE.equals(id)) {
             return getEventType().ordinal();
         }
-        if (PROPERTY_END_TOKEN_BEHAVIOR.equals(id)) {
+        if (PROPERTY_BEHAVIOR.equals(id)) {
             return subprocessDefinitionBehavior.ordinal();
         }
         return super.getPropertyValue(id);
@@ -44,7 +46,7 @@ public class EndTokenState extends AbstractEndTextDecorated implements VariableM
         if (PROPERTY_EVENT_TYPE.equals(id)) {
             int index = ((Integer) value).intValue();
             setEventType(EndEventType.values()[index]);
-        } else if (PROPERTY_END_TOKEN_BEHAVIOR.equals(id)) {
+        } else if (PROPERTY_BEHAVIOR.equals(id)) {
             setSubprocessDefinitionBehavior(EndTokenSubprocessDefinitionBehavior.values()[(Integer) value]);
         } else {
             super.setPropertyValue(id, value);
@@ -58,7 +60,7 @@ public class EndTokenState extends AbstractEndTextDecorated implements VariableM
     public void setSubprocessDefinitionBehavior(EndTokenSubprocessDefinitionBehavior subprocessDefinitionBehavior) {
         EndTokenSubprocessDefinitionBehavior old = this.subprocessDefinitionBehavior;
         this.subprocessDefinitionBehavior = subprocessDefinitionBehavior;
-        firePropertyChange(PROPERTY_END_TOKEN_BEHAVIOR, old, this.subprocessDefinitionBehavior);
+        firePropertyChange(PROPERTY_BEHAVIOR, old, this.subprocessDefinitionBehavior);
     }
 
     @Override
@@ -106,6 +108,7 @@ public class EndTokenState extends AbstractEndTextDecorated implements VariableM
         return variableMappings;
     }
 
+    @Override
     public void setVariableMappings(List<VariableMapping> variablesList) {
         this.variableMappings.clear();
         this.variableMappings.addAll(variablesList);

@@ -54,7 +54,7 @@ public class WizardPageUtils {
         listGroup.setLayout(new GridLayout(1, false));
         listGroup.setLayoutData(new GridData(GridData.FILL_BOTH));
         listGroup.setText(Localization.getString(label));
-        ListViewer listViewer = new ListViewer(listGroup, SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
+        ListViewer listViewer = new ListViewer(listGroup, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
         listViewer.getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
         listViewer.setContentProvider(new ArrayContentProvider());
         listViewer.setInput(input);

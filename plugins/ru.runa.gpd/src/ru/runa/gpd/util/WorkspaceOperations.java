@@ -132,7 +132,6 @@ public class WorkspaceOperations {
     private final static int REMOVE_DOT = 1;
 
     public static void deleteResources(List<IResource> resources) {
-        PluginLogger.logInfo("Resource size: " + resources.size());
         List<IFile> deletedDefinitions = new ArrayList<IFile>();
         for (IResource resource : resources) {
             try {
@@ -277,7 +276,6 @@ public class WorkspaceOperations {
         }
         return null;
     }
-
 
     public static void copyProcessDefinition(IStructuredSelection selection) {
         IFolder processDefinitionFolder = (IFolder) selection.getFirstElement();
@@ -553,7 +551,6 @@ public class WorkspaceOperations {
             } else {
                 editorId = GEFProcessEditor.ID;
             }
-            PluginLogger.logInfo("Editor id: " + editorId);
             IEditorPart editorPart = IDE.openEditor(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(), definitionFile, editorId,
                     true);
             PluginLogger.logInfo("EditorPart instance: " + editorPart.getClass() );
@@ -561,10 +558,6 @@ public class WorkspaceOperations {
                 PluginLogger.logInfo("GlobalSectionEditorBase! " + editorPart.toString());
                 return (GlobalSectionEditorBase) editorPart;
             }
-//            else if (editorPart instanceof ProcessEditorBase) {
-//                PluginLogger.logInfo("ProcessEditorBase! " + editorPart.toString());
-//                return (ProcessEditorBase) editorPart;
-//            }
         } catch (PartInitException e) {
             PluginLogger.logError("Unable open diagram", e);
         }
@@ -737,6 +730,16 @@ public class WorkspaceOperations {
         } catch (CoreException | IOException e) {
             throw new InternalApplicationException(e);
         }
+    }
+
+    public static void saveDataTable(IFile file, VariableUserType dataTable) {
+        Document document = UserTypeXmlContentProvider.save(file, dataTable);
+        try {
+            IOUtils.createOrUpdateFile(file, new ByteArrayInputStream(XmlUtil.writeXml(document)));
+        } catch (CoreException e) {
+            throw new InternalApplicationException(e);
+        }
+        DataTableCache.reload();
     }
 
     // Есть ли какой-нибудь подходящий паттерн, чтобы можно устанавливать значения входных параметров функции по умолчанию? Сейчас доблируется код с метода saveBotTask().

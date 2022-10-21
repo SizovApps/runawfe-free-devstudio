@@ -75,6 +75,9 @@ public class ImportBizagiBpmnWizardPage extends ImportWizardPage {
     public boolean performFinish() {
         try {
             IContainer container = getSelectedProject();
+            if(container == null) {            	
+            	throw new Exception(Messages.getString("ImportBpmnWizardPage.error.selectProject")+"!");       	
+            }
             String bpmnFileName = selectFileEditor.getStringValue();
             if (bpmnFileName == null || !new File(bpmnFileName).exists()) {
                 throw new Exception(Messages.getString("ImportBpmnWizardPage.error.selectFile"));
