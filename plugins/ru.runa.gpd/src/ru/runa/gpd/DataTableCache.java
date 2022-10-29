@@ -27,14 +27,16 @@ public class DataTableCache {
         try {
             DATA_TABLES_FILES.clear();
             DATA_TABLES.clear();
-            IProject dtProject = DataTableUtils.getDataTableProject();
-            for (IResource resource : dtProject.members()) {
-                if (resource instanceof IFile) {
-                    IFile dataTableFile = (IFile) resource;
-                    try {
-                        cacheDataTable(dataTableFile);
-                    } catch (Exception e) {
-                        PluginLogger.logError(e);
+            if (DataTableUtils.dataTableProjectExists()) {
+                IProject dtProject = DataTableUtils.getDataTableProject();
+                for (IResource resource : dtProject.members()) {
+                    if (resource instanceof IFile) {
+                        IFile dataTableFile = (IFile) resource;
+                        try {
+                            cacheDataTable(dataTableFile);
+                        } catch (Exception e) {
+                            PluginLogger.logError(e);
+                        }
                     }
                 }
             }
@@ -48,6 +50,7 @@ public class DataTableCache {
         }
     }
 
+    @SuppressWarnings("deprecation")
     private static void cacheDataTable(IFile dataTableFile) {
         try {
             Document document = XmlUtil.parseWithoutValidation(dataTableFile.getContents(true));

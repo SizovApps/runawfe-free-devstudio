@@ -10,4 +10,9 @@ public class DataTableUtils {
     public static IProject getDataTableProject() {
         return ResourcesPlugin.getWorkspace().getRoot().getProject(PROJECT_NAME);
     }
+
+    public static boolean dataTableProjectExists() {
+        return ResourcesPlugin.getWorkspace().getRoot().findMember(PROJECT_NAME) != null;
+    }
+
 }
