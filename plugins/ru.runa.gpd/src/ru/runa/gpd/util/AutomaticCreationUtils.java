@@ -167,7 +167,9 @@ public class AutomaticCreationUtils {
             botTask.setGlobalSectionDefinitionFile(definitionFile);
             try {
                 GlobalSectionEditorBase processEditorBase = WorkspaceOperations.openGlobalSectionDefinition(definitionFile);
-                processEditorBase.isFromBot(true);
+                if (processEditorBase != null) {
+                    processEditorBase.setIsFromBot(true);
+                }
                 if (processEditorBase == null) {
                     PluginLogger.logInfo("processEditorBase null!");
                 }

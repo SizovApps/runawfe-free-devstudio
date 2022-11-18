@@ -135,23 +135,26 @@ public class VariableEditorPage extends EditorPartBase<Variable> {
                 new TableColumnDescription("Variable.property.storeType", 200, SWT.LEFT));
 
         Composite buttonsBar = createActionBar(allVariablesComposite);
-        addButton(buttonsBar, "button.create", new CreateVariableSelectionListener(), false);
-        renameButton = addButton(buttonsBar, "button.rename", new RenameVariableSelectionListener(), true);
-        changeButton = addButton(buttonsBar, "button.change", new ChangeVariableSelectionListener(), true);
-        copyButton = addButton(buttonsBar, "button.copy", new CopyVariableSelectionListener(), true);
-        pasteButton = addButton(buttonsBar, "button.paste", new PasteVariableSelectionListener(), true);
-        searchButton = addButton(buttonsBar, "button.search", new SearchVariableUsageSelectionListener(), true);
-        if (CommonPreferencePage.isGlobalObjectsEnabled()) {
-            importGlobalButton = addButton(buttonsBar, "button.importGlobal", new ImportGlobalVariableSelectionListener(), true);
-            makeLocalButton = addButton(buttonsBar, "button.makeLocal", new MakeLocalVariableListener(), true);
+        ru.runa.gpd.PluginLogger.logInfo("Create part: " + isBlocked);
+        if (!isBlocked) {
+            addButton(buttonsBar, "button.create", new CreateVariableSelectionListener(), false);
+            renameButton = addButton(buttonsBar, "button.rename", new RenameVariableSelectionListener(), true);
+            changeButton = addButton(buttonsBar, "button.change", new ChangeVariableSelectionListener(), true);
+            copyButton = addButton(buttonsBar, "button.copy", new CopyVariableSelectionListener(), true);
+            pasteButton = addButton(buttonsBar, "button.paste", new PasteVariableSelectionListener(), true);
+            searchButton = addButton(buttonsBar, "button.search", new SearchVariableUsageSelectionListener(), true);
+            if (CommonPreferencePage.isGlobalObjectsEnabled()) {
+                importGlobalButton = addButton(buttonsBar, "button.importGlobal", new ImportGlobalVariableSelectionListener(), true);
+                makeLocalButton = addButton(buttonsBar, "button.makeLocal", new MakeLocalVariableListener(), true);
+            }
+            usageReportButton = addButton(buttonsBar, "button.report", new ReportUsageSelectionListener(), true);
+            usageReportButton.setToolTipText(Localization.getString("DesignerVariableEditorPage.report.variablesUsage.tooltip"));
+            moveUpButton = addButton(buttonsBar, "button.up", new MoveVariableSelectionListener(true), true);
+            moveDownButton = addButton(buttonsBar, "button.down", new MoveVariableSelectionListener(false), true);
+            deleteButton = addButton(buttonsBar, "button.delete", new DeleteVariableSelectionListener(), true);
+            moveToTypeAttributeButton = addButton(buttonsBar, "button.move", new MoveToTypeAttributeSelectionListener(), true);
+            updateViewer();
         }
-        usageReportButton = addButton(buttonsBar, "button.report", new ReportUsageSelectionListener(), true);
-        usageReportButton.setToolTipText(Localization.getString("DesignerVariableEditorPage.report.variablesUsage.tooltip"));
-        moveUpButton = addButton(buttonsBar, "button.up", new MoveVariableSelectionListener(true), true);
-        moveDownButton = addButton(buttonsBar, "button.down", new MoveVariableSelectionListener(false), true);
-        deleteButton = addButton(buttonsBar, "button.delete", new DeleteVariableSelectionListener(), true);
-        moveToTypeAttributeButton = addButton(buttonsBar, "button.move", new MoveToTypeAttributeSelectionListener(), true);
-        updateViewer();
     }
 
     @Override
@@ -178,7 +181,7 @@ public class VariableEditorPage extends EditorPartBase<Variable> {
 
     @Override
     protected void updateUI() {
-        ru.runa.gpd.PluginLogger.logInfo("Enter update UI!");
+        ru.runa.gpd.PluginLogger.logInfo("Enter update UI! " + isBlocked);
         List<?> variables = (List<?>) tableViewer.getInput();
         List<?> selected = ((IStructuredSelection) tableViewer.getSelection()).toList();
         boolean isWithoutGlobalVars = isWithoutGlobalVars(selected);

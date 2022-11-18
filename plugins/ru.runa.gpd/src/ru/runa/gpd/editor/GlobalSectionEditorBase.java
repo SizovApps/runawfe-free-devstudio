@@ -93,9 +93,6 @@ public abstract class GlobalSectionEditorBase extends ProcessEditorBase {
                 swimlanePage = super.addNewPage(new SwimlaneEditorPage((ProcessEditorBase) this), "DesignerEditor.title.swimlanes");
                 variablePage = super.addNewPage(new VariableEditorPage((ProcessEditorBase) this), "DesignerEditor.title.variables");
                 PluginLogger.logInfo("Create variablePage!");
-                if (isFromBot) {
-                    variablePage.setIsBlocked(true);
-                }
                 variableTypeEditorPage = super.addNewPage(new VariableTypeEditorPage((ProcessEditorBase) this), "VariableUserType.collection");
             }
             PluginLogger.logInfo("Go to validation!");
@@ -154,8 +151,11 @@ public abstract class GlobalSectionEditorBase extends ProcessEditorBase {
         }
     }
 
-    public void isFromBot(boolean isFromBot) {
+    public void setIsFromBot(boolean isFromBot) {
         this.isFromBot = isFromBot;
+        if (isFromBot) {
+            variablePage.setIsBlocked(isFromBot);
+        }
     }
 
 }
