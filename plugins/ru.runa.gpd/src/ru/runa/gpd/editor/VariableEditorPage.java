@@ -83,6 +83,7 @@ public class VariableEditorPage extends EditorPartBase<Variable> {
     private Button usageReportButton;
     private Button pasteButton;
     private Button makeLocalButton;
+    private boolean isBlocked;
 
     private static Function<Variable, String> joinVariableNamesFunction = new Function<Variable, String>() {
 
@@ -183,6 +184,9 @@ public class VariableEditorPage extends EditorPartBase<Variable> {
         boolean isWithoutGlobalVars = isWithoutGlobalVars(selected);
         boolean isGlobalSection = isGlobalSection();
         boolean isUsingGlobals = isUsingGlobals();
+        if (isBlocked) {
+            return;
+        }
         enableAction(searchButton, selected.size() == 1);
         enableAction(changeButton, isWithoutGlobalVars && selected.size() == 1);
         enableAction(moveUpButton, isWithoutGlobalVars && selected.size() == 1 && variables.indexOf(selected.get(0)) > 0);
@@ -202,6 +206,10 @@ public class VariableEditorPage extends EditorPartBase<Variable> {
 
     private boolean isWithoutGlobalVars(List<?> variables) {
         return variables.stream().filter(v -> v instanceof Variable).noneMatch(v -> ((Variable) v).isGlobal());
+    }
+
+    public void setIsBlocked(boolean isBlocked) {
+        this.isBlocked = isBlocked;
     }
 
     public void updateViewer() {

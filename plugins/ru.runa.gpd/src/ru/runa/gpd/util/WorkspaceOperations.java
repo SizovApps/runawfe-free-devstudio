@@ -775,15 +775,6 @@ public class WorkspaceOperations {
         }
     }
 
-    public static void saveDataTable(IFile file, VariableUserType dataTable) {
-        Document document = UserTypeXmlContentProvider.save(file, dataTable);
-        try {
-            IOUtils.createOrUpdateFile(file, new ByteArrayInputStream(XmlUtil.writeXml(document)));
-        } catch (CoreException e) {
-            throw new InternalApplicationException(e);
-        }
-        DataTableCache.reload();
-    }
 
     public static void deleteBotTask(IFile botTaskFile, BotTask botTask) {
         try {

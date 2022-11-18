@@ -66,6 +66,7 @@ public abstract class GlobalSectionEditorBase extends ProcessEditorBase {
     protected SwimlaneEditorPage swimlanePage;
     public VariableEditorPage variablePage;
     protected VariableTypeEditorPage variableTypeEditorPage;
+    private boolean isFromBot;
 
     @Override
     public void init(IEditorSite site, IEditorInput input) throws PartInitException {
@@ -90,9 +91,11 @@ public abstract class GlobalSectionEditorBase extends ProcessEditorBase {
         try {
             if (!(definition instanceof SubprocessDefinition)) {
                 swimlanePage = super.addNewPage(new SwimlaneEditorPage((ProcessEditorBase) this), "DesignerEditor.title.swimlanes");
-                PluginLogger.logInfo("Create variablePage!");
                 variablePage = super.addNewPage(new VariableEditorPage((ProcessEditorBase) this), "DesignerEditor.title.variables");
-
+                PluginLogger.logInfo("Create variablePage!");
+                if (isFromBot) {
+                    variablePage.setIsBlocked(true);
+                }
                 variableTypeEditorPage = super.addNewPage(new VariableTypeEditorPage((ProcessEditorBase) this), "VariableUserType.collection");
             }
             PluginLogger.logInfo("Go to validation!");
@@ -149,6 +152,10 @@ public abstract class GlobalSectionEditorBase extends ProcessEditorBase {
         } catch (CoreException e) {
             PluginLogger.logErrorWithoutDialog("Cleaning unused form files", e);
         }
+    }
+
+    public void isFromBot(boolean isFromBot) {
+        this.isFromBot = isFromBot;
     }
 
 }
