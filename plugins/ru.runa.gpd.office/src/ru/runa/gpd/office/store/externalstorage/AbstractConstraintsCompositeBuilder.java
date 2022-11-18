@@ -4,14 +4,12 @@ import com.google.common.base.Strings;
 
 import java.util.Arrays;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import ru.runa.gpd.lang.model.Variable;
 import ru.runa.gpd.office.store.QueryType;
 import ru.runa.gpd.office.store.StorageConstraintsModel;
-import ru.runa.gpd.extension.VariableFormatRegistry;
 import ru.runa.wfe.var.UserTypeMap;
 
 abstract class AbstractConstraintsCompositeBuilder extends Composite implements ConstraintsCompositeBuilder {
@@ -52,8 +50,6 @@ abstract class AbstractConstraintsCompositeBuilder extends Composite implements 
             String[] classes = {""};
             return Arrays.stream(classes);
         }
-//        String javaClassName = VariableFormatRegistry.getInstance().getFilterJavaClassName(variableTypeName);
-//        ru.runa.gpd.PluginLogger.logInfo("Created javaClassName: " + javaClassName);
         Stream<String> stream = variableProvider.getVariables(false, false, getTypeNameFilters()).stream().filter(getFilterPredicate(variableTypeName))
                 .map(Variable::getName);
         return stream;

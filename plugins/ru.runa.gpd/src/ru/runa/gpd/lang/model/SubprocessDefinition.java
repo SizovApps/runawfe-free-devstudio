@@ -153,7 +153,6 @@ public class SubprocessDefinition extends ProcessDefinition {
     @Override
     public void validate(List<ValidationError> errors, IFile definitionFile) {
         super.validate(errors, definitionFile);
-        ru.runa.gpd.PluginLogger.logInfo("Subprocess validation");
         List<StartState> startStates = getChildren(StartState.class);
         if (startStates.size() == 1 && startStates.get(0).getLeavingTransitions().size() != 1) {
             errors.add(ValidationError.createLocalizedError(startStates.get(0), "subprocess.embedded.startState.required1leavingtransition"));

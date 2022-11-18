@@ -186,6 +186,5 @@ public class GlobalSectionDefinition extends ProcessDefinition {
 
     @Override
     public void validate(List<ValidationError> errors, IFile definitionFile) {
-        PluginLogger.logInfo("Enter global section null validation");
     }
 }

@@ -32,8 +32,6 @@ public class BotResourcesLabelProvider extends LabelProvider {
         }
         return super.getText(element);
     }
-
-
     @Override
     public Image getImage(Object element) {
         if (element instanceof IProject) {

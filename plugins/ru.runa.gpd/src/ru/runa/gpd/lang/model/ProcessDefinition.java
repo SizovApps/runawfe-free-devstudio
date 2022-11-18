@@ -35,7 +35,6 @@ import ru.runa.gpd.util.VariableUtils;
 import ru.runa.wfe.InternalApplicationException;
 import ru.runa.wfe.definition.ProcessDefinitionAccessType;
 import ru.runa.wfe.var.format.ListFormat;
-import org.eclipse.core.runtime.CoreException;
 
 @SuppressWarnings("unchecked")
 public class ProcessDefinition extends NamedGraphElement implements Describable, GlobalObjectAware {
@@ -500,6 +499,7 @@ public class ProcessDefinition extends NamedGraphElement implements Describable,
         if (!types.contains(type) && !isSameNameUserType(type.getName())) {
             types.add(type);
             allTypes.add(type);
+            firePropertyChange(PROPERTY_USER_TYPES_CHANGED, null, type);
         }
     }
 
@@ -512,7 +512,6 @@ public class ProcessDefinition extends NamedGraphElement implements Describable,
         }
         return false;
     }
-
 
     public void changeVariableUserTypePosition(VariableUserType type, int position) {
         if (position != -1 && types.remove(type)) {
@@ -553,7 +552,6 @@ public class ProcessDefinition extends NamedGraphElement implements Describable,
                 }
             }
         }
-        PluginLogger.logInfo("Return null!");
         return null;
     }
 

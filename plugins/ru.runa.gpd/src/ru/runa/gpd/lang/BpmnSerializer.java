@@ -141,7 +141,6 @@ public class BpmnSerializer extends ProcessSerializer {
 
     @Override
     public Document getInitialProcessDefinitionDocument(String processName, Map<String, String> properties) {
-        PluginLogger.logInfo("Enter getInitialProcessDefinitionDocument!");
         Document document = XmlUtil.createDocument(DEFINITIONS);
         Element definitionsElement = document.getRootElement();
         definitionsElement.addNamespace(BPMN_PREFIX, BPMN_NAMESPACE);

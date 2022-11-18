@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.function.Predicate;
 import org.eclipse.swt.widgets.Composite;
 import ru.runa.gpd.lang.model.Variable;
+import ru.runa.gpd.extension.VariableFormatRegistry;
 import ru.runa.gpd.office.InputOutputModel;
 import ru.runa.gpd.office.Messages;
 import ru.runa.gpd.office.store.InternalStorageOperationHandlerCellEditorProvider.VariableUserTypeInfo;
@@ -35,9 +36,8 @@ public class SelectConstraintsComposite extends AbstractOperatingVariableComboBa
 
     @Override
     protected Predicate<? super Variable> getFilterPredicate(String variableTypeName) {
-        ru.runa.gpd.PluginLogger.logInfo("Validate: " + variableTypeName + " | ");
         return variable -> variable.getUserType().getName().equals(variableTypeName)
-                || variable.getUserType().getName().equals(ru.runa.gpd.extension.VariableFormatRegistry.getInstance().getFilterJavaClassName(variableTypeName));
+                || variable.getUserType().getName().equals(VariableFormatRegistry.getInstance().getFilterJavaClassName(variableTypeName));
     }
 
     @Override

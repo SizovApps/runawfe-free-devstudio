@@ -149,9 +149,7 @@ public abstract class GraphElement extends EventSupport
     }
 
     public void validate(List<ValidationError> errors, IFile definitionFile) {
-        PluginLogger.logInfo("Error size: " + errors.size());
         if (isDelegable()) {
-            PluginLogger.logInfo("Default isDelegable validate");
             Delegable delegable = (Delegable) this;
             DelegableProvider provider = HandlerRegistry.getProvider(delegationClassName);
             if (delegationClassName == null || delegationClassName.length() == 0) {
@@ -189,9 +187,7 @@ public abstract class GraphElement extends EventSupport
                 }
             }
         }
-        PluginLogger.logInfo("Default no Delegable validate: " + definitionFile.getName());
         for (GraphElement element : children) {
-            PluginLogger.logInfo("Enter children!");
             try {
                 element.validate(errors, definitionFile);
             } catch (Exception e) {

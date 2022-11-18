@@ -43,11 +43,6 @@ import ru.runa.gpd.ui.wizard.ImportBotTaskWizardPage;
 import ru.runa.gpd.ui.wizard.ImportBotWizardPage;
 import ru.runa.gpd.util.UiUtil;
 import ru.runa.gpd.util.WorkspaceOperations;
-import ru.runa.gpd.util.AutomaticCreationUtils;
-import ru.runa.gpd.util.IOUtils;
-import ru.runa.gpd.globalsection.GlobalSectionUtils;
-import ru.runa.wfe.definition.ProcessDefinitionAccessType;
-
 
 public class BotExplorerTreeView extends ViewPart implements ISelectionListener {
     private TreeViewer viewer;
@@ -94,8 +89,6 @@ public class BotExplorerTreeView extends ViewPart implements ISelectionListener 
                 Object element = ((IStructuredSelection) event.getSelection()).getFirstElement();
                 if (element instanceof IFile) {
                     if (((IFile) element).getName().contains("process")) {
-                        PluginLogger.logInfo("Opening global...");
-                        PluginLogger.logInfo("GLB!");
                         WorkspaceOperations.openGlobalSectionDefinition((IFile) element);
                     }
                     else {
@@ -103,7 +96,6 @@ public class BotExplorerTreeView extends ViewPart implements ISelectionListener 
                     }
                 }
                 else {
-                    PluginLogger.logInfo("Open else!!!");
                      WorkspaceOperations.openProcessDefinitionFromBot(element);
                 }
             }
@@ -121,7 +113,6 @@ public class BotExplorerTreeView extends ViewPart implements ISelectionListener 
         });
         viewer.getControl().setMenu(menu);
     }
-
 
     @SuppressWarnings("unchecked")
     protected void fillContextMenu(IMenuManager manager) {
@@ -245,7 +236,6 @@ public class BotExplorerTreeView extends ViewPart implements ISelectionListener 
             manager.add(new Action(Localization.getString("button.delete"), SharedImages.getImageDescriptor("icons/delete.gif")) {
                 @Override
                 public void run() {
-                    PluginLogger.logInfo("resources count: " + resources.size());
                     WorkspaceOperations.deleteBotResources(resources);
                 }
             });

@@ -17,7 +17,6 @@ public class InsertConstraintsComposite extends AbstractOperatingVariableComboBa
 
     @Override
     protected Predicate<? super Variable> getFilterPredicate(String variableTypeName) {
-        ru.runa.gpd.PluginLogger.logInfo("Insert getFilterPredicate: " + variableTypeName);
         return variable -> variable.isComplex() ? variable.getUserType().getName().equals(variableTypeName) ||
                 variable.getUserType().getName().equals(VariableFormatRegistry.getInstance().getFilterJavaClassName(variableTypeName))
                 : variable.getFormatComponentClassNames()[0].equals(variableTypeName);

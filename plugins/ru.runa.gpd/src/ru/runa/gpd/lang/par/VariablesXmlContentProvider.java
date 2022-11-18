@@ -73,7 +73,6 @@ public class VariablesXmlContentProvider extends AuxContentProvider {
                 type.addAttribute(variable);
             }
         }
-
     }
 
     public Element writeGloabalVariable(Element root, Variable variable){

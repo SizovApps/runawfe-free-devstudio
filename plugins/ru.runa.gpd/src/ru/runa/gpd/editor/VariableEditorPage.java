@@ -104,8 +104,6 @@ public class VariableEditorPage extends EditorPartBase<Variable> {
 
         Composite allVariablesComposite = createSection(sashForm, "DesignerVariableEditorPage.label.all_variables");
 
-        ru.runa.gpd.PluginLogger.logInfo("Enter variable editor page!!!");
-
         tableViewer = createMainViewer(allVariablesComposite, SWT.MULTI | SWT.BORDER | SWT.V_SCROLL | SWT.FULL_SELECTION);
         tableViewer.setLabelProvider(new VariableLabelProvider());
         TableViewerLocalDragAndDropSupport.enable(tableViewer, new DragAndDropAdapter<Variable>() {
@@ -135,7 +133,6 @@ public class VariableEditorPage extends EditorPartBase<Variable> {
                 new TableColumnDescription("Variable.property.storeType", 200, SWT.LEFT));
 
         Composite buttonsBar = createActionBar(allVariablesComposite);
-        ru.runa.gpd.PluginLogger.logInfo("Create part: " + isBlocked);
         if (!isBlocked) {
             addButton(buttonsBar, "button.create", new CreateVariableSelectionListener(), false);
             renameButton = addButton(buttonsBar, "button.rename", new RenameVariableSelectionListener(), true);
@@ -167,7 +164,6 @@ public class VariableEditorPage extends EditorPartBase<Variable> {
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        ru.runa.gpd.PluginLogger.logInfo("Property: " + evt.getPropertyName());
         String type = evt.getPropertyName();
         if (PropertyNames.PROPERTY_CHILDREN_CHANGED.equals(type)) {
             updateViewer();
@@ -181,7 +177,6 @@ public class VariableEditorPage extends EditorPartBase<Variable> {
 
     @Override
     protected void updateUI() {
-        ru.runa.gpd.PluginLogger.logInfo("Enter update UI! " + isBlocked);
         List<?> variables = (List<?>) tableViewer.getInput();
         List<?> selected = ((IStructuredSelection) tableViewer.getSelection()).toList();
         boolean isWithoutGlobalVars = isWithoutGlobalVars(selected);
@@ -216,16 +211,8 @@ public class VariableEditorPage extends EditorPartBase<Variable> {
     }
 
     public void updateViewer() {
-        ru.runa.gpd.PluginLogger.logInfo("Enter updateViewer! " + getDefinition().toString());
         ProcessDefinition definition = ProcessCache.getProcessDefinition(getDefinitionFile());
         List<Variable> variables = definition.getVariables(false, false);
-        if (variables == null) {
-            ru.runa.gpd.PluginLogger.logInfo("Variables == null!!!");
-        }
-        for (Variable var : variables) {
-            ru.runa.gpd.PluginLogger.logInfo("Variable: " + var.getScriptingName());
-        }
-
         tableViewer.setInput(variables);
         for (Variable variable : variables) {
             variable.addPropertyChangeListener(this);

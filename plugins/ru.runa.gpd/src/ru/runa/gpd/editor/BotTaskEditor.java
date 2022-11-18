@@ -2,20 +2,20 @@ package ru.runa.gpd.editor;
 
 import com.google.common.collect.Lists;
 
-import java.awt.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URL;
-import java.util.*;
 import java.util.List;
+import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.ListIterator;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.stream.Stream;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -96,7 +96,6 @@ import ru.runa.gpd.util.WorkspaceOperations;
 import ru.runa.gpd.util.XmlUtil;
 import ru.runa.gpd.util.DataTableUtils;
 import ru.runa.gpd.util.IOUtils;
-import com.google.common.collect.Maps;
 
 public class BotTaskEditor extends EditorPart implements ISelectionListener, IResourceChangeListener, PropertyChangeListener {
     public static final String ID = "ru.runa.gpd.editor.BotTaskEditor";
@@ -158,7 +157,6 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
             WorkspaceOperations.saveBotTask(botTaskFile, botTask);
             botTask = BotCache.getBotTaskNotNull(botTaskFile);
             botTask.setSelectedDataTable(selectedTableName);
-            PluginLogger.logInfo("Saved botTask: " + botTask.getName() + " | " + botTask.getDelegationClassName() + " | " + botTask.getSelectedDataTableName());
             setTitleImage(SharedImages.getImage(botTask.getType() == BotTaskType.SIMPLE ? "icons/bot_task.gif" : "icons/bot_task_formal.gif"));
             setDirty(false);
             if (isBotDocxHandlerEnhancement()) {
@@ -232,15 +230,12 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
     }
 
     private void rebuildView(Composite composite) {
-        PluginLogger.logInfo("Enter rebuild bot editor!");
         rebuildingView = true;
         configurationText = null;
         addParameterButton = null;
         editParameterButton = null;
         deleteParameterButton = null;
         readDocxParametersButton = null;
-
-        PluginLogger.logInfo("Enter rebuild!!!");
 
         for (Control control : composite.getChildren()) {
             control.dispose();
@@ -257,12 +252,9 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
             scrolledComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
 
             Composite innerComposite = new Composite(scrolledComposite, SWT.NONE);
-
-            PluginLogger.logInfo("handler: " + botTask.getDelegationClassName());
             if (botTask.getDelegationClassName().equals(ScriptTask.INTERNAL_STORAGE_HANDLER_CLASS_NAME)) {
                 createSelectTableArea(innerComposite);
             }
-
             innerComposite.setLayout(new GridLayout());
             createParamteresFields(composite, innerComposite);
             boolean isBotDocxHandlerEnhancement = isBotDocxHandlerEnhancement();
@@ -348,7 +340,6 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
                 ChooseHandlerClassDialog dialog = new ChooseHandlerClassDialog(HandlerArtifact.TASK_HANDLER, handlerText.getText());
                 String className = dialog.openDialog();
                 if (className != null) {
-                    PluginLogger.logInfo("handler name: " + className);
                     boolean taskHandlerParameterized = BotTaskUtils.isTaskHandlerParameterized(className);
                     handlerText.setText(className);
                     botTask.setDelegationClassName(className);
@@ -361,24 +352,12 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
                         botTask.setType(BotTaskType.EXTENDED);
                         botTask.setParamDefConfig(BotTaskUtils.createEmptyParamDefConfig());
                     }
-                    if (className.equals(ScriptTask.INTERNAL_STORAGE_HANDLER_CLASS_NAME)) {
-                        createBotGlobalSection();
-                    }
                     botTask.setDelegationConfiguration("");
                     setDirty(true);
                     rebuildView(parent);
                 }
             }
         });
-    }
-
-    private void createBotGlobalSection() {
-        PluginLogger.logInfo("Start create global!!!");
-//
-//        IFolder botFolder = (IFolder) (botTaskFile == null ? null : botTaskFile.getParent());
-//        IFile definitionFile = IOUtils.getProcessDefinitionFile(botFolder);
-//        PluginLogger.logInfo("Names file: " + botTaskFile.getName() + " | " + botFolder.getName());
-
     }
 
     private void createParamteresFields(final Composite mainComposite, Composite parent) {
@@ -703,7 +682,6 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
         editConfigurationButton.setEnabled(!botTask.getDelegationClassName().isEmpty());
     }
 
-
     private void createConfigurationArea(Composite parent) {
         if (!Activator.getPrefBoolean(PrefConstants.P_SHOW_XML_BOT_CONFIG)) {
             return;
@@ -782,12 +760,10 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
         addParameterButtonLocal.setEnabled(!isBotDocxHandler && botTask.getType() != BotTaskType.PARAMETERIZED);
         addParameterButtonLocal.addSelectionListener(new LoggingSelectionAdapter() {
             @Override
-            protected void onSelection(SelectionEvent e) throws Exception {
-                PluginLogger.logInfo("Table combo: " + (tablesCombo == null));
+            protected void onSelection(SelectionEvent e) throws Exception {;
                 if (!checkSelectionOfTable()) {
                     return;
                 }
-                PluginLogger.logInfo("Bot task: " + botTask.getName() + " | " + botTask.getDelegationClassName() + " | " + botTask.getSelectedDataTableName());
                 BotTask.usingBotTask = botTask;
                 for (ParamDefGroup group : botTask.getParamDefConfig().getGroups()) {
                     if (parameterType.equals(group.getName())) {
@@ -801,12 +777,6 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
                     }
                 }
                 BotTask.usingBotTask = null;
-                PluginLogger.logInfo("Need rebuild!");
-                PluginLogger.logInfo("Bot global: " + botTask.getGlobalSectionDefinitionFile() + " | " + botTask.getName());
-//                if (botTask.getGlobalSectionDefinitionFile() != null) {
-//                    PluginLogger.logInfo("Open def from botEditor!");
-//                    WorkspaceOperations.openGlobalSectionDefinition(botTask.getGlobalSectionDefinitionFile());
-//                }
             }
         });
 
@@ -821,7 +791,6 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
 
             @Override
             protected void onSelection(SelectionEvent e) throws Exception {
-                PluginLogger.logInfo("Enter edit param!");
                 if (!checkSelectionOfTable()) {
                     return;
                 }
@@ -862,7 +831,6 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
             protected void onSelection(SelectionEvent e) throws Exception {
                 for (ParamDefGroup group : botTask.getParamDefConfig().getGroups()) {
                     if (parameterType.equals(group.getName())) {
-                        PluginLogger.logInfo("Del: " + parameterType);
                         IStructuredSelection selection = (IStructuredSelection) getParamTableViewer(parameterType).getSelection();
                         String[] row = (String[]) selection.getFirstElement();
                         if (row == null) {
@@ -898,12 +866,10 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
     }
 
     public void setTableInput(String groupType) {
-        PluginLogger.logInfo("setTableInput: " + groupType);
         TableViewer confTableViewer = getParamTableViewer(groupType);
         List<ParamDef> paramDefs = new ArrayList<ParamDef>();
         for (ParamDefGroup group : botTask.getParamDefConfig().getGroups()) {
             if (groupType.equals(group.getName())) {
-                PluginLogger.logInfo("Group len: " + group.getParameters().size());
                 if (group.getParameters().size() != 0) {
                     paramDefs.addAll(group.getParameters());
                 }
@@ -946,7 +912,7 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
         GridData gridData = new GridData(GridData.BEGINNING);
         gridData.widthHint = 150;
         label.setLayoutData(gridData);
-        label.setText("Select table: ");
+        label.setText(Localization.getString("BotTaskEditor.selectTable"));
 
         List<String> tables = new ArrayList<String>();
 
@@ -960,7 +926,7 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
         catch (Exception ignored){}
         tablesCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         tablesCombo.setItems(tables.toArray(new String[tables.size()]));
-        tablesCombo.setText("Select table");
+        tablesCombo.setText(Localization.getString("BotTaskEditor.selectTable"));
         tablesCombo.addSelectionListener(new LoggingSelectionAdapter() {
             @Override
             protected void onSelection(SelectionEvent e) throws Exception {
@@ -971,11 +937,9 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
                 previuosTableName = tablesCombo.getText();
             }
         });
-        PluginLogger.logInfo("getSelectedDataTableName from editor: " + botTask.getSelectedDataTableName());
         if (botTask.getSelectedDataTableName() != null) {
             tablesCombo.select(getIndexOfSelectedTable(tables));
             previuosTableName = tablesCombo.getText();
-            PluginLogger.logInfo("Set previuosTableName: " + previuosTableName);
         }
     }
 
@@ -991,15 +955,11 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
     }
 
     private void deleteBotParams() {
-        PluginLogger.logInfo("Delete!!!");
         for (ParamDefGroup group : botTask.getParamDefConfig().getGroups()) {
-            PluginLogger.logInfo("ParamDefGroup: " + group.getName());
                 while (group.getParameters().size() > 0) {
                     ParamDef paramDef = group.getParameters().get(0);
-                    PluginLogger.logInfo("Paramdef: " + paramDef.getName());
                     group.getParameters().remove(paramDef);
                     setTableInput(group.getName());
-                    PluginLogger.logInfo("Set dirty!!!");
                     setDirty(true);
                 }
         }

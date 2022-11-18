@@ -25,7 +25,6 @@ import ru.runa.gpd.util.IOUtils;
 public class ProcessCache {
     private static Map<IFile, ProcessDefinition> CACHE_BY_FILE = new HashMap<IFile, ProcessDefinition>();
     private static Map<String, ProcessDefinition> CACHE_BY_NAME = new HashMap<String, ProcessDefinition>();
-
     static {
         try {
             for (IFile file : IOUtils.getAllProcessDefinitionFiles()) {
@@ -71,7 +70,7 @@ public class ProcessCache {
         }
     }
 
-    public static void cacheProcessDefinition(IFile file, ProcessDefinition definition) throws Exception {
+    private static void cacheProcessDefinition(IFile file, ProcessDefinition definition) throws Exception {
         ParContentProvider.readAuxInfo(file, definition);
         CACHE_BY_FILE.put(file, definition);
         CACHE_BY_NAME.put(definition.getName(), definition);
@@ -123,7 +122,7 @@ public class ProcessCache {
     public static synchronized Set<ProcessDefinition> getGlobalProcessDefinitions() {
         HashSet<ProcessDefinition> hashSet = new HashSet<ProcessDefinition>();
         for (ProcessDefinition processDefinition : CACHE_BY_NAME.values()) {
-            if (processDefinition.getClass().toString().equals("class ru.runa.gpd.lang.model.GlobalSectionDefinition")) {
+            if (processDefinition instanceof GlobalSectionDefinition) {
                 hashSet.add(processDefinition);
             }
         }

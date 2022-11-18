@@ -64,7 +64,7 @@ public abstract class GlobalSectionEditorBase extends ProcessEditorBase {
     protected ProcessDefinition definition;
     protected IFile definitionFile;
     protected SwimlaneEditorPage swimlanePage;
-    public VariableEditorPage variablePage;
+    protected VariableEditorPage variablePage;
     protected VariableTypeEditorPage variableTypeEditorPage;
     private boolean isFromBot;
 
@@ -72,11 +72,8 @@ public abstract class GlobalSectionEditorBase extends ProcessEditorBase {
     public void init(IEditorSite site, IEditorInput input) throws PartInitException {
         definitionFile = ((FileEditorInput) input).getFile();
         definition = ProcessCache.getProcessDefinition(definitionFile);
-        PluginLogger.logInfo("From Editor base proc def: " + definition.getClass());
         definition.setDirty(false);
         definition.addPropertyChangeListener(this);
-
-        PluginLogger.logInfo("Init GlobalSectionEditorBase! " + definitionFile.getName() + " | " + definition.getFile().getName());
 
         setPartName(definition.getName());
 
@@ -87,15 +84,12 @@ public abstract class GlobalSectionEditorBase extends ProcessEditorBase {
 
     @Override
     protected void createPages() {
-        PluginLogger.logInfo("Create pages!");
         try {
             if (!(definition instanceof SubprocessDefinition)) {
                 swimlanePage = super.addNewPage(new SwimlaneEditorPage((ProcessEditorBase) this), "DesignerEditor.title.swimlanes");
                 variablePage = super.addNewPage(new VariableEditorPage((ProcessEditorBase) this), "DesignerEditor.title.variables");
-                PluginLogger.logInfo("Create variablePage!");
                 variableTypeEditorPage = super.addNewPage(new VariableTypeEditorPage((ProcessEditorBase) this), "VariableUserType.collection");
             }
-            PluginLogger.logInfo("Go to validation!");
             ProcessDefinitionValidator.validateDefinition(definition);
         } catch (PartInitException e) {
             PluginLogger.logError(Localization.getString("DesignerEditor.error.can_not_create_graphical_viewer"), e);
@@ -158,4 +152,7 @@ public abstract class GlobalSectionEditorBase extends ProcessEditorBase {
         }
     }
 
+    public VariableEditorPage getVariableEditorPage(){
+        return variablePage;
+    }
 }

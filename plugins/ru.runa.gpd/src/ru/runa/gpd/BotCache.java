@@ -8,8 +8,11 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.io.CharStreams;
 import java.io.InputStreamReader;
-import java.util.*;
-
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -103,7 +106,6 @@ public class BotCache {
                         }
                     }
                 }
-                ru.runa.gpd.PluginLogger.logInfo("IsImport from cacheBotTask: " + isImport);
                 BotTask botTask = BotTaskUtils.createBotTask(botStationName, botName, botTaskFile.getName(), lines.get(0), configurationFileData, isImport);
                 botTasks.add(botTask);
                 BOT_TASK_FILES.put(botTask, botTaskFile);
@@ -130,7 +132,6 @@ public class BotCache {
     }
 
     public static synchronized void invalidateBotTaskFromImport(IFile botTaskFile, BotTask botTask) {
-        ru.runa.gpd.PluginLogger.logInfo("invalidateBotTaskFromImport enter!!! ");
         String botName = botTaskFile.getParent().getName();
         List<BotTask> botTasks = BOT_TASKS.get(botName);
         if (botTasks == null) {
@@ -266,15 +267,11 @@ public class BotCache {
         return BOT_TASK_FILES.get(botTask);
     }
     public static synchronized boolean isBotTaskFile(BotTask botTask) {
-        if (!BOT_TASK_FILES.containsKey(botTask)) {
-            return false;
-        }
-        return true;
+        return BOT_TASK_FILES.containsKey(botTask);
     }
 
     public static synchronized IFolder getBotTaskFolder(BotTask botTask) {
         IFile botTaskFile = getBotTaskFile(botTask);
-        ru.runa.gpd.PluginLogger.logInfo("Parent name: " + botTaskFile.getParent().getName() + " | " + botTaskFile.getParent().getClass());
         return (IFolder) botTaskFile.getParent();
     }
 }

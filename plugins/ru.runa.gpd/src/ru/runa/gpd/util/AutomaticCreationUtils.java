@@ -173,11 +173,11 @@ public class AutomaticCreationUtils {
                 if (processEditorBase == null) {
                     PluginLogger.logInfo("processEditorBase null!");
                 }
-                else if (processEditorBase.variablePage == null) {
+                else if (processEditorBase.getVariableEditorPage() == null) {
                     PluginLogger.logInfo("processEditorBase variablePage null!");
                 }
                 else {
-                    processEditorBase.variablePage.updateViewer();
+                    processEditorBase.getVariableEditorPage().updateViewer();
                     PluginLogger.logInfo(processEditorBase.toString() + " | ");
                 }
             }

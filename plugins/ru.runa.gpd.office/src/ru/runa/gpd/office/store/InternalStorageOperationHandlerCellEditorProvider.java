@@ -20,6 +20,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import ru.runa.gpd.PluginLogger;
 import ru.runa.gpd.extension.handler.XmlBasedConstructorProvider;
+import ru.runa.gpd.extension.VariableFormatRegistry;
 import ru.runa.gpd.lang.ValidationError;
 import ru.runa.gpd.lang.model.Delegable;
 import ru.runa.gpd.lang.model.GraphElement;
@@ -30,6 +31,7 @@ import ru.runa.gpd.lang.model.StorageAware;
 import ru.runa.gpd.lang.model.VariableContainer;
 import ru.runa.gpd.lang.model.VariableUserType;
 import ru.runa.gpd.lang.model.VariableUserTypeNameAware;
+import ru.runa.gpd.lang.model.BotTask;
 import ru.runa.gpd.office.FilesSupplierMode;
 import ru.runa.gpd.office.Messages;
 import ru.runa.gpd.office.store.externalstorage.ConstraintsCompositeBuilder;
@@ -42,10 +44,10 @@ import ru.runa.gpd.office.store.externalstorage.SelectConstraintsComposite;
 import ru.runa.gpd.office.store.externalstorage.UpdateConstraintsComposite;
 import ru.runa.gpd.office.store.externalstorage.VariableProvider;
 import ru.runa.gpd.office.store.externalstorage.BotTaskVariableProvider;
-import ru.runa.gpd.lang.model.BotTask;
 import ru.runa.gpd.ui.custom.SwtUtils;
+import ru.runa.gpd.util.DataTableUtils;
 import ru.runa.gpd.util.EmbeddedFileUtils;
-import ru.runa.gpd.extension.VariableFormatRegistry;
+import ru.runa.gpd.util.IOUtils;
 
 public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedConstructorProvider<InternalStorageDataModel> {
     public static final String INTERNAL_STORAGE_DATASOURCE_PATH = "datasource:InternalStorage";
@@ -83,7 +85,7 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
             processDefinition = ((VariableContainer) delegable).getVariables(false, true).stream().map(variable -> variable.getProcessDefinition())
                     .findAny();
         }
-        PluginLogger.logInfo("Config botTask: " + botTask.get().getName());
+
         if (delegable instanceof StorageAware) {
             if (delegable instanceof VariableUserTypeNameAware) {
                 return new ConstructorView(parent, delegable, model,
@@ -97,7 +99,6 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
                             processDefinition.orElseThrow(() -> new IllegalStateException("process definition unavailable"))),
                     isUseExternalStorageIn, isUseExternalStorageOut).build();
         } else {
-            PluginLogger.logInfo("Enter BotTaskVariableProvider!");
             if (botTask.get().getSelectedDataTableName() != null) {
                 return new ConstructorView(parent, delegable, model,
                         new BotTaskVariableProvider(botTask.orElseThrow(() -> new IllegalStateException("bot task unavailable"))),
@@ -154,7 +155,6 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
         private final boolean isUseExternalStorageIn;
         private final boolean isUseExternalStorageOut;
         private String botTableName;
-
         private StorageConstraintsModel constraintsModel;
         private VariableUserTypeInfo variableUserTypeInfo = new VariableUserTypeInfo(false, "");
 
@@ -223,15 +223,16 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
                 constraintsModel.setVariableName(null);
                 model.setMode(FilesSupplierMode.IN);
             } else {
-                PluginLogger.logInfo("Call addDataTypeCombo!!!");
                 addDataTypeCombo();
             }
+
             initConstraintsCompositeBuilder();
             if (constraintsCompositeBuilder != null) {
                 constraintsCompositeBuilder.clearConstraints();
                 new Label(this, SWT.NONE);
                 constraintsCompositeBuilder.build();
             }
+
             ((ScrolledComposite) getParent()).setMinSize(computeSize(getSize().x, SWT.DEFAULT));
             this.layout(true, true);
             this.redraw();
@@ -281,28 +282,22 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
             final Combo combo = new Combo(this, SWT.READ_ONLY);
             if (botTableName != null) {
                 if (constraintsModel.getQueryType() != QueryType.valueOf("SELECT")) {
-                    PluginLogger.logInfo("Not select! ");
                     for (String varName : variableProvider.complexUserTypeNames().collect(Collectors.toSet())) {
-                        PluginLogger.logInfo("varName: " + varName);
                         String listLabel = VariableFormatRegistry.getInstance().getFilterLabel("java.util.List");
                         if (varName.contains(listLabel)) {
                             String typeOfList = VariableFormatRegistry.getInstance().getUserTypeOfList(varName);
                             if (!isFromDataTables(typeOfList)) {
                                 combo.add(varName);
-                                PluginLogger.logInfo("Added varName: " + varName);
                             }
                         }
                         if (!varName.equals(listLabel) && !varName.equals(botTableName) && !varName.contains(listLabel)) {
                             combo.add(varName);
-                            PluginLogger.logInfo("Added varName: " + varName);
                         }
                     }
                 }
                 else {
-                    PluginLogger.logInfo("Select!");
                     String filterLabel = VariableFormatRegistry.getInstance().getFilterLabel("java.util.List");
                     filterLabel += "(" + botTableName + ")";
-                    ru.runa.gpd.PluginLogger.logInfo("filterLabel: " + filterLabel);
                     combo.add(filterLabel);
                     combo.add(botTableName);
                 }
@@ -321,13 +316,11 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
                 }
                 buildFromModel();
             }));
-            PluginLogger.logInfo("constraintsModel name: " + constraintsModel.getSheetName());
             VariableUserType userType = variableProvider.getUserType(constraintsModel.getSheetName());
             if (userType == null && botTableName != null) {
                 userType = new VariableUserType(constraintsModel.getSheetName(), true);
             }
             if (userType != null) {
-                PluginLogger.logInfo("Combo userType: " + userType.getName());
                 combo.setText(userType.getName());
                 variableUserTypeInfo.setVariableTypeName(userType.getName());
             }
@@ -345,7 +338,6 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
                 if (Strings.isNullOrEmpty(text)) {
                     return;
                 }
-                PluginLogger.logInfo("Changed action type!");
                 constraintsModel.setQueryType(QueryType.valueOf(combo.getText()));
                 model.setMode(constraintsModel.getQueryType().equals(QueryType.SELECT) ? FilesSupplierMode.BOTH : FilesSupplierMode.IN);
                 model.getInOutModel().outputVariable = null;
@@ -366,16 +358,16 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
 
         private boolean isFromDataTables(String typeLabel) {
             try {
-                for (IResource file : ru.runa.gpd.util.DataTableUtils.getDataTableProject().members()) {
-                    if (file instanceof IFile && file.getName().endsWith(ru.runa.gpd.util.DataTableUtils.FILE_EXTENSION)) {
-                        if (ru.runa.gpd.util.IOUtils.getWithoutExtension(file.getName()).equals(typeLabel)) {
+                for (IResource file : DataTableUtils.getDataTableProject().members()) {
+                    if (file instanceof IFile && file.getName().endsWith(DataTableUtils.FILE_EXTENSION)) {
+                        if (IOUtils.getWithoutExtension(file.getName()).equals(typeLabel)) {
                             return true;
                         }
                     }
                 }
             }
             catch (CoreException exception) {
-                ru.runa.gpd.PluginLogger.logErrorWithoutDialog("Can't open tables!");
+                PluginLogger.logErrorWithoutDialog("Can't open tables!");
             }
             return false;
         }

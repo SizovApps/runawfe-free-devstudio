@@ -167,14 +167,12 @@ public class VariableFormatRegistry extends ArtifactRegistry<VariableFormatArtif
     }
 
     public String getFilterLabel(String javaClassName) {
-        PluginLogger.logInfo("Find getFilterLabel: " + javaClassName);
         String addTableList = "";
         if (javaClassName.contains("(")) {
             addTableList = javaClassName.substring(javaClassName.indexOf('('));
             javaClassName = javaClassName.substring(0, javaClassName.indexOf('('));
         }
         for (VariableFormatArtifact artifact : filterArtifacts) {
-            PluginLogger.logInfo("artifact.getJavaClassName(): " + artifact.getJavaClassName());
             if (Objects.equal(javaClassName, artifact.getJavaClassName())) {
                 if (addTableList != "") {
                     return artifact.getLabel() + addTableList;
@@ -187,15 +185,12 @@ public class VariableFormatRegistry extends ArtifactRegistry<VariableFormatArtif
     }
 
     public String getFilterJavaClassName(String label) {
-        PluginLogger.logInfo("Find getFilterJavaClassName: " + label);
         String addTableList = "";
         if (label.contains("(")) {
             addTableList = label.substring(label.indexOf('('));
             label = label.substring(0, label.indexOf('('));
         }
         for (VariableFormatArtifact artifact : filterArtifacts) {
-            PluginLogger.logInfo("artifact.getLabel(): " + artifact.getLabel());
-
             if (Objects.equal(label, artifact.getLabel()) || artifact.getLabel().contains(label)) {
                 if (addTableList != "") {
                     return artifact.getJavaClassName() + addTableList;
@@ -227,7 +222,6 @@ public class VariableFormatRegistry extends ArtifactRegistry<VariableFormatArtif
 
     public String getUserTypeOfList(String userTypeName) {
         String usertype = userTypeName.substring(userTypeName.indexOf('(') + 1, userTypeName.indexOf(')'));
-        PluginLogger.logInfo("Inner usertype: " + usertype);
         return usertype;
     }
 }

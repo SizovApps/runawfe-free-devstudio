@@ -5,9 +5,6 @@ import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.Optional;
-
-import javafx.scene.PointLight;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
@@ -19,7 +16,6 @@ import ru.runa.gpd.PluginLogger;
 import ru.runa.gpd.lang.model.Variable;
 import ru.runa.gpd.lang.model.VariableUserType;
 import ru.runa.gpd.lang.model.GlobalSectionDefinition;
-import ru.runa.gpd.lang.model.ProcessDefinition;
 import ru.runa.gpd.extension.HandlerArtifact;
 import ru.runa.gpd.extension.HandlerRegistry;
 import ru.runa.gpd.extension.VariableFormatRegistry;
@@ -29,7 +25,6 @@ import ru.runa.gpd.extension.handler.ParamDefGroup;
 import ru.runa.gpd.extension.handler.XmlBasedConstructorProvider;
 import ru.runa.gpd.ui.view.ValidationErrorsView;
 import ru.runa.gpd.util.XmlUtil;
-
 
 public class BotTask implements Delegable, Comparable<BotTask> {
     private BotTaskType type = BotTaskType.SIMPLE;
@@ -41,7 +36,6 @@ public class BotTask implements Delegable, Comparable<BotTask> {
     private final List<String> filesToSave;
     private String selectedDataTableName;
     private IFile globalSectionDefinitionFile;
-
     public static BotTask usingBotTask;
 
     public BotTask(String station, String bot, String name) {
@@ -81,15 +75,9 @@ public class BotTask implements Delegable, Comparable<BotTask> {
     }
 
     public void setGlobalSectionDefinitionFile(IFile globalSectionDefinitionFile) {
-        PluginLogger.logInfo("Set from task: " + globalSectionDefinitionFile.getName());
         this.globalSectionDefinitionFile = globalSectionDefinitionFile;
     }
     public IFile getGlobalSectionDefinitionFile() {
-        if (globalSectionDefinitionFile != null) {
-            PluginLogger.logInfo("Get from task: " + globalSectionDefinitionFile.getName());
-        } else {
-            PluginLogger.logInfo("Global file null!!!");
-        }
         return globalSectionDefinitionFile;
     }
 
@@ -128,7 +116,6 @@ public class BotTask implements Delegable, Comparable<BotTask> {
     public VariableUserType getVariableUserType(String name) {
         for (ParamDefGroup group : paramDefConfig.getGroups()) {
             for (ParamDef paramDef : group.getParameters()) {
-                PluginLogger.logInfo("ParamDef getVariableUserType: " + paramDef.getFormatFilters().get(0) + " | " + name);
                 if (name.equals(paramDef.getFormatFilters().get(0))) {
                     return new VariableUserType(paramDef.getFormatFilters().get(0), true);
                 }
@@ -162,18 +149,13 @@ public class BotTask implements Delegable, Comparable<BotTask> {
         if (paramDefConfig != null) {
             for (ParamDefGroup group : paramDefConfig.getGroups()) {
                 for (ParamDef paramDef : group.getParameters()) {
-                    PluginLogger.logInfo("first param: " + paramDef.getFormatFilters().get(0));
                     boolean applicable = typeClassNameFilters == null || typeClassNameFilters.length == 0;
                     if (!applicable && paramDef.getFormatFilters().size() > 0) {
-                        PluginLogger.logInfo("second param: " + paramDef.getFormatFilters().get(0));
                         Variable variable = new Variable(paramDef.getLabel(), paramDef.getName(), paramDef.getFormatFilters().get(0), new VariableUserType(paramDef.getFormatFilters().get(0), true));
                         result.add(variable);
                     }
                 }
             }
-        }
-        for (Variable variable : result) {
-            PluginLogger.logInfo("Result variables: " + variable.getScriptingName() + " | " + variable.getUserType().getName());
         }
         return result;
     }

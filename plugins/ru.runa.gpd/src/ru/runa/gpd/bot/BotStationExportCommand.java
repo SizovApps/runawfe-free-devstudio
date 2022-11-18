@@ -31,14 +31,11 @@ public class BotStationExportCommand extends BotExportCommand {
             progressMonitor.beginTask("", totalWork);
             ZipOutputStream zipStream = new ZipOutputStream(outputStream);
             List<IFile> files = getResourceToExport(exportResource);
-
             for (IFile file : files) {
-                ru.runa.gpd.PluginLogger.logInfo("Export file: " + file.getName());
                 write(zipStream, new ZipEntry("botstation"), file);
             }
             progressMonitor.worked(1);
             for (IFolder botFolder : botFolders) {
-                ru.runa.gpd.PluginLogger.logInfo("Export folder: " + botFolder.getName());
                 progressMonitor.subTask(botFolder.getName());
                 zipStream.putNextEntry(new ZipEntry(botFolder.getName() + ".bot"));
                 ByteArrayOutputStream botStream = new ByteArrayOutputStream();

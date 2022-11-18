@@ -3,7 +3,6 @@ package ru.runa.gpd.extension.handler;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import java.io.ByteArrayInputStream;
-import java.lang.annotation.Documented;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -43,9 +42,6 @@ import ru.runa.gpd.util.UserTypeXmlContentProvider;
 import ru.runa.gpd.util.VariableUtils;
 import ru.runa.gpd.util.XmlUtil;
 import ru.runa.wfe.InternalApplicationException;
-
-import javax.print.Doc;
-
 
 @SuppressWarnings("unchecked")
 public class ParamDefConfig {
@@ -144,7 +140,6 @@ public class ParamDefConfig {
                     }
             } else if (groupElement.getName() == "selectedTable") {
                 String nameOfTable = groupElement.attributeValue("tableName");
-                PluginLogger.logInfo("Find selectedTable! " + nameOfTable);
                 config.selectedTableName = nameOfTable;
             }
         }
@@ -157,17 +152,13 @@ public class ParamDefConfig {
     }
     public static void createTablesForInternalStorageHandler(Element rootElement, String nameOfTable, boolean isImport){
         if (!isImport) {
-            PluginLogger.logInfo("Not import!");
             return;
         }
-        PluginLogger.logInfo("Import!");
-        PluginLogger.logInfo("createTablesForInternalStorageHandler");
         List<Element> groupElements = rootElement.elements();
         for (Element groupElement : groupElements) {
             ParamDefGroup group = new ParamDefGroup(groupElement);
             if (groupElement.getName() == "input") {
                 List<Element> inputParamElements = groupElement.elements("param");
-
                 IProject dtProject = DataTableUtils.getDataTableProject();
                 try {
                     if (!dtProject.exists()) {
@@ -181,14 +172,6 @@ public class ParamDefConfig {
                     throw new InternalApplicationException(ex);
                 }
 
-                try {
-                    for (IResource resource : dtProject.members()) {
-                        PluginLogger.logInfo("Dt file: " + ((IFile)resource).toString());
-                    }
-                }
-                catch (CoreException ex) {
-                    PluginLogger.logInfo(ex.toString());
-                }
                 IFile dataTableFile = dtProject.getFile(nameOfTable + DataTableUtils.FILE_EXTENSION);
                 VariableUserType dataTable = new VariableUserType(nameOfTable);
 
@@ -540,7 +523,7 @@ public class ParamDefConfig {
                         newUserTypeAttribute.addAttribute(DEFAULT_VALUE, variable.getDefaultValue());
                     }
                 } catch (Exception e) {
-                    PluginLogger.logInfo("Found Ex!");
+                    PluginLogger.logErrorWithoutDialog(e.getMessage());
                 }
             }
         }

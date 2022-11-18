@@ -21,6 +21,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import ru.runa.gpd.BotCache;
 import ru.runa.gpd.BotStationNature;
 import ru.runa.gpd.Localization;
+import ru.runa.gpd.PluginLogger;
 import ru.runa.gpd.ui.custom.Dialogs;
 import ru.runa.gpd.util.BotTaskUtils;
 import ru.runa.gpd.util.IOUtils;
@@ -51,7 +52,6 @@ public class BotStationImportCommand extends BotSyncCommand {
                 String botFileName = entry.getName();
                 try {
                     Preconditions.checkNotNull(botStationName, "botStationName");
-                    ru.runa.gpd.PluginLogger.logInfo("BotStationImportCommand: " + botFileName + " | " + botStationName);
                     botImportCommand.init(new ByteArrayInputStream(ByteStreams.toByteArray(zin)), botFileName, botStationName);
                     botImportCommand.importBot(progressMonitor);
                 } catch (Exception e) {
@@ -59,7 +59,7 @@ public class BotStationImportCommand extends BotSyncCommand {
                     messages.append(System.lineSeparator());
                     messages.append(e.getMessage());
                     messages.append(System.lineSeparator());
-                    ru.runa.gpd.PluginLogger.logError(e.getMessage(), e);
+                    PluginLogger.logError(e.getMessage(), e);
                 }
             }
             if (messages.length() > 0) {

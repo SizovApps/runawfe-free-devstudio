@@ -33,17 +33,13 @@ public class ProcessDefinitionValidator {
      */
     public static int validateDefinition(ProcessDefinition processDefinition) {
         try {
-            PluginLogger.logInfo("processDefinition type: " + processDefinition.getClass());
             boolean hasErrors = false;
             boolean hasWarnings = false;
             IFile definitionFile = processDefinition.getFile();
             definitionFile.deleteMarkers(ValidationErrorsView.ID, true, IResource.DEPTH_INFINITE);
             List<ValidationError> errors = Lists.newArrayList();
-            PluginLogger.logInfo("process definition before validate: " + processDefinition.getFile().getName());
             processDefinition.validate(errors, definitionFile);
-            PluginLogger.logInfo("process definition before after!!!");
             for (ValidationError validationError : errors) {
-                PluginLogger.logInfo("Validation error: " + validationError.getMessage());
                 addError(definitionFile, processDefinition, validationError);
                 if (validationError.getSeverity() == IMarker.SEVERITY_WARNING) {
                     hasWarnings = true;
@@ -84,7 +80,6 @@ public class ProcessDefinitionValidator {
     }
 
     private static void addError(IFile definitionFile, ProcessDefinition definition, ValidationError validationError) {
-        PluginLogger.logInfo("Find error!");
         try {
             IMarker marker = definitionFile.createMarker(ValidationErrorsView.ID);
             if (marker.exists()) {
@@ -119,7 +114,6 @@ public class ProcessDefinitionValidator {
                 attributes.put(IMarker.SEVERITY, validationError.getSeverity());
                 attributes.put(PluginConstants.VALIDATION_ERROR_DETAILS_KEY, validationError.getDetails());
                 attributes.put(PluginConstants.PROCESS_NAME_KEY, definition.getName());
-                PluginLogger.logInfo("Add marker!!! " + validationError.getSeverity() + " | " + validationError.getDetails());
                 marker.setAttributes(attributes);
             }
         } catch (CoreException e) {

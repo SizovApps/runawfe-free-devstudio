@@ -69,7 +69,7 @@ public abstract class ProcessEditorBase extends MultiPageEditorPart
     protected IFile definitionFile;
     protected GraphicalEditor graphPage;
     protected SwimlaneEditorPage swimlanePage;
-    public VariableEditorPage variablePage;
+    protected VariableEditorPage variablePage;
     protected VariableTypeEditorPage variableTypeEditorPage;
     protected TextEditor sourcePage;
     private OutlineViewer outlineViewer;
@@ -241,7 +241,6 @@ public abstract class ProcessEditorBase extends MultiPageEditorPart
             setFocus();
         }
     }
-
 
     public void refresh() {
         IFigure figure = getRootFigure();
