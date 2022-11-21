@@ -181,7 +181,6 @@ public class ParamDefConfig {
                     ru.runa.gpd.extension.VariableFormatRegistry variableFormatRegistry = new VariableFormatRegistry();
                     String format = variable.attributeValue("formatFilter");
                     String correctFormat = variableFormatRegistry.getFilterLabel(format);
-                    PluginLogger.logInfo("formats: " + format + " | " + correctFormat);
                     Variable newVariable = new Variable(name, scriptingName, correctFormat, dataTable);
                     newVariable.setFormat(correctFormat);
                     dataTable.addAttribute(newVariable);
