@@ -65,7 +65,6 @@ public class AutomaticCreationUtils {
             } else {
                 definitionFile.setContents(new ByteArrayInputStream(bytes), IResource.FORCE, null);
             }
-
             ProcessCache.newProcessDefinitionWasCreated(definitionFile);
             setGlobalVariables(definitionFile, botTask);
             botTask.setGlobalSectionDefinitionFile(definitionFile);
@@ -74,7 +73,7 @@ public class AutomaticCreationUtils {
                 if (processEditorBase != null) {
                     processEditorBase.setIsFromBot(true);
                 }
-                if (processEditorBase == null && processEditorBase.getVariableEditorPage() == null) {
+                if (processEditorBase != null && processEditorBase.getVariableEditorPage() != null) {
                     processEditorBase.getVariableEditorPage().updateViewer();
                 }
             }

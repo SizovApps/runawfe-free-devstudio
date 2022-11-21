@@ -688,9 +688,6 @@ public class WorkspaceOperations {
         try {
             StringBuffer info = new StringBuffer();
             info.append(botTask.getDelegationClassName());
-            if (botTask.getDelegationClassName().equals(ScriptTask.INTERNAL_STORAGE_HANDLER_CLASS_NAME)) {
-                AutomaticCreationUtils.createNewGlobalSectionDefinitionAutomatic(botTask);
-            }
             info.append("\n");
             String configuration = BotTaskUtils.createBotTaskConfiguration(botTask);
             if (!Strings.isNullOrEmpty(configuration)) {
@@ -708,6 +705,9 @@ public class WorkspaceOperations {
                 BotCache.invalidateBotTaskFromImport(botTaskFile, botTask);
             } else {
                 BotCache.invalidateBotTask(botTaskFile, botTask);
+            }
+            if (botTask.getDelegationClassName().equals(ScriptTask.INTERNAL_STORAGE_HANDLER_CLASS_NAME)) {
+                AutomaticCreationUtils.createNewGlobalSectionDefinitionAutomatic(botTask);
             }
             infoStream.close();
         } catch (CoreException | IOException e) {
