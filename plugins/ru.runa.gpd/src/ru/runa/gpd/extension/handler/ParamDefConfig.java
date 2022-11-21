@@ -487,6 +487,9 @@ public class ParamDefConfig {
         }
 
         VariablesXmlContentProvider variablesXmlContentProvider = new VariablesXmlContentProvider();
+        if (!selectedTableName.equals("")) {
+            return;
+        }
         for (String usedTypeName : usedUserTypesNames) {
             boolean isInGlobals = false;
 

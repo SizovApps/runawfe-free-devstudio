@@ -4,10 +4,8 @@ import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -359,7 +357,6 @@ public class ExportGlbWizardPage extends WizardArchiveFileResourceExportPage1 {
             try {
                 ParFileExporterFromBot exporter = new ParFileExporterFromBot(outputStream, zipOutputStream);
                 for (IFile resource : resourcesToExport) {
-                    PluginLogger.logInfo("exportResources IFile: " + resource.getName());
                     exportResource(exporter, resource, progressMonitor);
                 }
                 exporter.finished();
@@ -421,13 +418,11 @@ public class ExportGlbWizardPage extends WizardArchiveFileResourceExportPage1 {
 
         @Override
         public void finished() throws IOException {
-            PluginLogger.logInfo("Not finished!");
             zipOutputStream.close();
         }
 
         @Override
         public void write(IFile resource, String destinationPath) throws IOException, CoreException {
-            PluginLogger.logInfo("Enter write: " + destinationPath + " | " + zipOutputStream.getClass());
             WizardPageUtils.write(zipOutputStream, new ZipEntry(destinationPath), resource);
         }
     }

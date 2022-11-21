@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -22,6 +21,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import ru.runa.gpd.Localization;
+import ru.runa.gpd.PluginLogger;
 import ru.runa.gpd.ProcessCache;
 import ru.runa.gpd.DataTableCache;
 import ru.runa.gpd.extension.VariableFormatArtifact;
@@ -56,7 +56,6 @@ public class BotTaskParamDefWizardPage extends WizardPage {
         this.paramDefGroup = paramDefGroup;
         this.paramDef = paramDef;
         this.dialogEnhancementMode = dialogEnhancementMode;
-        ru.runa.gpd.PluginLogger.logInfo("Param group: " + paramDefGroup.getName());
     }
 
     @Override
@@ -129,18 +128,13 @@ public class BotTaskParamDefWizardPage extends WizardPage {
     }
 
     private void createVariableTypeField(Composite parent) {
-        ru.runa.gpd.PluginLogger.logInfo("createVariableTypeField!!!");
         Label label = new Label(parent, SWT.NONE);
         label.setText(Localization.getString("ParamDefWizardPage.page.type"));
         List<String> types = new ArrayList<String>();
-        if (BotTask.usingBotTask.getSelectedDataTableName() != null) {
-            ru.runa.gpd.PluginLogger.logInfo("create selected table check: " + BotTask.usingBotTask.getSelectedDataTableName());
-        }
         if (BotTask.usingBotTask.getDelegationClassName().equals(ScriptTask.INTERNAL_STORAGE_HANDLER_CLASS_NAME)) {
             types = setTypesForInternalStorage();
         } else {
             for (VariableFormatArtifact artifact : VariableFormatRegistry.getInstance().getFilterArtifacts()) {
-                ru.runa.gpd.PluginLogger.logInfo("Artifact label: " + artifact.getLabel() + " | " + artifact.getJavaClassName());
                 types.add(artifact.getLabel());
             }
             try {
@@ -170,7 +164,6 @@ public class BotTaskParamDefWizardPage extends WizardPage {
 
     private List<String> setTypesForInternalStorage() {
         List<String> types = new ArrayList<>();
-        ru.runa.gpd.PluginLogger.logInfo("Enter find table!!!");
         IFile tableFile = null;
         try {
             if (paramDefGroup.getName().equals("output")) {
@@ -181,48 +174,37 @@ public class BotTaskParamDefWizardPage extends WizardPage {
                         .forEach(types::add);
                 String filterLabel = VariableFormatRegistry.getInstance().getFilterLabel("java.util.List");
                 filterLabel += "(" + BotTask.usingBotTask.getSelectedDataTableName() + ")";
-                ru.runa.gpd.PluginLogger.logInfo("filterLabel: " + filterLabel);
                 types.add(filterLabel);
 
             } else {
                 for (IResource file : DataTableUtils.getDataTableProject().members()) {
-                    ru.runa.gpd.PluginLogger.logInfo("File name: " + file.getName());
-                    ru.runa.gpd.PluginLogger.logInfo("Is equal: " + IOUtils.getWithoutExtension(file.getName()) + " | " + BotTask.usingBotTask.getSelectedDataTableName());
                     if (file instanceof IFile && file.getName().endsWith(DataTableUtils.FILE_EXTENSION) && IOUtils.getWithoutExtension(file.getName()).equals(BotTask.usingBotTask.getSelectedDataTableName())) {
-                        ru.runa.gpd.PluginLogger.logInfo("Found!!!");
                         tableFile = (IFile) file;
                     }
                 }
                 if (tableFile == null) {
                     return new ArrayList<>();
                 }
-                ru.runa.gpd.PluginLogger.logInfo("Table name: " + tableFile.getName());
-
                 String tableFileName = IOUtils.getWithoutExtension(tableFile.getName());
                 String tableFileNameExtension = IOUtils.getExtension(tableFile.getName());
                 VariableUserType userType = DataTableCache.getDataTable(tableFileName);
-                ru.runa.gpd.PluginLogger.logInfo("Names: " + tableFileName + " " + tableFileNameExtension + " " + userType.getName());
                 for (Variable variable : userType.getAttributes()) {
                     if (!checkNotTableTypeVariable(variable)) {
                         continue;
                     }
-                    ru.runa.gpd.PluginLogger.logInfo("Variable name: " + variable.getFormatClassName() + " " + variable.getFormat() + " " + variable.getFormatLabel());
                     types.add(variable.getFormatLabel());
                 }
             }
         }
         catch (Exception ignored) {
-            ru.runa.gpd.PluginLogger.logError(ignored.getMessage(), ignored);
+            PluginLogger.logError(ignored.getMessage(), ignored);
         }
         return types;
     }
 
     private boolean checkNotTableTypeVariable(Variable variable) {
-        ru.runa.gpd.PluginLogger.logInfo("checkNotTableTypeVariable: " + variable.getFormatLabel() + " | " + variable.getFormatClassName() + " | " + variable.getFormat() + " | " + ListFormat.class.getName());
-        ru.runa.gpd.PluginLogger.logInfo("Indexes: " + variable.getFormat().indexOf('(') + " | " + variable.getFormat().indexOf(')'));
         if (ListFormat.class.getName().equals(variable.getFormatClassName())) {
             String innerTypeName = VariableFormatRegistry.getInstance().getUserTypeOfList(variable.getFormat());
-            ru.runa.gpd.PluginLogger.logInfo("innerTypeName: " + innerTypeName);
             try {
                 for (IResource file : DataTableUtils.getDataTableProject().members()) {
                     if (file instanceof IFile && file.getName().endsWith(DataTableUtils.FILE_EXTENSION)) {
@@ -233,7 +215,7 @@ public class BotTaskParamDefWizardPage extends WizardPage {
                 }
             }
             catch (CoreException exception) {
-                ru.runa.gpd.PluginLogger.logErrorWithoutDialog("Can't open tables!");
+                PluginLogger.logErrorWithoutDialog(Localization.getString("ParamDefWizardPage.error.cantOpenTables"));
             }
             return true;
         }
@@ -248,7 +230,7 @@ public class BotTaskParamDefWizardPage extends WizardPage {
             }
         }
         catch (CoreException exception) {
-            ru.runa.gpd.PluginLogger.logErrorWithoutDialog("Can't open tables!");
+            PluginLogger.logErrorWithoutDialog(Localization.getString("ParamDefWizardPage.error.cantOpenTables"));
         }
         return true;
     }

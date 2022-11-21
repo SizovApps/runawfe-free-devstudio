@@ -154,7 +154,7 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
     public boolean verySave(boolean showCheckErrorMessage) {
         try {
             String selectedTableName = botTask.getSelectedDataTableName();
-            WorkspaceOperations.saveBotTask(botTaskFile, botTask);
+            WorkspaceOperations.saveBotTask(botTaskFile, botTask, false);
             botTask = BotCache.getBotTaskNotNull(botTaskFile);
             botTask.setSelectedDataTable(selectedTableName);
             setTitleImage(SharedImages.getImage(botTask.getType() == BotTaskType.SIMPLE ? "icons/bot_task.gif" : "icons/bot_task_formal.gif"));

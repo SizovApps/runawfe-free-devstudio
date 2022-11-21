@@ -70,7 +70,6 @@ public class BotTask implements Delegable, Comparable<BotTask> {
     }
 
     public void setSelectedDataTable(String selectedDataTableName) {
-        PluginLogger.logInfo("selectedDataTable: " + selectedDataTableName);
         this.selectedDataTableName = selectedDataTableName;
     }
 

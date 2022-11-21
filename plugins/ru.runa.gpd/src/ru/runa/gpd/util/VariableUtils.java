@@ -94,8 +94,6 @@ public class VariableUtils {
         return scriptingName;
     }
 
-
-
     public static List<String> getVariableNamesForScripting(List<Variable> variables) {
         List<String> result = Lists.newArrayListWithExpectedSize(variables.size());
         for (Variable variable : variables) {

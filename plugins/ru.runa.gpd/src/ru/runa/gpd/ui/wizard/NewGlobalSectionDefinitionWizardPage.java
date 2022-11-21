@@ -1,9 +1,5 @@
 package ru.runa.gpd.ui.wizard;
 
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Set;
-
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
@@ -23,7 +19,6 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
-
 import ru.runa.gpd.Activator;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.PluginLogger;
@@ -35,18 +30,19 @@ import ru.runa.gpd.lang.model.ProcessDefinition;
 import ru.runa.gpd.settings.PrefConstants;
 import ru.runa.gpd.ui.custom.FileNameChecker;
 import ru.runa.gpd.util.IOUtils;
+import java.util.List;
 import ru.runa.gpd.util.SwimlaneDisplayMode;
 import ru.runa.gpd.BotCache;
 
 public class NewGlobalSectionDefinitionWizardPage extends WizardPage {
-    protected Combo projectCombo;
-    protected Text processText;
-    protected Combo languageCombo;
-    protected Combo bpmnDisplaySwimlaneCombo;
-    protected Combo cssTemplateCombo;
-    protected final IContainer initialSelection;
-    protected final List<IContainer> processContainers;
-    protected final ProcessDefinition parentProcessDefinition;
+    private Combo projectCombo;
+    private Text processText;
+    private Combo languageCombo;
+    private Combo bpmnDisplaySwimlaneCombo;
+    private Combo cssTemplateCombo;
+    private final IContainer initialSelection;
+    private final List<IContainer> processContainers;
+    private final ProcessDefinition parentProcessDefinition;
 
     public NewGlobalSectionDefinitionWizardPage(IStructuredSelection selection, ProcessDefinition parentProcessDefinition) {
         super(Localization.getString("NewProcessDefinitionWizardPage.page.name"));
@@ -193,7 +189,7 @@ public class NewGlobalSectionDefinitionWizardPage extends WizardPage {
         cssTemplateCombo.setVisible(false);
     }
 
-    protected void verifyContentsValid() {
+    private void verifyContentsValid() {
         if (projectCombo.getText().length() == 0) {
             setErrorMessage(Localization.getString("error.choose_project"));
             setPageComplete(false);
@@ -228,43 +224,34 @@ public class NewGlobalSectionDefinitionWizardPage extends WizardPage {
     }
 
     public Language getLanguage() {
-        PluginLogger.logInfo("getLanguage: " + languageCombo.getText());
         return Language.valueOf(languageCombo.getText());
     }
 
     public SwimlaneDisplayMode getSwimlaneDisplayMode() {
-        PluginLogger.logInfo("bpmnDisplaySwimlaneCombo: " + bpmnDisplaySwimlaneCombo.getSelectionIndex());
         return SwimlaneDisplayMode.values()[bpmnDisplaySwimlaneCombo.getSelectionIndex()];
     }
 
     public String getFormCSSTemplateName() {
         if (cssTemplateCombo.getSelectionIndex() == 0) {
-            PluginLogger.logInfo("cssTemplateCombo null");
             return null;
         }
-        PluginLogger.logInfo("cssTemplateCombo: " + cssTemplateCombo.getText());
         return cssTemplateCombo.getText();
     }
 
     public IFolder getProcessFolderByCreate() {
         String projectName = projectCombo.getItem(projectCombo.getSelectionIndex());
-        PluginLogger.logInfo("ProjectName: " + projectName);
         IContainer container = null;
         if (processContainers.stream().filter(p -> String.join("/", p.getFullPath().segments()).equals(projectName)).count() != 0) {
-            PluginLogger.logInfo("Set container!");
             container = processContainers.stream().filter(p -> String.join("/", p.getFullPath().segments()).equals(projectName)).findFirst()
                     .get();
         }
         else {
-            PluginLogger.logInfo("Enter file!");
             try {
-
             for (IProject botStationProject : IOUtils.getAllBotStationProjects()) {
                 IContainer botStationFolder = botStationProject.getFolder("src/botstation");
                 for (IResource botResource : botStationFolder.members()) {
                     if (botResource instanceof IFolder) {
                         if (botResource.getName().equals(projectName)) {
-                            PluginLogger.logInfo("Set file!");
                             container = (IFolder) botResource;
                             break;
                         }
@@ -273,11 +260,10 @@ public class NewGlobalSectionDefinitionWizardPage extends WizardPage {
             }
             }
             catch (CoreException e) {
-
+                PluginLogger.logError(e);
             }
         }
 
-        PluginLogger.logInfo("BotFolderName: " + container.getName());
         if (parentProcessDefinition != null) {
             return (IFolder) container;
         } else {

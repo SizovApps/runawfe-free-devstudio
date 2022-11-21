@@ -27,7 +27,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import ru.runa.gpd.Localization;
-import java.nio.charset.Charset;
 
 public class WizardPageUtils {
     public static IResource getInitialElement(IStructuredSelection selection) {
@@ -87,8 +86,6 @@ public class WizardPageUtils {
 
     public static void write(ZipOutputStream outputStream, ZipEntry entry, IFile contents) throws IOException, CoreException {
         byte[] readBuffer = new byte[1024];
-        ru.runa.gpd.PluginLogger.logInfo("Entry inner write! " + entry.getName() + " | ");
-        //outputStream.putNextEntry(entry);
         outputStream.putNextEntry(new ZipEntry(contents.getName()));
         try (InputStream contentStream = contents.getContents()) {
             int n;
@@ -102,7 +99,6 @@ public class WizardPageUtils {
     public static void zip(List<File> files, OutputStream os) throws IOException {
         ZipOutputStream zos = new ZipOutputStream(os);
         for (File file : files) {
-            ru.runa.gpd.PluginLogger.logInfo("Zip global fileName: " + file.getName() + " | " + file.getAbsolutePath());
             ZipEntry newEntry = new ZipEntry(file.getName());
             byte[] readBuffer = new byte[1024];
             zos.putNextEntry(newEntry);
@@ -117,9 +113,7 @@ public class WizardPageUtils {
         zos.close();
     }
     public static void zip(List<File> files, ZipOutputStream zos) throws IOException {
-        ru.runa.gpd.PluginLogger.logInfo("Enter zip: " + files.size());
         for (File file : files) {
-            ru.runa.gpd.PluginLogger.logInfo("Zip fileName: " + file.getName() + " | " + file.getAbsolutePath() + " | " + file.getCanonicalPath());
             ZipEntry newEntry = new ZipEntry(file.getName());
             byte[] readBuffer = new byte[1024];
             zos.putNextEntry(newEntry);
@@ -131,7 +125,6 @@ public class WizardPageUtils {
             }
             zos.closeEntry();
         }
-        ru.runa.gpd.PluginLogger.logInfo("Files end!");
     }
 
 }

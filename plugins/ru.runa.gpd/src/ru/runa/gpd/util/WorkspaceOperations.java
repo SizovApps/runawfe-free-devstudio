@@ -9,7 +9,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +19,6 @@ import org.dom4j.DocumentException;
 import org.dom4j.io.SAXReader;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -39,13 +37,10 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IEditorInput;
-import org.eclipse.gef.EditPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
@@ -68,7 +63,6 @@ import ru.runa.gpd.extension.DelegableProvider;
 import ru.runa.gpd.extension.HandlerRegistry;
 import ru.runa.gpd.extension.bot.IBotFileSupportProvider;
 import ru.runa.gpd.lang.Language;
-import ru.runa.gpd.lang.BpmnSerializer;
 import ru.runa.gpd.lang.ProcessSerializer;
 import ru.runa.gpd.lang.model.bpmn.ScriptTask;
 import ru.runa.gpd.lang.model.BotTask;
@@ -118,13 +112,7 @@ import ru.runa.wfe.InternalApplicationException;
 import ru.runa.wfe.datasource.DataSourceStuff;
 import ru.runa.wfe.definition.ProcessDefinitionAccessType;
 import ru.runa.gpd.util.IOUtils;
-import ru.runa.gpd.util.SwimlaneDisplayMode;
 import ru.runa.gpd.util.AutomaticCreationUtils;
-import ru.runa.gpd.form.FormCSSTemplate;
-import ru.runa.gpd.form.FormCSSTemplateRegistry;
-
-import com.google.common.collect.Maps;
-
 
 public class WorkspaceOperations {
 
@@ -496,7 +484,6 @@ public class WorkspaceOperations {
     }
 
     public static void saveProcessDefinition(ProcessDefinition definition) throws Exception {
-        PluginLogger.logInfo("saveProcessDefinition!!!");
         ProcessSerializer serializer = definition.getLanguage().getSerializer();
         Document document = serializer.getInitialProcessDefinitionDocument(definition.getName(), null);
         serializer.saveToXML(definition, document);
@@ -542,7 +529,6 @@ public class WorkspaceOperations {
     }
 
     public static GlobalSectionEditorBase openGlobalSectionDefinition(IFile definitionFile) {
-        PluginLogger.logInfo("Enter openGlobalSectionDefinition");
         try {
             ProcessDefinition processDefinition = ProcessCache.getProcessDefinition(definitionFile);
             String editorId;
@@ -553,9 +539,7 @@ public class WorkspaceOperations {
             }
             IEditorPart editorPart = IDE.openEditor(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(), definitionFile, editorId,
                     true);
-            PluginLogger.logInfo("EditorPart instance: " + editorPart.getClass() );
             if (editorPart instanceof GlobalSectionEditorBase) {
-                PluginLogger.logInfo("GlobalSectionEditorBase! " + editorPart.toString());
                 return (GlobalSectionEditorBase) editorPart;
             }
         } catch (PartInitException e) {
@@ -633,36 +617,28 @@ public class WorkspaceOperations {
         new ProcessSaveHistoryDialog((IFolder) selection.getFirstElement()).open();
     }
 
-    public static IEditorPart lastEditor;
-    public static IWorkbenchPage page;
     public static void deleteBotResources(List<IResource> resources) {
         for (IResource resource : resources) {
             try {
                 resource.refreshLocal(IResource.DEPTH_INFINITE, null);
                 if (Dialogs.confirm(Localization.getString(getConfirmMessage(resource), resource.getName()))) {
                     if (resource instanceof IFile) {
-                        PluginLogger.logInfo("Deleted resource: " + ((IFile) resource).getName());
                         IFile botTaskFile = (IFile) resource;
                         if (botTaskFile.getName().endsWith(".conf")) {
                             continue;
                         }
                         if (botTaskFile.getName() == "processdefinition.xml") {
-                            PluginLogger.logInfo("ParentName: " + botTaskFile.getParent().getName());
                             IResource parentResource = botTaskFile.getParent();
                             parentResource.delete(true, null);
-
                         }
                         IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
                         IEditorPart editor = page.findEditor(new FileEditorInput(botTaskFile));
                         if (editor != null) {
                             page.closeEditor(editor, false);
                         }
-
                         BotTask botTask = BotCache.getBotTaskNotNull(botTaskFile.getParent().getName(), botTaskFile.getName());
                         deleteBotTask(botTaskFile, botTask);
                     } else {
-//                        PluginLogger.logInfo("Page to close: " + page.toString() + " | " + lastEditor.getSite().getPage().toString());
-                        //page.closeEditor(lastEditor, false);
                         resource.delete(true, null);
                     }
                 }
@@ -705,7 +681,10 @@ public class WorkspaceOperations {
         dialog.open();
     }
 
-    public static void saveBotTask(IFile botTaskFile, BotTask botTask) {
+    // Есть ли какой-нибудь подходящий паттерн, чтобы можно устанавливать значения входных параметров функции по умолчанию?
+    // Необходимо вызывать разные функции invalidateBotTask и invalidateBotTaskFromImport. Нужно как то указать, какой именно метод вызывать.
+    // Сейчас изменил сигнатуру saveBotTask, но это, как я понимаю, не лучшая идея.
+    public static void saveBotTask(IFile botTaskFile, BotTask botTask, boolean fromImport) {
         try {
             StringBuffer info = new StringBuffer();
             info.append(botTask.getDelegationClassName());
@@ -725,7 +704,11 @@ public class WorkspaceOperations {
             info.append("\n");
             InputStream infoStream = new ByteArrayInputStream(info.toString().getBytes(Charsets.UTF_8));
             IOUtils.createOrUpdateFile(botTaskFile, infoStream);
-            BotCache.invalidateBotTask(botTaskFile, botTask);
+            if (fromImport) {
+                BotCache.invalidateBotTaskFromImport(botTaskFile, botTask);
+            } else {
+                BotCache.invalidateBotTask(botTaskFile, botTask);
+            }
             infoStream.close();
         } catch (CoreException | IOException e) {
             throw new InternalApplicationException(e);
@@ -741,40 +724,6 @@ public class WorkspaceOperations {
         }
         DataTableCache.reload();
     }
-
-    // Есть ли какой-нибудь подходящий паттерн, чтобы можно устанавливать значения входных параметров функции по умолчанию? Сейчас доблируется код с метода saveBotTask().
-    // Необходимо вызывать разные функции invalidateBotTaskFromImport и invalidateBotTaskFromImport. Нужно как то указать, какой именно метод вызывать.
-    // Можно вынести почти весь метод в отдельный и вызывать его из importBotTask и saveBotTask, но это может нарушить логику. Можно изменить сигнатуру saveBotTask,
-    // но это, как я понимаю, тоже не лучшая идея.
-    public static void importBotTask(IFile botTaskFile, BotTask botTask) {
-        try {
-            StringBuffer info = new StringBuffer();
-            info.append(botTask.getDelegationClassName());
-            info.append("\n");
-            String configuration = BotTaskUtils.createBotTaskConfiguration(botTask);
-            if (!Strings.isNullOrEmpty(configuration)) {
-                String configurationFileName = botTask.getName() + "." + BotCache.CONFIGURATION_FILE_EXTENSION;
-                IFile configurationFile = ((IFolder) botTaskFile.getParent()).getFile(configurationFileName);
-                ByteArrayInputStream stream = new ByteArrayInputStream(configuration.getBytes(Charsets.UTF_8));
-                IOUtils.createOrUpdateFile(configurationFile, stream);
-                info.append(configurationFileName);
-                stream.close();
-            }
-            PluginLogger.logInfo("importBotTask: " + botTask.getDelegationClassName());
-            if (botTask.getDelegationClassName().equals(ScriptTask.INTERNAL_STORAGE_HANDLER_CLASS_NAME)) {
-                AutomaticCreationUtils.createNewGlobalSectionDefinitionAutomatic(botTask);
-            }
-            info.append("\n");
-            InputStream infoStream = new ByteArrayInputStream(info.toString().getBytes(Charsets.UTF_8));
-            IOUtils.createOrUpdateFile(botTaskFile, infoStream);
-            BotCache.invalidateBotTaskFromImport(botTaskFile, botTask);
-            infoStream.close();
-            saveBotTask(botTaskFile, botTask);
-        } catch (CoreException | IOException e) {
-            throw new InternalApplicationException(e);
-        }
-    }
-
 
     public static void deleteBotTask(IFile botTaskFile, BotTask botTask) {
         try {
@@ -809,10 +758,7 @@ public class WorkspaceOperations {
 
     public static void openBotTask(IFile botTaskFile) {
         try {
-            page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-            PluginLogger.logInfo("Set page: " + (page == null));
-            lastEditor = IDE.openEditor(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(), botTaskFile, BotTaskEditor.ID, true);
-            PluginLogger.logInfo("Set lastEditor: " + (lastEditor == null));
+            IDE.openEditor(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(), botTaskFile, BotTaskEditor.ID, true);
         } catch (PartInitException e) {
             PluginLogger.logError("Unable open bot task", e);
         }

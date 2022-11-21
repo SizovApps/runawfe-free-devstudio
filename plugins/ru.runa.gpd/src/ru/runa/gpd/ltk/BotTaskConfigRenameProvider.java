@@ -56,7 +56,7 @@ public class BotTaskConfigRenameProvider extends SingleVariableRenameProvider<Bo
                     page.closeEditor(editor, false);
                 }
             }
-            WorkspaceOperations.saveBotTask(botTaskFile, element);
+            WorkspaceOperations.saveBotTask(botTaskFile, element, false);
             BotCache.invalidateBotTask(botTaskFile, element);
         }
 

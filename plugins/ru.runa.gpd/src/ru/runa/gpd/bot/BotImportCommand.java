@@ -102,7 +102,7 @@ public class BotImportCommand extends BotSyncCommand {
 
         for (BotTask botTask : botTasks) {
             IFile file = folder.getFile(botTask.getName());
-            WorkspaceOperations.importBotTask(file, botTask);
+            WorkspaceOperations.saveBotTask(file, botTask, true);
 
             // Save embedded files too.
             for (String fileToSave : botTask.getFilesToSave()) {

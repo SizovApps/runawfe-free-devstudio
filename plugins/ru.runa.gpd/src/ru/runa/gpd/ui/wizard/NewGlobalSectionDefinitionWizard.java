@@ -15,8 +15,6 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
-
-import plugins.ru.runa.gpd.src.ru.runa.gpd.ui.wizard.NewGlobalSectionDefinitionWizardPageFromBot;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.PluginLogger;
 import ru.runa.gpd.ProcessCache;
@@ -40,7 +38,6 @@ import com.google.common.collect.Maps;
 public class NewGlobalSectionDefinitionWizard extends Wizard implements INewWizard {
     private IStructuredSelection selection;
     private NewGlobalSectionDefinitionWizardPage page;
-    private NewGlobalSectionDefinitionWizardPageFromBot botPage;
     private final ProcessDefinitionAccessType accessType;
     private IFolder parentProcessDefinitionFolder;
     private ProcessDefinition parentProcessDefinition;
@@ -53,11 +50,9 @@ public class NewGlobalSectionDefinitionWizard extends Wizard implements INewWiza
 
     @Override
     public void init(IWorkbench workbench, IStructuredSelection currentSelection) {
-        PluginLogger.logInfo("Enter NewGlobalSectionDefinitionWizard!!!");
         this.selection = currentSelection;
         if (accessType == ProcessDefinitionAccessType.EmbeddedSubprocess) {
             Object selectedElement = selection.getFirstElement();
-            PluginLogger.logInfo("selectedElement: " + selectedElement.getClass() + " | " + selectedElement.toString());
             if (selectedElement instanceof EditPart) {
                 IFile file = IOUtils.getCurrentFile();
                 parentProcessDefinitionFolder = (IFolder) (file == null ? null : file.getParent());
@@ -115,7 +110,6 @@ public class NewGlobalSectionDefinitionWizard extends Wizard implements INewWiza
                     properties.put(BpmnSerializer.SHOW_SWIMLANE, page.getSwimlaneDisplayMode().name());
                 }
                 properties.put(ProcessSerializer.ACCESS_TYPE, accessType.name());
-                PluginLogger.logInfo("accessType: " + accessType.name() + " | " + page.getFormCSSTemplateName());
                 Document document = language.getSerializer().getInitialProcessDefinitionDocument(processName, properties);
                 byte[] bytes = XmlUtil.writeXml(document);
                 definitionFile.create(new ByteArrayInputStream(bytes), true, null);

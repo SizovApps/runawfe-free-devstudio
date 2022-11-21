@@ -32,7 +32,6 @@ public class ImportBotWizardPage extends ImportBotElementWizardPage {
         if (selectedProject == null) {
             return;
         }
-
         getContainer().run(true, true, new BotImportCommand(parInputStream, botName, selectedProject.getName()));
     }
 

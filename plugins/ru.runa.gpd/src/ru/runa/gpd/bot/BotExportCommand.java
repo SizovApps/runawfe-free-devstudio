@@ -60,7 +60,7 @@ public class BotExportCommand extends BotSyncCommand {
         zipStream.putNextEntry(new ZipEntry("script.xml"));
         List<BotTask> botTaskForExport = getBotTasksForExport(botFolder);
         for (BotTask botTask : botTaskForExport) {
-            WorkspaceOperations.saveBotTask(botFolder.getFile(botTask.getName()), botTask);
+            WorkspaceOperations.saveBotTask(botFolder.getFile(botTask.getName()), botTask, false);
         }
         Document document = BotScriptUtils.createScriptForBotLoading(botFolder.getName(), botTaskForExport);
         XmlUtil.writeXml(document, zipStream);
