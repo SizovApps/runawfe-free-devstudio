@@ -135,7 +135,7 @@ public class BizagiBpmnImporter implements GEFConstants {
             Element collaborationElement = definitionsElement.element(COLLABORATION);
             String processName = collaborationElement.attributeValue(NAME);
             if (processName == null) {
-                processName = collaborationElement.attributeValue("id");
+            processName = collaborationElement.attributeValue("id");
             }
             nextParticipant: for (Element participant : (List<Element>) collaborationElement.elements(PARTICIPANT)) {
                 if (Strings.isNullOrEmpty(processName)) {
