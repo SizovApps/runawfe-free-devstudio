@@ -132,7 +132,7 @@ public class BotTaskParamDefWizardPage extends WizardPage {
         label.setText(Localization.getString("ParamDefWizardPage.page.type"));
         List<String> types = new ArrayList<String>();
         if (BotTask.usingBotTask.getDelegationClassName().equals(ScriptTask.INTERNAL_STORAGE_HANDLER_CLASS_NAME)) {
-            types = setTypesForInternalStorage();
+            types = getTypesForInternalStorage();
         } else {
             for (VariableFormatArtifact artifact : VariableFormatRegistry.getInstance().getFilterArtifacts()) {
                 types.add(artifact.getLabel());
@@ -162,7 +162,7 @@ public class BotTaskParamDefWizardPage extends WizardPage {
         });
     }
 
-    private List<String> setTypesForInternalStorage() {
+    private List<String> getTypesForInternalStorage() {
         List<String> types = new ArrayList<>();
         IFile tableFile = null;
         try {

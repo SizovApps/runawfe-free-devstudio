@@ -74,12 +74,8 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
 
         Optional<ProcessDefinition> processDefinition = Optional.empty();
 
-        Optional<BotTask> botTask = Optional.empty();
         if (delegable instanceof ProcessDefinitionAware) {
             processDefinition = Optional.ofNullable(((ProcessDefinitionAware) delegable).getProcessDefinition());
-        }
-        if (delegable instanceof BotTask) {
-            botTask = Optional.ofNullable((BotTask) delegable);
         }
         if (!processDefinition.isPresent() && delegable instanceof VariableContainer) {
             processDefinition = ((VariableContainer) delegable).getVariables(false, true).stream().map(variable -> variable.getProcessDefinition())
@@ -99,6 +95,13 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
                             processDefinition.orElseThrow(() -> new IllegalStateException("process definition unavailable"))),
                     isUseExternalStorageIn, isUseExternalStorageOut).build();
         } else {
+            Optional<BotTask> botTask = Optional.empty();
+            if (delegable instanceof BotTask) {
+                botTask = Optional.ofNullable((BotTask) delegable);
+            }
+            if (!botTask.isPresent()) {
+                throw new IllegalStateException("bot task unavailable");
+            }
             if (botTask.get().getSelectedDataTableName() != null) {
                 return new ConstructorView(parent, delegable, model,
                         new BotTaskVariableProvider(botTask.orElseThrow(() -> new IllegalStateException("bot task unavailable"))),

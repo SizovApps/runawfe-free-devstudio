@@ -506,7 +506,7 @@ public class ParamDefConfig {
                             typeElement.addAttribute(GLOBAL, "true");
                         }
                         for (Variable variable : variableUserType.getAttributes()) {
-                            variablesXmlContentProvider.writeGloabalVariable(typeElement, variable);
+                            variablesXmlContentProvider.writeGlobalVariable(typeElement, variable);
                         }
                         break;
                     }

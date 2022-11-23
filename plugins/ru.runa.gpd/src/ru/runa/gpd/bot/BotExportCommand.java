@@ -60,7 +60,7 @@ public class BotExportCommand extends BotSyncCommand {
         zipStream.putNextEntry(new ZipEntry("script.xml"));
         List<BotTask> botTaskForExport = getBotTasksForExport(botFolder);
         for (BotTask botTask : botTaskForExport) {
-            WorkspaceOperations.saveBotTask(botFolder.getFile(botTask.getName()), botTask, false);
+            WorkspaceOperations.saveBotTask(botFolder.getFile(botTask.getName()), botTask);
         }
         Document document = BotScriptUtils.createScriptForBotLoading(botFolder.getName(), botTaskForExport);
         XmlUtil.writeXml(document, zipStream);
@@ -93,6 +93,7 @@ public class BotExportCommand extends BotSyncCommand {
                 if (resource instanceof IFolder) {
                     hasGlobalSection = true;
                     globalFolder = (IFolder) resource;
+                    break;
                 }
             }
             if (!hasGlobalSection){

@@ -166,41 +166,55 @@ public class VariableFormatRegistry extends ArtifactRegistry<VariableFormatArtif
         return filterArtifacts;
     }
 
-    public String getFilterLabel(String javaClassName) {
-        String addTableList = "";
+    public String getFilterLabel(final String javaClassName) {
+        final String addTableList;
+        final String simpleJavaClassName;
         if (javaClassName.contains("(")) {
             addTableList = javaClassName.substring(javaClassName.indexOf('('));
-            javaClassName = javaClassName.substring(0, javaClassName.indexOf('('));
-        }
-        for (VariableFormatArtifact artifact : filterArtifacts) {
-            if (Objects.equal(javaClassName, artifact.getJavaClassName())) {
-                if (addTableList != "") {
-                    return artifact.getLabel() + addTableList;
+            simpleJavaClassName = javaClassName.substring(0, javaClassName.indexOf('('));
+
+            for (VariableFormatArtifact artifact : filterArtifacts) {
+                if (Objects.equal(simpleJavaClassName, artifact.getJavaClassName())) {
+                    if (!addTableList.equals("")) {
+                        return artifact.getLabel() + addTableList;
+                    }
+                    return artifact.getLabel();
                 }
-                return artifact.getLabel();
+            }
+        } else {
+            for (VariableFormatArtifact artifact : filterArtifacts) {
+                if (Objects.equal(javaClassName, artifact.getJavaClassName())) {
+                    return artifact.getLabel();
+                }
             }
         }
-        String finalJavaClassName = javaClassName;
-        return getVariableName(javaClassName).orElseThrow(() -> new InternalApplicationException("No filter found by type " + finalJavaClassName));
+        PluginLogger.logInfo("javaClassName: " + javaClassName);
+        return getVariableName(javaClassName).orElseThrow(() -> new InternalApplicationException("No filter found by type " + javaClassName));
     }
 
-    public String getFilterJavaClassName(String label) {
-        String addTableList = "";
+    public String getFilterJavaClassName(final String label) {
+        final String addTableList;
+        final String simpleLabel;
         if (label.contains("(")) {
             addTableList = label.substring(label.indexOf('('));
-            label = label.substring(0, label.indexOf('('));
-        }
-        for (VariableFormatArtifact artifact : filterArtifacts) {
-            if (Objects.equal(label, artifact.getLabel()) || artifact.getLabel().contains(label)) {
-                if (addTableList != "") {
-                    return artifact.getJavaClassName() + addTableList;
-                }
-                return artifact.getJavaClassName();
-            }
+            simpleLabel = label.substring(0, label.indexOf('('));
 
+            for (VariableFormatArtifact artifact : filterArtifacts) {
+                if (Objects.equal(simpleLabel, artifact.getLabel()) || artifact.getLabel().contains(simpleLabel)) {
+                    if (!addTableList.equals("")) {
+                        return artifact.getJavaClassName() + addTableList;
+                    }
+                    return artifact.getJavaClassName();
+                }
+            }
+        } else {
+            for (VariableFormatArtifact artifact : filterArtifacts) {
+                if (Objects.equal(label, artifact.getLabel()) || artifact.getLabel().contains(label)) {
+                    return artifact.getJavaClassName();
+                }
+            }
         }
-        String finalLabel = label;
-        return getVariableName(label).orElseThrow(() -> new InternalApplicationException("No filter found by label " + finalLabel));
+        return getVariableName(label).orElseThrow(() -> new InternalApplicationException("No filter found by label " + label));
     }
 
     private static Optional<String> getVariableName(String name) {

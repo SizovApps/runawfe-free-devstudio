@@ -523,7 +523,7 @@ public class WorkspaceOperations {
                 }
             }
         }
-        if (element instanceof IFile) {
+        else if (element instanceof IFile) {
             WorkspaceOperations.openProcessDefinition((IFile) element);
         }
     }
@@ -681,10 +681,7 @@ public class WorkspaceOperations {
         dialog.open();
     }
 
-    // Есть ли какой-нибудь подходящий паттерн, чтобы можно устанавливать значения входных параметров функции по умолчанию?
-    // Необходимо вызывать разные функции invalidateBotTask и invalidateBotTaskFromImport. Нужно как то указать, какой именно метод вызывать.
-    // Сейчас изменил сигнатуру saveBotTask, но это, как я понимаю, не лучшая идея.
-    public static void saveBotTask(IFile botTaskFile, BotTask botTask, boolean fromImport) {
+    public static void saveBotTask(IFile botTaskFile, BotTask botTask) {
         try {
             StringBuffer info = new StringBuffer();
             info.append(botTask.getDelegationClassName());
@@ -701,15 +698,39 @@ public class WorkspaceOperations {
             info.append("\n");
             InputStream infoStream = new ByteArrayInputStream(info.toString().getBytes(Charsets.UTF_8));
             IOUtils.createOrUpdateFile(botTaskFile, infoStream);
-            if (fromImport) {
-                BotCache.invalidateBotTaskFromImport(botTaskFile, botTask);
-            } else {
-                BotCache.invalidateBotTask(botTaskFile, botTask);
-            }
+            BotCache.invalidateBotTask(botTaskFile, botTask);
             if (botTask.getDelegationClassName().equals(ScriptTask.INTERNAL_STORAGE_HANDLER_CLASS_NAME)) {
                 AutomaticCreationUtils.createNewGlobalSectionDefinitionAutomatic(botTask);
             }
             infoStream.close();
+        } catch (CoreException | IOException e) {
+            throw new InternalApplicationException(e);
+        }
+    }
+
+    public static void importBotTask(IFile botTaskFile, BotTask botTask) {
+        try {
+            StringBuffer info = new StringBuffer();
+            info.append(botTask.getDelegationClassName());
+            info.append("\n");
+            String configuration = BotTaskUtils.createBotTaskConfiguration(botTask);
+            if (!Strings.isNullOrEmpty(configuration)) {
+                String configurationFileName = botTask.getName() + "." + BotCache.CONFIGURATION_FILE_EXTENSION;
+                IFile configurationFile = ((IFolder) botTaskFile.getParent()).getFile(configurationFileName);
+                ByteArrayInputStream stream = new ByteArrayInputStream(configuration.getBytes(Charsets.UTF_8));
+                IOUtils.createOrUpdateFile(configurationFile, stream);
+                info.append(configurationFileName);
+                stream.close();
+            }
+            if (botTask.getDelegationClassName().equals(ScriptTask.INTERNAL_STORAGE_HANDLER_CLASS_NAME)) {
+                AutomaticCreationUtils.createNewGlobalSectionDefinitionAutomatic(botTask);
+            }
+            info.append("\n");
+            InputStream infoStream = new ByteArrayInputStream(info.toString().getBytes(Charsets.UTF_8));
+            IOUtils.createOrUpdateFile(botTaskFile, infoStream);
+            BotCache.invalidateBotTaskFromImport(botTaskFile, botTask);
+            infoStream.close();
+            saveBotTask(botTaskFile, botTask);
         } catch (CoreException | IOException e) {
             throw new InternalApplicationException(e);
         }

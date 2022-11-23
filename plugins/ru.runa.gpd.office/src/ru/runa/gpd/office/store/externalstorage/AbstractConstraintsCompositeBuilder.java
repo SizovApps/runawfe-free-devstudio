@@ -47,8 +47,7 @@ abstract class AbstractConstraintsCompositeBuilder extends Composite implements 
 
     protected Stream<String> variableNamesByVariableTypeName(String variableTypeName) {
         if (variableTypeName.equals("")) {
-            String[] classes = {""};
-            return Arrays.stream(classes);
+            return Stream.empty();
         }
         Stream<String> stream = variableProvider.getVariables(false, false, getTypeNameFilters()).stream().filter(getFilterPredicate(variableTypeName))
                 .map(Variable::getName);

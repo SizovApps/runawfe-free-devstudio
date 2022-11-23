@@ -542,7 +542,7 @@ public class BizagiBpmnImporter implements GEFConstants {
                                     variable.setFormat("ru.runa.wfe.var.format.StringFormat");
                                 }
                                 }
-                            definition.addChild(variable);
+                                definition.addChild(variable);
                             }
                         }
                     }

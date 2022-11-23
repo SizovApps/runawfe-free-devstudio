@@ -26,8 +26,9 @@ public class BotResourcesLabelProvider extends LabelProvider {
                 }
                 return ((IFile) element).getName();
             }
+            return ((IFile) element).getName();
         }
-        if (element instanceof IResource) {
+        else if (element instanceof IResource) {
             return ((IResource) element).getName();
         }
         return super.getText(element);

@@ -247,6 +247,6 @@ public class BotTaskUtils {
             }
         }
         botTask.setName(newName);
-        WorkspaceOperations.saveBotTask(targetBotFolder.getFile(newName), botTask, false);
+        WorkspaceOperations.saveBotTask(targetBotFolder.getFile(newName), botTask);
     }
 }

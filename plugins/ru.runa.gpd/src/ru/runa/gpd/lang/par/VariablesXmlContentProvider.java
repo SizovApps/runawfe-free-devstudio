@@ -75,7 +75,7 @@ public class VariablesXmlContentProvider extends AuxContentProvider {
         }
     }
 
-    public Element writeGloabalVariable(Element root, Variable variable){
+    public Element writeGlobalVariable(Element root, Variable variable){
         return writeVariable(root, variable);
     }
 

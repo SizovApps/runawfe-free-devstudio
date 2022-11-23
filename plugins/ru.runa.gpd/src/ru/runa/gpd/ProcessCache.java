@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -55,8 +56,7 @@ public class ProcessCache {
     }
 
     public static void setSelectedProcessByName(String processDefinitionName) {
-        ProcessDefinition processDefinition = CACHE_BY_NAME.get(processDefinitionName);
-        selectedProcess = processDefinition;
+        selectedProcess = CACHE_BY_NAME.get(processDefinitionName);
     }
 
 
@@ -120,13 +120,7 @@ public class ProcessCache {
     }
 
     public static synchronized Set<ProcessDefinition> getGlobalProcessDefinitions() {
-        HashSet<ProcessDefinition> hashSet = new HashSet<ProcessDefinition>();
-        for (ProcessDefinition processDefinition : CACHE_BY_NAME.values()) {
-            if (processDefinition instanceof GlobalSectionDefinition) {
-                hashSet.add(processDefinition);
-            }
-        }
-        return hashSet;
+        return CACHE_BY_NAME.values().stream().filter(val -> val instanceof GlobalSectionDefinition).collect(Collectors.toCollection(HashSet::new));
     }
 
     public static synchronized List<String> getAllProcessDefinitionNames() {
@@ -136,12 +130,7 @@ public class ProcessCache {
     }
 
     public static synchronized List<String> getGlobalProcessDefinitionNames() {
-        List<String> list = new ArrayList<>();
-        for (ProcessDefinition processDefinition : getGlobalProcessDefinitions()) {
-            list.add(processDefinition.getName());
-        }
-        Collections.sort(list);
-        return list;
+        return getGlobalProcessDefinitions().stream().map(ProcessDefinition::getName).sorted().collect(Collectors.toList());
     }
 
     public static synchronized Map<IFile, ProcessDefinition> getAllProcessDefinitionsMap() {

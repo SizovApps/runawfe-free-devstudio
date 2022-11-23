@@ -48,7 +48,7 @@ public class NewBotTaskWizard extends Wizard implements INewWizard {
                         botTask.setType(BotTaskType.EXTENDED);
                         botTask.setParamDefConfig(BotTaskUtils.createEmptyParamDefConfig());
                         IFile botTaskFile = botFolder.getFile(botTask.getName());
-                        WorkspaceOperations.saveBotTask(botTaskFile, botTask, false);
+                        WorkspaceOperations.saveBotTask(botTaskFile, botTask);
                         monitor.worked(1);
                         IDE.openEditor(getActivePage(), botTaskFile, BotTaskEditor.ID, true);
                         monitor.done();

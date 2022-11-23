@@ -30,8 +30,7 @@ public class BotTaskVariableProvider implements VariableProvider{
 
     @Override
     public Stream<String> complexUserTypeNames() {
-        Stream<String> stream = botTask.getVariableUserTypesNames().stream();
-        return stream;
+        return botTask.getVariableUserTypesNames().stream();
     }
 
     @Override

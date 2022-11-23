@@ -50,9 +50,6 @@ public class ProcessDefinition extends NamedGraphElement implements Describable,
     protected final Map<String, SubprocessDefinition> embeddedSubprocesses = Maps.newHashMap();
     protected ProcessDefinitionAccessType accessType = ProcessDefinitionAccessType.Process;
     protected final List<VariableUserType> types = Lists.newArrayList();
-
-    protected static List<VariableUserType> allTypes = Lists.newArrayList();
-
     protected final IFile file;
     protected boolean usingGlobalVars;
 
@@ -498,7 +495,6 @@ public class ProcessDefinition extends NamedGraphElement implements Describable,
         type.setProcessDefinition(this);
         if (!types.contains(type) && !isSameNameUserType(type.getName())) {
             types.add(type);
-            allTypes.add(type);
             firePropertyChange(PROPERTY_USER_TYPES_CHANGED, null, type);
         }
     }
@@ -516,14 +512,12 @@ public class ProcessDefinition extends NamedGraphElement implements Describable,
     public void changeVariableUserTypePosition(VariableUserType type, int position) {
         if (position != -1 && types.remove(type)) {
             types.add(position, type);
-            allTypes.add(position, type);
             firePropertyChange(PROPERTY_USER_TYPES_CHANGED, null, type);
         }
     }
 
     public void removeVariableUserType(VariableUserType type) {
         types.remove(type);
-        allTypes.remove(type);
         firePropertyChange(PROPERTY_USER_TYPES_CHANGED, null, type);
     }
 
@@ -697,9 +691,8 @@ public class ProcessDefinition extends NamedGraphElement implements Describable,
             typeToAdd.setName(IOUtils.GLOBAL_OBJECT_PREFIX + type.getName());
         }
         typeToAdd.setGlobal(true);
-        if (!types.contains(typeToAdd) && !allTypes.contains(typeToAdd)) {
+        if (!types.contains(typeToAdd)) {
             types.add(typeToAdd);
-            allTypes.add(typeToAdd);
             firePropertyChange(PROPERTY_USER_TYPES_CHANGED, null, typeToAdd);
         }
     }

@@ -177,14 +177,16 @@ public class VariableFormatPage extends DynaContentWizardPage {
                 combo.add(userType.getName());
             }
         }
-        for (ProcessDefinition processDefinition : ProcessCache.getAllProcessDefinitions()) {
-            for (VariableUserType userType : processDefinition.getVariableUserTypes()) {
-                if (usedUserTypes.contains(userType)) {
-                    continue;
-                }
-                if (!(variableContainer instanceof VariableUserType) || ((VariableUserType) variableContainer).canUseAsAttributeType(userType)) {
-                    usedUserTypes.add(userType);
-                    combo.add(userType.getName());
+        if (processDefinition != null && processDefinition.getName() != null) {
+            for (ProcessDefinition processDefinition : ProcessCache.getAllProcessDefinitions()) {
+                for (VariableUserType userType : processDefinition.getVariableUserTypes()) {
+                    if (usedUserTypes.contains(userType)) {
+                        continue;
+                    }
+                    if (!(variableContainer instanceof VariableUserType) || ((VariableUserType) variableContainer).canUseAsAttributeType(userType)) {
+                        usedUserTypes.add(userType);
+                        combo.add(userType.getName());
+                    }
                 }
             }
         }
