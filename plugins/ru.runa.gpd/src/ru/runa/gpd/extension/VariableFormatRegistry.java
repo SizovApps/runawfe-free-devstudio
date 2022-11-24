@@ -226,7 +226,7 @@ public class VariableFormatRegistry extends ArtifactRegistry<VariableFormatArtif
                     .findFirst();
         } catch (Exception ignored) {
         }
-        return variableName.isPresent() ? variableName : FessCache.getAllProcessDefinitions().stream()
+        return variableName.isPresent() ? variableName : ProcessCache.getAllProcessDefinitions().stream()
                 .map(ProcessDefinition::getVariableUserTypes).flatMap(List::stream)
                 .map(VariableUserType::getName)
                 .filter(n -> n.equals(name))
