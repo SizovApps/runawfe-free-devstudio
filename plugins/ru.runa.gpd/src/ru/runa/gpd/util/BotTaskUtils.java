@@ -116,7 +116,7 @@ public class BotTaskUtils {
         return new ByteArrayInputStream(buffer.toString().getBytes());
     }
 
-    public static BotTask createBotTask(String botStationName, String botName, String botTaskName, String handlerClassName, String configuration, boolean isImport) {
+    public static BotTask createBotTask(String botStationName, String botName, String botTaskName, String handlerClassName, String configuration) {
         BotTask botTask = new BotTask(botStationName, botName, botTaskName);
         botTask.setDelegationClassName(handlerClassName);
         if (isTaskHandlerParameterized(botTask.getDelegationClassName())) {
@@ -125,7 +125,6 @@ public class BotTaskUtils {
             botTask.setParamDefConfig(ParamDefConfig.parse(document));
             if (botTask.getParamDefConfig().getSelectedTableName() != null && !botTask.getParamDefConfig().getSelectedTableName().equals("")) {
                 botTask.setSelectedDataTable(botTask.getParamDefConfig().getSelectedTableName());
-                ParamDefConfig.createTablesForInternalStorageHandler(document, botTask.getSelectedDataTableName(), isImport);
             }
             botTask.setDelegationConfiguration(configuration);
         } else if (isBotTaskExtendedConfiguration(configuration)) {
@@ -137,7 +136,45 @@ public class BotTaskUtils {
             botTask.setParamDefConfig(ParamDefConfig.parse(element));
             if (botTask.getParamDefConfig().getSelectedTableName() != null && !botTask.getParamDefConfig().getSelectedTableName().equals("")) {
                 botTask.setSelectedDataTable(botTask.getParamDefConfig().getSelectedTableName());
-                ParamDefConfig.createTablesForInternalStorageHandler(element, botTask.getSelectedDataTableName(), isImport);
+            }
+            Element botConfigElement = botElement.element(BOTCONFIG_ELEMENT);
+            if (botConfigElement.elements().size() > 0) {
+                Element configElement = (Element) botConfigElement.elements().get(0);
+                botTask.setDelegationConfiguration(XmlUtil.toString(configElement, OutputFormat.createPrettyPrint()));
+            } else {
+                String config = botConfigElement.getText();
+                config = config.replaceAll(Pattern.quote("param:"), "");
+                botTask.setDelegationConfiguration(config);
+            }
+        } else {
+            botTask.setType(BotTaskType.SIMPLE);
+            botTask.setDelegationConfiguration(configuration);
+        }
+        return botTask;
+    }
+
+    public static BotTask createBotTaskFromImport(String botStationName, String botName, String botTaskName, String handlerClassName, String configuration) {
+        BotTask botTask = new BotTask(botStationName, botName, botTaskName);
+        botTask.setDelegationClassName(handlerClassName);
+        if (isTaskHandlerParameterized(botTask.getDelegationClassName())) {
+            botTask.setType(BotTaskType.PARAMETERIZED);
+            Document document = XmlUtil.parseWithoutValidation(configuration);
+            botTask.setParamDefConfig(ParamDefConfig.parse(document));
+            if (botTask.getParamDefConfig().getSelectedTableName() != null && !botTask.getParamDefConfig().getSelectedTableName().equals("")) {
+                botTask.setSelectedDataTable(botTask.getParamDefConfig().getSelectedTableName());
+                ParamDefConfig.createTablesForInternalStorageHandler(document, botTask.getSelectedDataTableName());
+            }
+            botTask.setDelegationConfiguration(configuration);
+        } else if (isBotTaskExtendedConfiguration(configuration)) {
+            botTask.setType(BotTaskType.EXTENDED);
+            Document document = XmlUtil.parseWithoutValidation(configuration);
+            Element botElement = document.getRootElement();
+            Element element = botElement.element(PARAMETERS_ELEMENT).element(ParamDefConfig.NAME_CONFIG);
+            Preconditions.checkNotNull(element);
+            botTask.setParamDefConfig(ParamDefConfig.parse(element));
+            if (botTask.getParamDefConfig().getSelectedTableName() != null && !botTask.getParamDefConfig().getSelectedTableName().equals("")) {
+                botTask.setSelectedDataTable(botTask.getParamDefConfig().getSelectedTableName());
+                ParamDefConfig.createTablesForInternalStorageHandler(element, botTask.getSelectedDataTableName());
             }
             Element botConfigElement = botElement.element(BOTCONFIG_ELEMENT);
             if (botConfigElement.elements().size() > 0) {

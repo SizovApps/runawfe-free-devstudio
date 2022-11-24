@@ -890,10 +890,7 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
     }
 
     private boolean checkSelectionOfTable() {
-        if (botTask.getDelegationClassName().equals(ScriptTask.INTERNAL_STORAGE_HANDLER_CLASS_NAME) && (tablesCombo == null || tablesCombo.getText() == "")) {
-            return false;
-        }
-        return true;
+        return !botTask.getDelegationClassName().equals(ScriptTask.INTERNAL_STORAGE_HANDLER_CLASS_NAME) || (tablesCombo != null && !tablesCombo.getText().equals(""));
     }
 
     private TableViewer getParamTableViewer(String parameterType) {

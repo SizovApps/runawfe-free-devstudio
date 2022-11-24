@@ -23,10 +23,12 @@ public class BotResourcesLabelProvider extends LabelProvider {
                 ProcessDefinition definition = ProcessCache.getProcessDefinition((IFile) element);
                 if (definition != null) {
                     return definition.getName();
+                } else {
+                    return ((IFile) element).getName();
                 }
+            } else {
                 return ((IFile) element).getName();
             }
-            return ((IFile) element).getName();
         }
         else if (element instanceof IResource) {
             return ((IResource) element).getName();

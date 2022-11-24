@@ -102,6 +102,7 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
             if (!botTask.isPresent()) {
                 throw new IllegalStateException("bot task unavailable");
             }
+            model.getInOutModel().inputPath = INTERNAL_STORAGE_DATASOURCE_PATH;
             if (botTask.get().getSelectedDataTableName() != null) {
                 return new ConstructorView(parent, delegable, model,
                         new BotTaskVariableProvider(botTask.orElseThrow(() -> new IllegalStateException("bot task unavailable"))),
@@ -169,17 +170,12 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
             this.variableProvider = variableProvider;
             this.isUseExternalStorageIn = isUseExternalStorageIn;
             this.isUseExternalStorageOut = isUseExternalStorageOut;
-            model.getInOutModel().inputPath = INTERNAL_STORAGE_DATASOURCE_PATH;
             setLayout(new GridLayout(2, false));
         }
         public ConstructorView(Composite parent, Delegable delegable, InternalStorageDataModel model, VariableProvider variableProvider,
                                boolean isUseExternalStorageIn, boolean isUseExternalStorageOut, String botTableName) {
-            super(parent, delegable, model);
-            this.variableProvider = variableProvider;
-            this.isUseExternalStorageIn = isUseExternalStorageIn;
-            this.isUseExternalStorageOut = isUseExternalStorageOut;
+            this(parent, delegable, model, variableProvider, isUseExternalStorageIn, isUseExternalStorageOut);
             this.botTableName = botTableName;
-            model.getInOutModel().inputPath = INTERNAL_STORAGE_DATASOURCE_PATH;
             setLayout(new GridLayout(2, false));
         }
 

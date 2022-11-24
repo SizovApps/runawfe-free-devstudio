@@ -13,9 +13,6 @@ import ru.runa.gpd.BotCache;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.PluginConstants;
 import ru.runa.gpd.PluginLogger;
-import ru.runa.gpd.lang.model.Variable;
-import ru.runa.gpd.lang.model.VariableUserType;
-import ru.runa.gpd.lang.model.GlobalSectionDefinition;
 import ru.runa.gpd.extension.HandlerArtifact;
 import ru.runa.gpd.extension.HandlerRegistry;
 import ru.runa.gpd.extension.VariableFormatRegistry;
@@ -143,7 +140,7 @@ public class BotTask implements Delegable, Comparable<BotTask> {
         return userTypesName;
     }
 
-    public List<Variable> getVariabels(boolean expandComplexTypes, boolean includeSwimlanes, String... typeClassNameFilters) {
+    public List<Variable> getVariables(boolean expandComplexTypes, boolean includeSwimlanes, String... typeClassNameFilters) {
         List<Variable> result = Lists.newArrayList();
         if (paramDefConfig != null) {
             for (ParamDefGroup group : paramDefConfig.getGroups()) {

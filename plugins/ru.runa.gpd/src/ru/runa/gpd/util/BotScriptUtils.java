@@ -85,7 +85,7 @@ public class BotScriptUtils {
                 String configurationFileName = botElement.attributeValue(CONFIGURATION_STRING_ATTRIBUTE_NAME);
                 byte[] configurationFileData = files.remove(configurationFileName);
                 String configuration = configurationFileData != null ? new String(configurationFileData) : "";
-                BotTask botTask = BotTaskUtils.createBotTask(botStationName, botName, name, handler, configuration, false);
+                BotTask botTask = BotTaskUtils.createBotTask(botStationName, botName, name, handler, configuration);
                 if (!Strings.isNullOrEmpty(embeddedFileName)) {
                     botTask.getFilesToSave().add(embeddedFileName);
                 }

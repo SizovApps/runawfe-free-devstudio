@@ -62,7 +62,7 @@ public class BotCache {
                             if (Strings.isNullOrEmpty(extension) || !extension.equals(CONFIGURATION_FILE_EXTENSION)) {
                                 IFile botTaskFile = (IFile) taskResource;
                                 try {
-                                    cacheBotTask(botStationProject.getName(), botName, botTaskFile, botTasks, false);
+                                    cacheBotTask(botStationProject.getName(), botName, botTaskFile, botTasks);
                                 } catch (Exception e) {
                                     PluginLogger.logError(e);
                                 }
@@ -87,7 +87,7 @@ public class BotCache {
         }
     }
 
-    private static void cacheBotTask(String botStationName, String botName, IFile botTaskFile, List<BotTask> botTasks, boolean isImport) {
+    private static void cacheBotTask(String botStationName, String botName, IFile botTaskFile, List<BotTask> botTasks) {
         try {
             InputStreamReader reader = null;
             if (!botTaskFile.isSynchronized(IResource.DEPTH_ONE)) {
@@ -106,7 +106,39 @@ public class BotCache {
                         }
                     }
                 }
-                BotTask botTask = BotTaskUtils.createBotTask(botStationName, botName, botTaskFile.getName(), lines.get(0), configurationFileData, isImport);
+                BotTask botTask = BotTaskUtils.createBotTask(botStationName, botName, botTaskFile.getName(), lines.get(0), configurationFileData);
+                botTasks.add(botTask);
+                BOT_TASK_FILES.put(botTask, botTaskFile);
+            } finally {
+                if (reader != null) {
+                    reader.close();
+                }
+            }
+        } catch (Exception e) {
+            throw Throwables.propagate(e);
+        }
+    }
+
+    private static void cacheBotTaskFromImport(String botStationName, String botName, IFile botTaskFile, List<BotTask> botTasks) {
+        try {
+            InputStreamReader reader = null;
+            if (!botTaskFile.isSynchronized(IResource.DEPTH_ONE)) {
+                botTaskFile.refreshLocal(IResource.DEPTH_ONE, null);
+            }
+            try {
+                reader = new InputStreamReader(botTaskFile.getContents());
+                List<String> lines = CharStreams.readLines(reader);
+                String configurationFileData = "";
+                if (lines.size() > 1) {
+                    String configurationFileName = lines.get(1);
+                    if (!Strings.isNullOrEmpty(configurationFileName)) {
+                        IFile confFile = IOUtils.getAdjacentFile(botTaskFile, configurationFileName);
+                        if (confFile.exists()) {
+                            configurationFileData = IOUtils.readStream(confFile.getContents());
+                        }
+                    }
+                }
+                BotTask botTask = BotTaskUtils.createBotTaskFromImport(botStationName, botName, botTaskFile.getName(), lines.get(0), configurationFileData);
                 botTasks.add(botTask);
                 BOT_TASK_FILES.put(botTask, botTaskFile);
             } finally {
@@ -128,7 +160,7 @@ public class BotCache {
         }
         botTasks.remove(botTask);
         BOT_TASK_FILES.remove(botTask);
-        cacheBotTask(botTaskFile.getProject().getName(), botName, botTaskFile, botTasks, false);
+        cacheBotTask(botTaskFile.getProject().getName(), botName, botTaskFile, botTasks);
     }
 
     public static synchronized void invalidateBotTaskFromImport(IFile botTaskFile, BotTask botTask) {
@@ -140,7 +172,7 @@ public class BotCache {
         }
         botTasks.remove(botTask);
         BOT_TASK_FILES.remove(botTask);
-        cacheBotTask(botTaskFile.getProject().getName(), botName, botTaskFile, botTasks, true);
+        cacheBotTaskFromImport(botTaskFile.getProject().getName(), botName, botTaskFile, botTasks);
     }
 
     public static synchronized void botTaskHasBeenDeleted(IFile botTaskFile, BotTask botTask) {

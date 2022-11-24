@@ -146,14 +146,11 @@ public class ParamDefConfig {
         return config;
     }
 
-    public static void createTablesForInternalStorageHandler(Document document, String nameOfTable, boolean isImport) {
+    public static void createTablesForInternalStorageHandler(Document document, String nameOfTable) {
         Element rootElement = document.getRootElement();
-        createTablesForInternalStorageHandler(rootElement, nameOfTable, isImport);
+        createTablesForInternalStorageHandler(rootElement, nameOfTable);
     }
-    public static void createTablesForInternalStorageHandler(Element rootElement, String nameOfTable, boolean isImport){
-        if (!isImport) {
-            return;
-        }
+    public static void createTablesForInternalStorageHandler(Element rootElement, String nameOfTable){
         List<Element> groupElements = rootElement.elements();
         for (Element groupElement : groupElements) {
             ParamDefGroup group = new ParamDefGroup(groupElement);
