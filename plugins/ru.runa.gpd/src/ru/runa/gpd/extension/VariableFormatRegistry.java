@@ -188,7 +188,6 @@ public class VariableFormatRegistry extends ArtifactRegistry<VariableFormatArtif
                 }
             }
         }
-        PluginLogger.logInfo("javaClassName: " + javaClassName);
         return getVariableName(javaClassName).orElseThrow(() -> new InternalApplicationException("No filter found by type " + javaClassName));
     }
 
@@ -227,7 +226,7 @@ public class VariableFormatRegistry extends ArtifactRegistry<VariableFormatArtif
                     .findFirst();
         } catch (Exception ignored) {
         }
-        return variableName.isPresent() ? variableName : ProcessCache.getAllProcessDefinitions().stream()
+        return variableName.isPresent() ? variableName : FessCache.getAllProcessDefinitions().stream()
                 .map(ProcessDefinition::getVariableUserTypes).flatMap(List::stream)
                 .map(VariableUserType::getName)
                 .filter(n -> n.equals(name))
