@@ -73,6 +73,51 @@ public class VariablesXmlContentProvider extends AuxContentProvider {
                 type.addAttribute(variable);
             }
         }
+
+        List<Element> elementsList = document.getRootElement().elements(VARIABLE);
+
+        for (Element element : elementsList) {
+            if ("true".equals(element.attributeValue(SWIMLANE, "false"))) {
+                String variableName = element.attributeValue(NAME);
+                String scriptingName = element.attributeValue(SCRIPTING_NAME, variableName);
+                String isGlobal = element.attributeValue(GLOBAL);
+
+                if (!VariableUtils.isValidScriptingName(scriptingName)) {
+                    scriptingName = VariableUtils.toScriptingName(scriptingName);
+                }
+                try {
+                    String publicVisibilityStr = element.attributeValue(PUBLIC);
+                    boolean publicVisibility = "true".equals(publicVisibilityStr);
+                    String editableInChatStr = element.attributeValue(EDITABLE_IN_CHAT);
+                    boolean editableInChat = "true".equals(editableInChatStr);
+                    String description = element.attributeValue(DESCRIPTION);
+                    if ("false".equals(description)) {
+                        description = null;
+                    }
+                    Swimlane swimlane = new Swimlane();
+                    if ("true".equals(isGlobal)) {
+                        swimlane = definition.getGlobalSwimlaneByName(variableName);
+                    } else {
+                        swimlane = definition.getSwimlaneByName(variableName);
+                    }
+                    swimlane.setScriptingName(scriptingName);
+                    swimlane.setDescription(description);
+                    swimlane.setPublicVisibility(publicVisibility);
+                    swimlane.setEditableInChat(editableInChat);
+                    swimlane.setEditorPath(element.attributeValue(EDITOR));
+                    swimlane.setStoreType(element.attributeValue(STORE_TYPE, null) != null
+                            ? VariableStoreType.valueOf(element.attributeValue(STORE_TYPE).toUpperCase())
+                            : VariableStoreType.DEFAULT);
+                    swimlane.setGlobal("true".equals(isGlobal));
+
+                } catch (Exception e) {
+                    PluginLogger.logErrorWithoutDialog("No swimlane found for " + variableName, e);
+                }
+                continue;
+            }
+            Variable variable = parse(element, definition);
+            definition.addChild(variable);
+        }
     }
 
     public Element writeGlobalVariable(Element root, Variable variable){
