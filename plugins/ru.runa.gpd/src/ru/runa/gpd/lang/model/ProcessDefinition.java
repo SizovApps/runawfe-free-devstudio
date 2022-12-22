@@ -680,6 +680,10 @@ public class ProcessDefinition extends NamedGraphElement implements Describable,
 
     }
 
+    public void removeGlobalVariable(Variable variable) {
+        removeChild(variable);
+    }
+
     public void addGlobalType(VariableUserType type) {
         for (Variable variable : type.getAttributes()) {
             if (variable.isComplex()) {

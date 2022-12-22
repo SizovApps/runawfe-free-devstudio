@@ -281,18 +281,7 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
             final Combo combo = new Combo(this, SWT.READ_ONLY);
             if (botTableName != null) {
                 if (constraintsModel.getQueryType() != QueryType.valueOf("SELECT")) {
-                    for (String varName : variableProvider.complexUserTypeNames().collect(Collectors.toSet())) {
-                        String listLabel = VariableFormatRegistry.getInstance().getFilterLabel("java.util.List");
-                        if (varName.contains(listLabel)) {
-                            String typeOfList = VariableFormatRegistry.getInstance().getUserTypeOfList(varName);
-                            if (!isFromDataTables(typeOfList)) {
-                                combo.add(varName);
-                            }
-                        }
-                        if (!varName.equals(listLabel) && !varName.equals(botTableName) && !varName.contains(listLabel)) {
-                            combo.add(varName);
-                        }
-                    }
+                    combo.add(botTableName);
                 }
                 else {
                     String filterLabel = VariableFormatRegistry.getInstance().getFilterLabel("java.util.List");

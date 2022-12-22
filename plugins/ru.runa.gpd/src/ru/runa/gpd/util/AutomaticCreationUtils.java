@@ -126,6 +126,9 @@ public class AutomaticCreationUtils {
 
     private static void setGlobalVariables(IFile processFile, BotTask botTask) {
         ProcessDefinition processDefinition = ProcessCache.getProcessDefinition(processFile);
+        for (Variable variable : processDefinition.getGlobalVariables()) {
+            processDefinition.removeGlobalVariable(variable);
+        }
         int countOfAddedParam = 0;
         for (ParamDefGroup group : botTask.getParamDefConfig().getGroups()) {
             for (ParamDef paramDef : group.getParameters()) {

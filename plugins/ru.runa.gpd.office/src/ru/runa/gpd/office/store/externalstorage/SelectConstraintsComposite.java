@@ -36,8 +36,7 @@ public class SelectConstraintsComposite extends AbstractOperatingVariableComboBa
 
     @Override
     protected Predicate<? super Variable> getFilterPredicate(String variableTypeName) {
-        return variable -> variable.getUserType().getName().equals(variableTypeName)
-                || variable.getUserType().getName().equals(VariableFormatRegistry.getInstance().getFilterJavaClassName(variableTypeName));
+        return variable -> variable.getFormatComponentClassNames()[0].equals(variableTypeName);
     }
 
     @Override
