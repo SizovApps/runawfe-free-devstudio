@@ -329,7 +329,12 @@ public class TaskState extends FormNode implements ActionContainer, ITimed, Sync
                     return;
                 }
             } else {
+                IFile globalFile = botTask.getGlobalSectionDefinitionFile();
+                if (globalFile != null) {
+
+                }
                 List<String> variableNames = getVariableNames(true);
+                variableNames.addAll(botTask.getGlobalVariablesName());
                 Map<String, String> parameters = ParamDefConfig.getAllParameters(getBotTaskLink().getDelegationConfiguration());
                 for (Map.Entry<String, String> parameter : parameters.entrySet()) {
                     botTaskConfigParameterNames.remove(parameter.getKey());

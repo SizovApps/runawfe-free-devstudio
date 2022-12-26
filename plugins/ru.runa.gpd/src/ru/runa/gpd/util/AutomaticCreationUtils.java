@@ -36,7 +36,7 @@ import ru.runa.gpd.extension.handler.ParamDefGroup;
 
 public class AutomaticCreationUtils {
 
-    public static ProcessDefinition createNewGlobalSectionDefinitionAutomatic (BotTask botTask) {
+    public static ProcessDefinition createNewGlobalSectionDefinitionAutomatic(BotTask botTask) {
         if (!BotCache.isBotTaskFile(botTask)) {
             return null;
         }
@@ -47,7 +47,7 @@ public class AutomaticCreationUtils {
             boolean wasGlobalCreatedBefore = true;
             if (folder == null) {
                 wasGlobalCreatedBefore = false;
-                folder = getProcessFolderByCreateFromBot(parentProcessDefinitionFolder.getName());;
+                folder = getProcessFolderByCreateFromBot(parentProcessDefinitionFolder.getName());
                 folder.create(true, true, null);
             }
             IFile definitionFile = IOUtils.getProcessDefinitionFile(folder);
@@ -76,12 +76,10 @@ public class AutomaticCreationUtils {
                 if (processEditorBase != null && processEditorBase.getVariableEditorPage() != null) {
                     processEditorBase.getVariableEditorPage().updateViewer();
                 }
-            }
-            catch (NullPointerException ex) {
+            } catch (NullPointerException ex) {
                 PluginLogger.logError(ex.getMessage(), ex);
             }
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             PluginLogger.logError(e);
         }
         return null;
@@ -101,8 +99,7 @@ public class AutomaticCreationUtils {
                     }
                 }
             }
-        }
-        catch (CoreException e) {
+        } catch (CoreException e) {
             PluginLogger.logError(e);
         }
 
@@ -118,7 +115,7 @@ public class AutomaticCreationUtils {
                     return (IFolder) resource;
                 }
             }
-        }catch (Exception e) {
+        } catch (Exception e) {
             return null;
         }
         return null;
@@ -137,15 +134,18 @@ public class AutomaticCreationUtils {
                     variableName += "_out";
                 }
                 String scriptingName = VariableUtils.generateNameForScripting(processDefinition.getGlobalVariables(), variableName, null);
-                Variable variable = new Variable(variableName, scriptingName, VariableFormatRegistry.getInstance().getFilterLabel(paramDef.getFormatFilters().get(0)), processDefinition.getVariableUserType(paramDef.getFormatFilters().get(0)));
-                processDefinition.addGlobalVariable(variable);
+                String filterLabel = VariableFormatRegistry.getInstance().getFilterLabel(paramDef.getFormatFilters().get(0));
+                String javaClassName = VariableFormatRegistry.getInstance().getFilterJavaClassName(filterLabel);
+                String artifactName = VariableFormatRegistry.getInstance().getNameFromJavaClassName(javaClassName);
+                Variable variable = new Variable(variableName, scriptingName, artifactName,
+                        processDefinition.getVariableUserType(paramDef.getFormatFilters().get(0)));
+                processDefinition.addChild(variable);
                 countOfAddedParam += 1;
             }
         }
         try {
             WorkspaceOperations.saveProcessDefinition(processDefinition);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             PluginLogger.logError(e.getMessage(), e);
         }
 

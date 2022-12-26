@@ -5,6 +5,8 @@ import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.stream.Collectors;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
@@ -13,6 +15,7 @@ import ru.runa.gpd.BotCache;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.PluginConstants;
 import ru.runa.gpd.PluginLogger;
+import ru.runa.gpd.ProcessCache;
 import ru.runa.gpd.extension.HandlerArtifact;
 import ru.runa.gpd.extension.HandlerRegistry;
 import ru.runa.gpd.extension.VariableFormatRegistry;
@@ -20,7 +23,10 @@ import ru.runa.gpd.extension.handler.ParamDef;
 import ru.runa.gpd.extension.handler.ParamDefConfig;
 import ru.runa.gpd.extension.handler.ParamDefGroup;
 import ru.runa.gpd.extension.handler.XmlBasedConstructorProvider;
+import ru.runa.gpd.lang.model.Variable;
+import ru.runa.gpd.lang.model.ProcessDefinition;
 import ru.runa.gpd.ui.view.ValidationErrorsView;
+import ru.runa.gpd.util.IOUtils;
 import ru.runa.gpd.util.XmlUtil;
 
 public class BotTask implements Delegable, Comparable<BotTask> {
@@ -73,8 +79,20 @@ public class BotTask implements Delegable, Comparable<BotTask> {
     public void setGlobalSectionDefinitionFile(IFile globalSectionDefinitionFile) {
         this.globalSectionDefinitionFile = globalSectionDefinitionFile;
     }
+
     public IFile getGlobalSectionDefinitionFile() {
-        return globalSectionDefinitionFile;
+        return BotCache.getBotGlobalSectionFile(this);
+    }
+
+    public List<String> getGlobalVariablesName() {
+        IFile globalFile = getGlobalSectionDefinitionFile();
+        if (globalFile == null) {
+            return new ArrayList<>();
+        } else {
+            ProcessDefinition processDefinition = ProcessCache.getProcessDefinition(globalFile);
+            List<Variable> variables = processDefinition.getChildren(Variable.class);
+            return variables.stream().map(variable -> variable.getName()).collect(Collectors.toList());
+        }
     }
 
     @Override
@@ -134,7 +152,7 @@ public class BotTask implements Delegable, Comparable<BotTask> {
         List<String> userTypesName = new ArrayList<>();
         for (ParamDefGroup group : paramDefConfig.getGroups()) {
             for (ParamDef paramDef : group.getParameters()) {
-                 userTypesName.add(VariableFormatRegistry.getInstance().getFilterLabel(paramDef.getFormatFilters().get(0)));
+                userTypesName.add(VariableFormatRegistry.getInstance().getFilterLabel(paramDef.getFormatFilters().get(0)));
             }
         }
         return userTypesName;
@@ -147,7 +165,8 @@ public class BotTask implements Delegable, Comparable<BotTask> {
                 for (ParamDef paramDef : group.getParameters()) {
                     boolean applicable = typeClassNameFilters == null || typeClassNameFilters.length == 0;
                     if (!applicable && paramDef.getFormatFilters().size() > 0) {
-                        Variable variable = new Variable(paramDef.getLabel(), paramDef.getName(), paramDef.getFormatFilters().get(0), new VariableUserType(paramDef.getFormatFilters().get(0), true));
+                        Variable variable = new Variable(paramDef.getLabel(), paramDef.getName(), paramDef.getFormatFilters().get(0),
+                                new VariableUserType(paramDef.getFormatFilters().get(0), true));
                         result.add(variable);
                     }
                 }

@@ -10,6 +10,8 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.ui.PlatformUI;
 import ru.runa.gpd.lang.model.VariableUserType;
+import ru.runa.gpd.extension.VariableFormatArtifact;
+import ru.runa.gpd.extension.VariableFormatRegistry;
 import ru.runa.gpd.util.DataTableUtils;
 import ru.runa.gpd.util.UserTypeXmlContentProvider;
 import ru.runa.gpd.util.XmlUtil;
@@ -61,7 +63,7 @@ public class DataTableCache {
             throw Throwables.propagate(e);
         }
     }
-    
+
     public static synchronized VariableUserType getDataTable(String fileName) {
         return DATA_TABLES.get(fileName);
     }

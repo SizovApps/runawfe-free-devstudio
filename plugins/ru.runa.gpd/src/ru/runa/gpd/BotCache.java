@@ -306,4 +306,18 @@ public class BotCache {
         IFile botTaskFile = getBotTaskFile(botTask);
         return (IFolder) botTaskFile.getParent();
     }
+
+    public static synchronized IFile getBotGlobalSectionFile(BotTask botTask) {
+        IFolder botFolder = BotCache.getBotTaskFolder(botTask);
+        try {
+            for (IResource resource : botFolder.members()) {
+                if (resource instanceof IFolder) {
+                    return IOUtils.getProcessDefinitionFile((IFolder) resource);
+                }
+            }
+        } catch (Exception e) {
+            return null;
+        }
+        return null;
+    }
 }

@@ -18,9 +18,14 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
+import ru.runa.gpd.BotCache;
 import ru.runa.gpd.Localization;
+import ru.runa.gpd.ProcessCache;
 import ru.runa.gpd.extension.handler.ParamDef.Presentation;
 import ru.runa.gpd.lang.model.Delegable;
+import ru.runa.gpd.lang.model.BotTask;
+import ru.runa.gpd.lang.model.BotTaskLink;
+import ru.runa.gpd.lang.model.ProcessDefinition;
 import ru.runa.gpd.ui.custom.InsertVariableTextMenuDetectListener;
 import ru.runa.gpd.ui.custom.SwtUtils;
 import ru.runa.gpd.ui.custom.TypedUserInputCombo;
@@ -199,6 +204,20 @@ public class ParamDefComposite extends Composite {
         List<String> variableNames = new ArrayList<String>();
         if (paramDef.isUseVariable()) {
             variableNames.addAll(delegable.getVariableNames(true, paramDef.getFormatFiltersAsArray()));
+        }
+        if (delegable instanceof BotTaskLink) {
+            BotTask botTask = BotCache.getBotTaskNotNull(((BotTaskLink) delegable).getTaskState().getSwimlaneBotName(),
+                    ((BotTaskLink) delegable).getBotTaskName());
+            if (botTask.getGlobalSectionDefinitionFile() != null) {
+                ProcessDefinition processDefinition = ProcessCache.getProcessDefinition(botTask.getGlobalSectionDefinitionFile());
+                String[] formatFiltersAsArray = paramDef.getFormatFiltersAsArray();
+                for (int i = 0; i < formatFiltersAsArray.length; i++) {
+                    if (formatFiltersAsArray[i].contains("(")) {
+                        formatFiltersAsArray[i] = formatFiltersAsArray[i].substring(0, formatFiltersAsArray[i].indexOf("("));
+                    }
+                }
+                variableNames.addAll(processDefinition.getVariableNames(true, formatFiltersAsArray));
+            }
         }
         boolean localizeTextValue = false;
         for (String option : paramDef.getComboItems()) {

@@ -123,8 +123,7 @@ public class VariableFormatRegistry extends ArtifactRegistry<VariableFormatArtif
             }
             return Objects.equal(variable.getUserType().getName(), classNameFilter);
         }
-        if (List.class.getName().equals(variable.getJavaClassName())
-                && classNameFilter.contains(Variable.FORMAT_COMPONENT_TYPE_START)
+        if (List.class.getName().equals(variable.getJavaClassName()) && classNameFilter.contains(Variable.FORMAT_COMPONENT_TYPE_START)
                 && classNameFilter.contains(Variable.FORMAT_COMPONENT_TYPE_END)) {
             String[] formatComponentClassNames = variable.getFormatComponentClassNames();
             if (formatComponentClassNames.length == 1) {
@@ -175,7 +174,7 @@ public class VariableFormatRegistry extends ArtifactRegistry<VariableFormatArtif
 
             for (VariableFormatArtifact artifact : filterArtifacts) {
                 if (Objects.equal(simpleJavaClassName, artifact.getJavaClassName())) {
-                    if (!addTableList.equals("")) {
+                    if (!addTableList.equals("") && !simpleJavaClassName.equals("java.lang.Boolean")) {
                         return artifact.getLabel() + addTableList;
                     }
                     return artifact.getLabel();
@@ -216,21 +215,60 @@ public class VariableFormatRegistry extends ArtifactRegistry<VariableFormatArtif
         return getVariableName(label).orElseThrow(() -> new InternalApplicationException("No filter found by label " + label));
     }
 
+    public String getNameFromJavaClassName(final String javaClassName) {
+        String innerTypeJavaClassName;
+        final String simpleJavaClassName;
+        if (javaClassName.contains("(")) {
+            innerTypeJavaClassName = javaClassName.substring(javaClassName.indexOf('(') + 1, javaClassName.length() - 1);
+            simpleJavaClassName = javaClassName.substring(0, javaClassName.indexOf('('));
+
+            if (simpleJavaClassName.equals("java.lang.Boolean")) {
+                return getNameFromJavaClassNameSimpleTypes(simpleJavaClassName);
+            }
+
+            String simpleName = getNameFromJavaClassNameSimpleTypes(simpleJavaClassName);
+
+            if (innerTypeJavaClassName.contains(",")) {
+                String[] innerTypesLabels = innerTypeJavaClassName.split(",");
+                String firstName = getNameFromJavaClassNameSimpleTypes(getFilterJavaClassName(innerTypesLabels[0]));
+                String secondName = getNameFromJavaClassNameSimpleTypes(getFilterJavaClassName(innerTypesLabels[1].substring(1)));
+
+                return simpleName + "(" + firstName + ", " + secondName + ")";
+            } else {
+                String firstName = getNameFromJavaClassNameSimpleTypes(getFilterJavaClassName(innerTypeJavaClassName));
+                return simpleName + "(" + firstName + ")";
+            }
+
+        } else {
+            return getNameFromJavaClassNameSimpleTypes(javaClassName);
+        }
+    }
+
+    private String getNameFromJavaClassNameSimpleTypes(final String javaClassName) {
+        List<String> blockedJavaClassNames = new ArrayList<>(Arrays.asList("ru.runa.wfe.var.format.HiddenFormat", "ru.runa.wfe.var.format.TextFormat",
+                "ru.runa.wfe.var.format.FormattedTextFormat", "ru.runa.wfe.var.format.ProcessIdFormat"));
+
+        for (VariableFormatArtifact artifact : getAll()) {
+            if (artifact.getJavaClassName().equals(javaClassName)) {
+                if (!blockedJavaClassNames.contains(artifact.getName())) {
+                    return artifact.getName();
+                }
+            }
+        }
+        return javaClassName;
+    }
+
     private static Optional<String> getVariableName(String name) {
         Optional<String> variableName = Optional.empty();
         try {
             variableName = Arrays.stream(DataTableUtils.getDataTableProject().members())
                     .filter(r -> r instanceof IFile && r.getName().endsWith(DataTableUtils.FILE_EXTENSION))
-                    .map(r -> IOUtils.getWithoutExtension(r.getName()))
-                    .filter(n -> n.equals(name))
-                    .findFirst();
+                    .map(r -> IOUtils.getWithoutExtension(r.getName())).filter(n -> n.equals(name)).findFirst();
         } catch (Exception ignored) {
         }
-        return variableName.isPresent() ? variableName : ProcessCache.getAllProcessDefinitions().stream()
-                .map(ProcessDefinition::getVariableUserTypes).flatMap(List::stream)
-                .map(VariableUserType::getName)
-                .filter(n -> n.equals(name))
-                .findFirst();
+        return variableName.isPresent() ? variableName
+                : ProcessCache.getAllProcessDefinitions().stream().map(ProcessDefinition::getVariableUserTypes).flatMap(List::stream)
+                        .map(VariableUserType::getName).filter(n -> n.equals(name)).findFirst();
     }
 
     public String getUserTypeOfList(String userTypeName) {
