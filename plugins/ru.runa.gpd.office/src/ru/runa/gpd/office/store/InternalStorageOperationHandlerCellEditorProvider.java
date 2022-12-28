@@ -284,9 +284,9 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
                     combo.add(botTableName);
                 }
                 else {
-                    String filterLabel = VariableFormatRegistry.getInstance().getFilterLabel("java.util.List");
-                    filterLabel += "(" + botTableName + ")";
-                    combo.add(filterLabel);
+//                    String filterLabel = VariableFormatRegistry.getInstance().getFilterLabel("java.util.List");
+//                    filterLabel += "(" + botTableName + ")";
+//                    combo.add(filterLabel);
                     combo.add(botTableName);
                 }
             } else {

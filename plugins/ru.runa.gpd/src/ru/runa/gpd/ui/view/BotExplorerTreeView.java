@@ -46,6 +46,7 @@ import ru.runa.gpd.util.WorkspaceOperations;
 
 public class BotExplorerTreeView extends ViewPart implements ISelectionListener {
     private TreeViewer viewer;
+    private static final String PROCESS_FILE_NAME = "processdefinition.xml";
 
     @Override
     public void init(IViewSite site) throws PartInitException {
@@ -88,15 +89,13 @@ public class BotExplorerTreeView extends ViewPart implements ISelectionListener 
             protected void onDoubleClick(DoubleClickEvent event) {
                 Object element = ((IStructuredSelection) event.getSelection()).getFirstElement();
                 if (element instanceof IFile) {
-                    if (((IFile) element).getName().contains("process")) {
+                    if (((IFile) element).getName().equals(PROCESS_FILE_NAME)) {
                         WorkspaceOperations.openGlobalSectionDefinition((IFile) element);
-                    }
-                    else {
+                    } else {
                         WorkspaceOperations.openBotTask((IFile) element);
                     }
-                }
-                else {
-                     WorkspaceOperations.openProcessDefinitionFromBot(element);
+                } else {
+                    WorkspaceOperations.openProcessDefinitionFromBot(element);
                 }
             }
         });

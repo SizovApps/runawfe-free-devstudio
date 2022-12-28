@@ -114,9 +114,7 @@ public class Variable extends NamedGraphElement implements Describable {
             String raw = format.substring(index + 1, format.length() - 1);
             return raw.split(FORMAT_COMPONENT_TYPE_CONCAT, -1);
         }
-        String[] nullClasses = {format};
-
-        return nullClasses;
+        return new String[0];
     }
 
     public String getFormatLabel() {

@@ -12,6 +12,7 @@ import org.eclipse.core.runtime.Platform;
 import org.osgi.framework.Bundle;
 
 import ru.runa.gpd.Activator;
+import ru.runa.gpd.DataTableCache;
 import ru.runa.gpd.PluginLogger;
 import ru.runa.gpd.extension.decision.DefaultDecisionProvider;
 import ru.runa.gpd.extension.decision.IDecisionProvider;
@@ -44,6 +45,7 @@ public class HandlerRegistry extends ArtifactRegistry<HandlerArtifact> {
     @Override
     protected void loadDefaults(List<HandlerArtifact> list) {
         IExtension[] extensions = Platform.getExtensionRegistry().getExtensionPoint("ru.runa.gpd.handlers").getExtensions();
+        DataTableCache.reload();
         for (IExtension extension : extensions) {
             Bundle bundle = Platform.getBundle(extension.getNamespaceIdentifier());
             IConfigurationElement[] configElements = extension.getConfigurationElements();

@@ -169,8 +169,7 @@ public class BotTaskParamDefWizardPage extends WizardPage {
             if (paramDefGroup.getName().equals("output")) {
                 Arrays.stream(DataTableUtils.getDataTableProject().members())
                         .filter(r -> r instanceof IFile && r.getName().endsWith(DataTableUtils.FILE_EXTENSION))
-                        .map(r -> IOUtils.getWithoutExtension(r.getName()))
-                        .filter(r -> r.equals(BotTask.usingBotTask.getSelectedDataTableName()))
+                        .map(r -> IOUtils.getWithoutExtension(r.getName())).filter(r -> r.equals(BotTask.usingBotTask.getSelectedDataTableName()))
                         .forEach(types::add);
                 String filterLabel = VariableFormatRegistry.getInstance().getFilterLabel("java.util.List");
                 filterLabel += "(" + BotTask.usingBotTask.getSelectedDataTableName() + ")";
@@ -178,7 +177,8 @@ public class BotTaskParamDefWizardPage extends WizardPage {
 
             } else {
                 for (IResource file : DataTableUtils.getDataTableProject().members()) {
-                    if (file instanceof IFile && file.getName().endsWith(DataTableUtils.FILE_EXTENSION) && IOUtils.getWithoutExtension(file.getName()).equals(BotTask.usingBotTask.getSelectedDataTableName())) {
+                    if (file instanceof IFile && file.getName().endsWith(DataTableUtils.FILE_EXTENSION)
+                            && IOUtils.getWithoutExtension(file.getName()).equals(BotTask.usingBotTask.getSelectedDataTableName())) {
                         tableFile = (IFile) file;
                     }
                 }
@@ -195,8 +195,7 @@ public class BotTaskParamDefWizardPage extends WizardPage {
                     types.add(variable.getFormatLabel());
                 }
             }
-        }
-        catch (Exception ignored) {
+        } catch (Exception ignored) {
             PluginLogger.logError(ignored.getMessage(), ignored);
         }
         return types;
@@ -213,8 +212,7 @@ public class BotTaskParamDefWizardPage extends WizardPage {
                         }
                     }
                 }
-            }
-            catch (CoreException exception) {
+            } catch (CoreException exception) {
                 PluginLogger.logErrorWithoutDialog(Localization.getString("ParamDefWizardPage.error.cantOpenTables"));
             }
             return true;
@@ -228,8 +226,7 @@ public class BotTaskParamDefWizardPage extends WizardPage {
                     }
                 }
             }
-        }
-        catch (CoreException exception) {
+        } catch (CoreException exception) {
             PluginLogger.logErrorWithoutDialog(Localization.getString("ParamDefWizardPage.error.cantOpenTables"));
         }
         return true;

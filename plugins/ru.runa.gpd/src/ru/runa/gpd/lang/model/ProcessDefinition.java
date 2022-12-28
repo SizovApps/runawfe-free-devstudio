@@ -320,7 +320,6 @@ public class ProcessDefinition extends NamedGraphElement implements Describable,
     @Override
     public List<Variable> getVariables(boolean expandComplexTypes, boolean includeSwimlanes, String... typeClassNameFilters) {
         List<Variable> variables = getChildren(Variable.class);
-        String[] labels = typeClassNameFilters;
 
         if (!includeSwimlanes) {
             variables.removeAll(getSwimlanes());
@@ -334,13 +333,13 @@ public class ProcessDefinition extends NamedGraphElement implements Describable,
         }
         List<Variable> result = Lists.newArrayList();
         for (Variable variable : variables) {
-            if (result.contains(variable)) {
-                continue;
-            }
+            // if (result.contains(variable)) {
+            // continue;
+            // }
             if (VariableFormatRegistry.isApplicable(variable, typeClassNameFilters)) {
                 result.add(variable);
             }
-            for (String label: labels) {
+            for (String label : typeClassNameFilters) {
                 if (label.equals(variable.getFormatClassName())) {
                     result.add(variable);
                 }
@@ -492,13 +491,16 @@ public class ProcessDefinition extends NamedGraphElement implements Describable,
     }
 
     public void addVariableUserType(VariableUserType type) {
+        // type.setProcessDefinition(this);
+        // if (!types.contains(type) && !isSameNameUserType(type.getName())) {
+        // types.add(type);
+        // firePropertyChange(PROPERTY_USER_TYPES_CHANGED, null, type);
+        // }
         type.setProcessDefinition(this);
-        if (!types.contains(type) && !isSameNameUserType(type.getName())) {
-            types.add(type);
-            firePropertyChange(PROPERTY_USER_TYPES_CHANGED, null, type);
-        }
-    }
+        types.add(type);
+        firePropertyChange(PROPERTY_USER_TYPES_CHANGED, null, type);
 
+    }
 
     public boolean isSameNameUserType(String name) {
         for (VariableUserType userType : types) {

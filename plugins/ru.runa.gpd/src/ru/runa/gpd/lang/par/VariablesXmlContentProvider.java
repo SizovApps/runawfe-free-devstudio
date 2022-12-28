@@ -46,13 +46,28 @@ public class VariablesXmlContentProvider extends AuxContentProvider {
 
     @Override
     public void read(Document document, ProcessDefinition definition) throws Exception {
-        List<Element> typeElements = document.getRootElement().elements(USER_TYPE);
+        readElements(document.getRootElement(), definition);
+    }
+
+    public Element writeGlobalVariable(Element root, Variable variable){
+        return writeVariable(root, variable);
+    }
+
+    public void readFromElement(Element startElement, ProcessDefinition definition) throws Exception {
+        readElements(startElement, definition);
+    }
+
+    private void readElements(Element startElement, ProcessDefinition definition) {
+        List<Element> elementsList = startElement.elements(VARIABLE);
+        List<Element> typeElements = startElement.elements(USER_TYPE);
+
         for (Element typeElement : typeElements) {
             VariableUserType type = new VariableUserType();
             type.setName(typeElement.attributeValue(NAME));
             type.setStoreInExternalStorage(Boolean.parseBoolean(typeElement.attributeValue(VariableUserType.PROPERTY_STORE_IN_EXTERNAL_STORAGE)));
             type.setGlobal("true".equals(typeElement.attributeValue(GLOBAL)));
             definition.addVariableUserType(type);
+
             if (type.isGlobal()) {
                 List<Element> attributeElements = typeElement.elements(VARIABLE);
                 for (Element attributeElement : attributeElements) {
@@ -62,78 +77,6 @@ public class VariablesXmlContentProvider extends AuxContentProvider {
                 definition.addGlobalType(type);
             }
         }
-        for (Element typeElement : typeElements) {
-            if ("true".equals(typeElement.attributeValue(GLOBAL))) {
-                continue;
-            }
-            VariableUserType type = definition.getVariableUserTypeNotNull(typeElement.attributeValue(NAME));
-            List<Element> attributeElements = typeElement.elements(VARIABLE);
-            for (Element attributeElement : attributeElements) {
-                Variable variable = parse(attributeElement, definition);
-                type.addAttribute(variable);
-            }
-        }
-
-        List<Element> elementsList = document.getRootElement().elements(VARIABLE);
-
-        for (Element element : elementsList) {
-            if ("true".equals(element.attributeValue(SWIMLANE, "false"))) {
-                String variableName = element.attributeValue(NAME);
-                String scriptingName = element.attributeValue(SCRIPTING_NAME, variableName);
-                String isGlobal = element.attributeValue(GLOBAL);
-
-                if (!VariableUtils.isValidScriptingName(scriptingName)) {
-                    scriptingName = VariableUtils.toScriptingName(scriptingName);
-                }
-                try {
-                    String publicVisibilityStr = element.attributeValue(PUBLIC);
-                    boolean publicVisibility = "true".equals(publicVisibilityStr);
-                    String editableInChatStr = element.attributeValue(EDITABLE_IN_CHAT);
-                    boolean editableInChat = "true".equals(editableInChatStr);
-                    String description = element.attributeValue(DESCRIPTION);
-                    if ("false".equals(description)) {
-                        description = null;
-                    }
-                    Swimlane swimlane = new Swimlane();
-                    if ("true".equals(isGlobal)) {
-                        swimlane = definition.getGlobalSwimlaneByName(variableName);
-                    } else {
-                        swimlane = definition.getSwimlaneByName(variableName);
-                    }
-                    swimlane.setScriptingName(scriptingName);
-                    swimlane.setDescription(description);
-                    swimlane.setPublicVisibility(publicVisibility);
-                    swimlane.setEditableInChat(editableInChat);
-                    swimlane.setEditorPath(element.attributeValue(EDITOR));
-                    swimlane.setStoreType(element.attributeValue(STORE_TYPE, null) != null
-                            ? VariableStoreType.valueOf(element.attributeValue(STORE_TYPE).toUpperCase())
-                            : VariableStoreType.DEFAULT);
-                    swimlane.setGlobal("true".equals(isGlobal));
-
-                } catch (Exception e) {
-                    PluginLogger.logErrorWithoutDialog("No swimlane found for " + variableName, e);
-                }
-                continue;
-            }
-            Variable variable = parse(element, definition);
-            definition.addChild(variable);
-        }
-    }
-
-    public Element writeGlobalVariable(Element root, Variable variable){
-        return writeVariable(root, variable);
-    }
-
-    public void readFromElement(Element startElement, ProcessDefinition definition) throws Exception {
-        List<Element> typeElements = startElement.elements(USER_TYPE);
-
-        for (Element typeElement : typeElements) {
-            VariableUserType type = new VariableUserType();
-            type.setName(typeElement.attributeValue(NAME));
-            type.setStoreInExternalStorage(Boolean.parseBoolean(typeElement.attributeValue(VariableUserType.PROPERTY_STORE_IN_EXTERNAL_STORAGE)));
-            type.setGlobal("true".equals(typeElement.attributeValue(GLOBAL)));
-            definition.addVariableUserType(type);
-        }
 
         for (Element typeElement : typeElements) {
             if ("true".equals(typeElement.attributeValue(GLOBAL))) {
@@ -146,9 +89,6 @@ public class VariablesXmlContentProvider extends AuxContentProvider {
                 type.addAttribute(variable);
             }
         }
-
-        List<Element> elementsList = startElement.elements(VARIABLE);
-
         for (Element element : elementsList) {
             if ("true".equals(element.attributeValue(SWIMLANE, "false"))) {
                 String variableName = element.attributeValue(NAME);

@@ -59,6 +59,13 @@ public class DataTableCache {
             VariableUserType dataTable = UserTypeXmlContentProvider.read(document);
             DATA_TABLES_FILES.put(dataTable.getName(), dataTableFile);
             DATA_TABLES.put(dataTable.getName(), dataTable);
+
+            if (dataTable.getName() != null) {
+                VariableFormatArtifact variableFormatArtifact = new VariableFormatArtifact(true, dataTable.getName(), dataTable.getName(),
+                        dataTable.getName());
+                VariableFormatRegistry.getInstance().add(variableFormatArtifact);
+            }
+
         } catch (Exception e) {
             throw Throwables.propagate(e);
         }

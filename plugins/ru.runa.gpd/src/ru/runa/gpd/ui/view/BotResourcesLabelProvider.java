@@ -16,10 +16,12 @@ import ru.runa.gpd.ProcessCache;
 
 public class BotResourcesLabelProvider extends LabelProvider {
 
+    private static final String PROCESS_FILE_NAME = "processdefinition.xml";
+
     @Override
     public String getText(Object element) {
         if (element instanceof IFile) {
-            if (((IFile) element).getName().contains("process")) {
+            if (((IFile) element).getName().equals(PROCESS_FILE_NAME)) {
                 ProcessDefinition definition = ProcessCache.getProcessDefinition((IFile) element);
                 if (definition != null) {
                     return definition.getName();
@@ -45,7 +47,7 @@ public class BotResourcesLabelProvider extends LabelProvider {
             return SharedImages.getImage("icons/bot.gif");
         }
         if (element instanceof IFile) {
-            if (((IFile) element).getName().contains("process")) {
+            if (((IFile) element).getName().equals(PROCESS_FILE_NAME)) {
                 return SharedImages.getImage("icons/glb.gif");
             }
             BotTask task = BotCache.getBotTask((IFile) element);
