@@ -280,15 +280,7 @@ public class InternalStorageOperationHandlerCellEditorProvider extends XmlBasedC
         private void addDataTypeCombo() {
             final Combo combo = new Combo(this, SWT.READ_ONLY);
             if (botTableName != null) {
-                if (constraintsModel.getQueryType() != QueryType.valueOf("SELECT")) {
-                    combo.add(botTableName);
-                }
-                else {
-//                    String filterLabel = VariableFormatRegistry.getInstance().getFilterLabel("java.util.List");
-//                    filterLabel += "(" + botTableName + ")";
-//                    combo.add(filterLabel);
-                    combo.add(botTableName);
-                }
+                combo.add(botTableName);
             } else {
                 variableProvider.complexUserTypeNames().collect(Collectors.toSet()).forEach(combo::add);
             }
