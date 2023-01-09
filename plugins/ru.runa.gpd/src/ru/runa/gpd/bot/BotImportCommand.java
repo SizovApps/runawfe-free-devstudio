@@ -37,7 +37,6 @@ import ru.runa.gpd.util.IOUtils;
 import ru.runa.gpd.util.WorkspaceOperations;
 import com.google.common.base.Preconditions;
 
-
 public class BotImportCommand extends BotSyncCommand {
 
     private InputStream inputStream;

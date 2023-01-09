@@ -1,8 +1,6 @@
 package ru.runa.gpd.office.store.externalstorage;
 
 import com.google.common.base.Strings;
-
-import java.util.Arrays;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import org.eclipse.swt.layout.GridLayout;
