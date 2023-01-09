@@ -52,7 +52,7 @@ public class AutomaticCreationUtils {
             }
             IFile definitionFile = IOUtils.getProcessDefinitionFile(folder);
             String processName = folder.getName();
-            Language language = Language.valueOf("BPMN");
+            Language language = Language.BPMN;
             Map<String, String> properties = Maps.newHashMap();
             if (language == Language.BPMN) {
                 properties.put(BpmnSerializer.SHOW_SWIMLANE, SwimlaneDisplayMode.values()[0].name());
@@ -67,7 +67,6 @@ public class AutomaticCreationUtils {
             }
             ProcessCache.newProcessDefinitionWasCreated(definitionFile);
             setGlobalVariables(definitionFile, botTask);
-            botTask.setGlobalSectionDefinitionFile(definitionFile);
             try {
                 GlobalSectionEditorBase processEditorBase = WorkspaceOperations.openGlobalSectionDefinition(definitionFile);
                 if (processEditorBase != null) {

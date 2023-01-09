@@ -627,7 +627,7 @@ public class WorkspaceOperations {
                         if (botTaskFile.getName().endsWith(".conf")) {
                             continue;
                         }
-                        if (botTaskFile.getName() == "processdefinition.xml") {
+                        if (botTaskFile.getName() == ParContentProvider.PROCESS_DEFINITION_FILE_NAME) {
                             IResource parentResource = botTaskFile.getParent();
                             parentResource.delete(true, null);
                         }

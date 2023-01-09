@@ -15,7 +15,6 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 
-import ru.runa.gpd.globalsection.GlobalSectionUtils;
 import ru.runa.gpd.lang.NodeRegistry;
 import ru.runa.gpd.lang.model.GlobalSectionDefinition;
 import ru.runa.gpd.lang.model.ProcessDefinition;
@@ -41,22 +40,22 @@ public class ProcessCache {
         }
     }
 
-    private static ProcessDefinition selectedProcess;
+    private static ProcessDefinition selectedProcessForImportUserTypesFromBot;
 
-    public static ProcessDefinition getSelectedProcess() {
-        if (selectedProcess == null) {
+    public static ProcessDefinition getSelectedProcessForImportUserTypesFromBot() {
+        if (selectedProcessForImportUserTypesFromBot == null) {
             if (ProcessCache.getGlobalProcessDefinitions().size() != 0) {
                 for (ProcessDefinition processDefinition : ProcessCache.getAllProcessDefinitions()) {
-                    selectedProcess = processDefinition;
+                    selectedProcessForImportUserTypesFromBot = processDefinition;
                     break;
                 }
             }
         }
-        return selectedProcess;
+        return selectedProcessForImportUserTypesFromBot;
     }
 
     public static void setSelectedProcessByName(String processDefinitionName) {
-        selectedProcess = CACHE_BY_NAME.get(processDefinitionName);
+        selectedProcessForImportUserTypesFromBot = CACHE_BY_NAME.get(processDefinitionName);
     }
 
 

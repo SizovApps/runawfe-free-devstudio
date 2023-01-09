@@ -48,14 +48,16 @@ public class BotTaskParamDefWizardPage extends WizardPage {
     private Button useVariableButton;
     private Button requiredButton;
     private final DialogEnhancementMode dialogEnhancementMode;
+    private BotTask botTask;
 
-    public BotTaskParamDefWizardPage(ParamDefGroup paramDefGroup, ParamDef paramDef, DialogEnhancementMode dialogEnhancementMode) {
+    public BotTaskParamDefWizardPage(ParamDefGroup paramDefGroup, ParamDef paramDef, DialogEnhancementMode dialogEnhancementMode, BotTask botTask) {
         super(Localization.getString("ParamDefWizardPage.page.title"));
         setTitle(Localization.getString("ParamDefWizardPage.page.title"));
         setDescription(Localization.getString("ParamDefWizardPage.page.description"));
         this.paramDefGroup = paramDefGroup;
         this.paramDef = paramDef;
         this.dialogEnhancementMode = dialogEnhancementMode;
+        this.botTask = botTask;
     }
 
     @Override
@@ -131,7 +133,7 @@ public class BotTaskParamDefWizardPage extends WizardPage {
         Label label = new Label(parent, SWT.NONE);
         label.setText(Localization.getString("ParamDefWizardPage.page.type"));
         List<String> types = new ArrayList<String>();
-        if (BotTask.usingBotTask.getDelegationClassName().equals(ScriptTask.INTERNAL_STORAGE_HANDLER_CLASS_NAME)) {
+        if (botTask != null && botTask.getDelegationClassName().equals(ScriptTask.INTERNAL_STORAGE_HANDLER_CLASS_NAME)) {
             types = getTypesForInternalStorage();
         } else {
             for (VariableFormatArtifact artifact : VariableFormatRegistry.getInstance().getFilterArtifacts()) {
@@ -169,16 +171,16 @@ public class BotTaskParamDefWizardPage extends WizardPage {
             if (paramDefGroup.getName().equals("output")) {
                 Arrays.stream(DataTableUtils.getDataTableProject().members())
                         .filter(r -> r instanceof IFile && r.getName().endsWith(DataTableUtils.FILE_EXTENSION))
-                        .map(r -> IOUtils.getWithoutExtension(r.getName())).filter(r -> r.equals(BotTask.usingBotTask.getSelectedDataTableName()))
+                        .map(r -> IOUtils.getWithoutExtension(r.getName())).filter(r -> r.equals(botTask.getSelectedDataTableName()))
                         .forEach(types::add);
                 String filterLabel = VariableFormatRegistry.getInstance().getFilterLabel("java.util.List");
-                filterLabel += "(" + BotTask.usingBotTask.getSelectedDataTableName() + ")";
+                filterLabel += "(" + botTask.getSelectedDataTableName() + ")";
                 types.add(filterLabel);
 
             } else {
                 for (IResource file : DataTableUtils.getDataTableProject().members()) {
                     if (file instanceof IFile && file.getName().endsWith(DataTableUtils.FILE_EXTENSION)
-                            && IOUtils.getWithoutExtension(file.getName()).equals(BotTask.usingBotTask.getSelectedDataTableName())) {
+                            && IOUtils.getWithoutExtension(file.getName()).equals(botTask.getSelectedDataTableName())) {
                         tableFile = (IFile) file;
                     }
                 }

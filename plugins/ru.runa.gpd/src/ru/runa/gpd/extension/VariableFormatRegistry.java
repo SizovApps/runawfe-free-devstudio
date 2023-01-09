@@ -168,9 +168,9 @@ public class VariableFormatRegistry extends ArtifactRegistry<VariableFormatArtif
     public String getFilterLabel(final String javaClassName) {
         final String addTableList;
         final String simpleJavaClassName;
-        if (javaClassName.contains("(")) {
-            addTableList = javaClassName.substring(javaClassName.indexOf('('));
-            simpleJavaClassName = javaClassName.substring(0, javaClassName.indexOf('('));
+        if (javaClassName.contains(Variable.FORMAT_COMPONENT_TYPE_START)) {
+            addTableList = javaClassName.substring(javaClassName.indexOf(Variable.FORMAT_COMPONENT_TYPE_START));
+            simpleJavaClassName = javaClassName.substring(0, javaClassName.indexOf(Variable.FORMAT_COMPONENT_TYPE_START));
 
             for (VariableFormatArtifact artifact : filterArtifacts) {
                 if (Objects.equal(simpleJavaClassName, artifact.getJavaClassName())) {
@@ -193,9 +193,9 @@ public class VariableFormatRegistry extends ArtifactRegistry<VariableFormatArtif
     public String getFilterJavaClassName(final String label) {
         final String addTableList;
         final String simpleLabel;
-        if (label.contains("(")) {
-            addTableList = label.substring(label.indexOf('('));
-            simpleLabel = label.substring(0, label.indexOf('('));
+        if (label.contains(Variable.FORMAT_COMPONENT_TYPE_START)) {
+            addTableList = label.substring(label.indexOf(Variable.FORMAT_COMPONENT_TYPE_START));
+            simpleLabel = label.substring(0, label.indexOf(Variable.FORMAT_COMPONENT_TYPE_START));
 
             for (VariableFormatArtifact artifact : filterArtifacts) {
                 if (Objects.equal(simpleLabel, artifact.getLabel()) || artifact.getLabel().contains(simpleLabel)) {
@@ -218,9 +218,9 @@ public class VariableFormatRegistry extends ArtifactRegistry<VariableFormatArtif
     public String getNameFromJavaClassName(final String javaClassName) {
         String innerTypeJavaClassName;
         final String simpleJavaClassName;
-        if (javaClassName.contains("(")) {
-            innerTypeJavaClassName = javaClassName.substring(javaClassName.indexOf('(') + 1, javaClassName.length() - 1);
-            simpleJavaClassName = javaClassName.substring(0, javaClassName.indexOf('('));
+        if (javaClassName.contains(Variable.FORMAT_COMPONENT_TYPE_START)) {
+            innerTypeJavaClassName = javaClassName.substring(javaClassName.indexOf(Variable.FORMAT_COMPONENT_TYPE_START) + 1, javaClassName.length() - 1);
+            simpleJavaClassName = javaClassName.substring(0, javaClassName.indexOf(Variable.FORMAT_COMPONENT_TYPE_START));
 
             if (simpleJavaClassName.equals("java.lang.Boolean")) {
                 return getNameFromJavaClassNameSimpleTypes(simpleJavaClassName);
@@ -233,10 +233,10 @@ public class VariableFormatRegistry extends ArtifactRegistry<VariableFormatArtif
                 String firstName = getNameFromJavaClassNameSimpleTypes(getFilterJavaClassName(innerTypesLabels[0]));
                 String secondName = getNameFromJavaClassNameSimpleTypes(getFilterJavaClassName(innerTypesLabels[1].substring(1)));
 
-                return simpleName + "(" + firstName + ", " + secondName + ")";
+                return simpleName + Variable.FORMAT_COMPONENT_TYPE_START + firstName + ", " + secondName + Variable.FORMAT_COMPONENT_TYPE_END;
             } else {
                 String firstName = getNameFromJavaClassNameSimpleTypes(getFilterJavaClassName(innerTypeJavaClassName));
-                return simpleName + "(" + firstName + ")";
+                return simpleName + Variable.FORMAT_COMPONENT_TYPE_START + firstName + Variable.FORMAT_COMPONENT_TYPE_END;
             }
 
         } else {
@@ -272,7 +272,7 @@ public class VariableFormatRegistry extends ArtifactRegistry<VariableFormatArtif
     }
 
     public String getUserTypeOfList(String userTypeName) {
-        String usertype = userTypeName.substring(userTypeName.indexOf('(') + 1, userTypeName.indexOf(')'));
+        String usertype = userTypeName.substring(userTypeName.indexOf(Variable.FORMAT_COMPONENT_TYPE_START) + 1, userTypeName.indexOf(Variable.FORMAT_COMPONENT_TYPE_END));
         return usertype;
     }
 }

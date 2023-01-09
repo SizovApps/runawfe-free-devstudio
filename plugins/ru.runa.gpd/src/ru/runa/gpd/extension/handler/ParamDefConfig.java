@@ -28,6 +28,7 @@ import ru.runa.gpd.Localization;
 import ru.runa.gpd.PluginLogger;
 import ru.runa.gpd.ProcessCache;
 import ru.runa.gpd.extension.VariableFormatRegistry;
+import ru.runa.gpd.extension.VariableFormatArtifact;
 import ru.runa.gpd.extension.handler.ParamDef.Presentation;
 import ru.runa.gpd.lang.ValidationError;
 import ru.runa.gpd.lang.model.Delegable;
@@ -53,8 +54,11 @@ public class ParamDefConfig {
     private static final String DEFAULT_VALUE = "defaultValue";
     private static final String ATTRIBUTE_ELEMENT_NAME = "variable";
     private static final String USER_TYPE = "usertype";
+    private static final String USER_TYPE_SECTION = "usertypes";
     private static final String GLOBAL = "global";
+    private static final String GLOBAL_SECTION = "globals";
     private static final String TABLE_NAME = "tableName";
+    private static final String SELECTED_TABLE = "selectedTable";
     private static final Pattern VARIABLE_REGEXP = Pattern.compile("\\$\\{(.*?[^\\\\])\\}");
     private final String name;
     private String selectedTableName;
@@ -92,10 +96,10 @@ public class ParamDefConfig {
                     group.getParameters().add(new ParamDef(element));
                 }
                 config.getGroups().add(group);
-            } else if (groupElement.getName() == "usertypes") {
-                List<Element> usertypesParamElements = groupElement.elements("usertype");
+            } else if (groupElement.getName() == USER_TYPE_SECTION) {
+                List<Element> usertypesParamElements = groupElement.elements(ROOT_ELEMENT_NAME);
                 for (Element element : usertypesParamElements) {
-                    String nameOfTable = element.attributeValue("name");
+                    String nameOfTable = element.attributeValue(NAME);
                     IProject dtProject = DataTableUtils.getDataTableProject();
                     try {
                         if (!dtProject.exists()) {
@@ -111,10 +115,10 @@ public class ParamDefConfig {
                     IFile dataTableFile = dtProject.getFile(nameOfTable + DataTableUtils.FILE_EXTENSION);
                     VariableUserType dataTable = new VariableUserType(nameOfTable);
                     List<Element> variables = element.elements();
-                    for (Element variable: variables) {
-                        String name = variable.attributeValue("name");
-                        String scriptingName = variable.attributeValue("scriptingName");
-                        String format = variable.attributeValue("format");
+                    for (Element variable : variables) {
+                        String name = variable.attributeValue(NAME);
+                        String scriptingName = variable.attributeValue(SCRIPTING_NAME);
+                        String format = variable.attributeValue(FORMAT);
                         Variable newVariable = new Variable(name, scriptingName, format, dataTable);
                         newVariable.setFormat(format);
                         dataTable.addAttribute(newVariable);
@@ -128,17 +132,17 @@ public class ParamDefConfig {
                     DataTableCache.reload();
                     group.getParameters().add(new ParamDef(element));
                 }
-            } else if (groupElement.getName() == "globals") {
+            } else if (groupElement.getName() == GLOBAL_SECTION) {
                 if (groupElement.elements().size() == 0) {
                     continue;
                 }
                 VariablesXmlContentProvider variablesXmlContentProvider = new VariablesXmlContentProvider();
-                    try {
-                        variablesXmlContentProvider.readFromElement(groupElement, ProcessCache.getSelectedProcess());
-                    } catch (Exception e) {
-                        throw new RuntimeException("No selected process definition!");
-                    }
-            } else if (groupElement.getName() == "selectedTable") {
+                try {
+                    variablesXmlContentProvider.readGlobalElements(groupElement, ProcessCache.getSelectedProcessForImportUserTypesFromBot());
+                } catch (Exception e) {
+                    PluginLogger.logError("Not found any processes in project", e);
+                }
+            } else if (groupElement.getName() == SELECTED_TABLE) {
                 String nameOfTable = groupElement.attributeValue("tableName");
                 config.selectedTableName = nameOfTable;
             }
@@ -150,7 +154,8 @@ public class ParamDefConfig {
         Element rootElement = document.getRootElement();
         createTablesForInternalStorageHandler(rootElement, nameOfTable);
     }
-    public static void createTablesForInternalStorageHandler(Element rootElement, String nameOfTable){
+
+    public static void createTablesForInternalStorageHandler(Element rootElement, String nameOfTable) {
         List<Element> groupElements = rootElement.elements();
         for (Element groupElement : groupElements) {
             ParamDefGroup group = new ParamDefGroup(groupElement);
@@ -173,7 +178,7 @@ public class ParamDefConfig {
                 VariableUserType dataTable = new VariableUserType(nameOfTable);
 
                 for (Element variable : inputParamElements) {
-                    String name = variable.attributeValue("name");
+                    String name = variable.attributeValue(NAME);
                     String scriptingName = variable.attributeValue("label");
                     ru.runa.gpd.extension.VariableFormatRegistry variableFormatRegistry = new VariableFormatRegistry();
                     String format = variable.attributeValue("formatFilter");
@@ -189,7 +194,6 @@ public class ParamDefConfig {
                 } catch (CoreException e) {
                     throw new InternalApplicationException(e);
                 }
-
 
                 DataTableCache.reload();
             }
@@ -249,13 +253,11 @@ public class ParamDefConfig {
     }
 
     /**
-     * Retrieves all founded parameter to variable mappings based on this
-     * definition.
+     * Retrieves all founded parameter to variable mappings based on this definition.
      * 
      * @param configuration
      *            valid param-based xml
-     * @return not <code>null</code> parameters (empty parameters on parsing
-     *         error)
+     * @return not <code>null</code> parameters (empty parameters on parsing error)
      */
     public Map<String, String> parseConfiguration(String configuration) {
         Map<String, String> properties = new HashMap<String, String>();
@@ -351,14 +353,15 @@ public class ParamDefConfig {
                     String[] filters = paramDef.getFormatFilters().toArray(new String[paramDef.getFormatFilters().size()]);
                     List<String> variableNames = graphElement.getProcessDefinition().getVariableNames(true, filters);
                     if (!variableNames.contains(value)) {
-                    	if (VariableUtils.variableExists(value, graphElement.getProcessDefinition())) {
-                    		String localizedVariableType = Localization
-                    				.getString(VariableUtils.getVariableByName(graphElement.getProcessDefinition(), value).getFormat());
+                        if (VariableUtils.variableExists(value, graphElement.getProcessDefinition())) {
+                            String localizedVariableType = Localization
+                                    .getString(VariableUtils.getVariableByName(graphElement.getProcessDefinition(), value).getFormat());
                             errors.add(ValidationError.createLocalizedError(graphElement, "parambased.paramVariableTypeMismatch",
-                            		localizedVariableType, value, paramDef.getLabel()));
-                    	} else {
-                            errors.add(ValidationError.createLocalizedError(graphElement, "parambased.missedParamVariable", paramDef.getLabel(), value));
-                    	}
+                                    localizedVariableType, value, paramDef.getLabel()));
+                        } else {
+                            errors.add(
+                                    ValidationError.createLocalizedError(graphElement, "parambased.missedParamVariable", paramDef.getLabel(), value));
+                        }
                     }
                 }
             }
@@ -451,7 +454,7 @@ public class ParamDefConfig {
     public void writeXMLFromRoot(Element root, String selectedTableName) {
         List<String> usedUserTypesNames = new ArrayList<String>();
         for (ParamDefGroup group : getGroups()) {
-            if ("usertypes".equals(group.getName())) {
+            if (USER_TYPE_SECTION.equals(group.getName())) {
                 continue;
             }
             Element groupParamElement = root.addElement(group.getName());
@@ -461,7 +464,14 @@ public class ParamDefConfig {
                 paramElement.addAttribute("label", param.getLabel());
                 if (param.getFormatFilters().size() > 0) {
                     paramElement.addAttribute("formatFilter", param.getFormatFilters().get(0));
-                    if (!usedUserTypesNames.contains(param.getFormatFilters().get(0))) {
+                    List<VariableFormatArtifact> artifacts = VariableFormatRegistry.getInstance().getFilterArtifacts();
+                    boolean isUserType = true;
+                    for (VariableFormatArtifact artifact : VariableFormatRegistry.getInstance().getFilterArtifacts()) {
+                        if (artifact.getJavaClassName().equals(param.getFormatFilters().get(0))) {
+                            isUserType = false;
+                        }
+                    }
+                    if (!usedUserTypesNames.contains(param.getFormatFilters().get(0)) && isUserType) {
                         usedUserTypesNames.add(param.getFormatFilters().get(0));
                     }
                 }
@@ -474,11 +484,11 @@ public class ParamDefConfig {
             }
         }
         IProject dtProject = DataTableUtils.getDataTableProject();
-        Element usertypes = root.addElement("usertypes");
-        Element globals = root.addElement("globals");
+        Element usertypes = root.addElement(USER_TYPE_SECTION);
+        Element globals = root.addElement(GLOBAL_SECTION);
 
         if (!selectedTableName.equals("")) {
-            Element table = root.addElement("selectedTable");
+            Element table = root.addElement(SELECTED_TABLE);
             table.addAttribute(TABLE_NAME, selectedTableName);
         }
 
@@ -487,13 +497,10 @@ public class ParamDefConfig {
             return;
         }
         for (String usedTypeName : usedUserTypesNames) {
-            boolean isInGlobals = false;
-
+            boolean foundInGlobalSections = false;
             for (ProcessDefinition processDefinition : ProcessCache.getAllProcessDefinitions()) {
                 for (VariableUserType variableUserType : processDefinition.getVariableUserTypes()) {
                     if (variableUserType.getName().equals(usedTypeName)) {
-                        isInGlobals = true;
-
                         Element typeElement = globals.addElement(USER_TYPE);
                         typeElement.addAttribute(NAME, variableUserType.getName());
                         if (variableUserType.isStoreInExternalStorage()) {
@@ -505,9 +512,12 @@ public class ParamDefConfig {
                         for (Variable variable : variableUserType.getAttributes()) {
                             variablesXmlContentProvider.writeGlobalVariable(typeElement, variable);
                         }
+                        foundInGlobalSections = true;
                         break;
                     }
                 }
+            }
+            if (!foundInGlobalSections) {
                 try {
                     IFile dataTableFile = dtProject.getFile(usedTypeName + DataTableUtils.FILE_EXTENSION);
                     Document document = XmlUtil.parseWithoutValidation(dataTableFile.getContents(true));
@@ -527,7 +537,6 @@ public class ParamDefConfig {
             }
         }
     }
-
 
     public Set<String> getAllParameterNames(boolean excludeOptional) {
         Set<String> result = Sets.newHashSet();

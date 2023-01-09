@@ -1053,9 +1053,7 @@
             label="%default.swimlane.name"
             model="ru.runa.gpd.lang.model.Swimlane"
             type="artifact">
-         <gef 
             treeEditPart="ru.runa.gpd.editor.gef.part.tree.SwimlaneTreeEditPart">
-         </gef>
          <graphiti
                add="ru.runa.gpd.editor.graphiti.add.AddSwimlaneFeature"
                create="ru.runa.gpd.editor.graphiti.create.CreateSwimlaneFeature"

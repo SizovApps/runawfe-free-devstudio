@@ -38,14 +38,11 @@ public class BotTask implements Delegable, Comparable<BotTask> {
     private ParamDefConfig paramDefConfig;
     private final List<String> filesToSave;
     private String selectedDataTableName;
-    private IFile globalSectionDefinitionFile;
-    public static BotTask usingBotTask;
 
     public BotTask(String station, String bot, String name) {
         this.id = String.format("%s/%s/%s", station, bot, name);
         this.name = name;
         filesToSave = Lists.newArrayList();
-        globalSectionDefinitionFile = null;
     }
 
     public BotTaskType getType() {
@@ -74,10 +71,6 @@ public class BotTask implements Delegable, Comparable<BotTask> {
 
     public void setSelectedDataTable(String selectedDataTableName) {
         this.selectedDataTableName = selectedDataTableName;
-    }
-
-    public void setGlobalSectionDefinitionFile(IFile globalSectionDefinitionFile) {
-        this.globalSectionDefinitionFile = globalSectionDefinitionFile;
     }
 
     public IFile getGlobalSectionDefinitionFile() {

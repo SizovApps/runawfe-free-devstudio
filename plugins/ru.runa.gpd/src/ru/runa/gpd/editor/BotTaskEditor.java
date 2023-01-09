@@ -764,10 +764,9 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
                 if (!checkSelectionOfTable()) {
                     return;
                 }
-                BotTask.usingBotTask = botTask;
                 for (ParamDefGroup group : botTask.getParamDefConfig().getGroups()) {
                     if (parameterType.equals(group.getName())) {
-                        BotTaskParamDefWizard wizard = new BotTaskParamDefWizard(group, null, new DocxDialogEnhancementMode(0));
+                        BotTaskParamDefWizard wizard = new BotTaskParamDefWizard(group, null, new DocxDialogEnhancementMode(0), botTask);
                         CompactWizardDialog dialog = new CompactWizardDialog(wizard);
                         if (dialog.open() == Window.OK) {
                             setTableInput(parameterType);
@@ -776,7 +775,6 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
 
                     }
                 }
-                BotTask.usingBotTask = null;
             }
         });
 
@@ -794,7 +792,6 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
                 if (!checkSelectionOfTable()) {
                     return;
                 }
-                BotTask.usingBotTask = botTask;
                 for (ParamDefGroup group : botTask.getParamDefConfig().getGroups()) {
                     if (parameterType.equals(group.getName())) {
                         IStructuredSelection selection = (IStructuredSelection) getParamTableViewer(parameterType).getSelection();
@@ -815,7 +812,6 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
                         }
                     }
                 }
-                BotTask.usingBotTask = null;
             }
         });
 

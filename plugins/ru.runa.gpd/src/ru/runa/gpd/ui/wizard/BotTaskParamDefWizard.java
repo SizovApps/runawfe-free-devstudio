@@ -7,6 +7,7 @@ import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 import ru.runa.gpd.extension.handler.ParamDef;
 import ru.runa.gpd.extension.handler.ParamDefGroup;
+import ru.runa.gpd.lang.model.BotTask;
 import ru.runa.gpd.ui.enhancement.DialogEnhancementMode;
 
 public class BotTaskParamDefWizard extends Wizard implements INewWizard {
@@ -14,6 +15,7 @@ public class BotTaskParamDefWizard extends Wizard implements INewWizard {
     private ParamDefGroup paramDefGroup;
     private ParamDef paramDef;
     private final DialogEnhancementMode dialogEnhancementMode;
+    private BotTask botTask;
 
     public BotTaskParamDefWizard(ParamDefGroup paramDefGroup, ParamDef paramDef, DialogEnhancementMode dialogEnhancementMode) {
         this.paramDefGroup = paramDefGroup;
@@ -21,10 +23,17 @@ public class BotTaskParamDefWizard extends Wizard implements INewWizard {
         this.dialogEnhancementMode = dialogEnhancementMode;
     }
 
+    public BotTaskParamDefWizard(ParamDefGroup paramDefGroup, ParamDef paramDef, DialogEnhancementMode dialogEnhancementMode, BotTask botTask) {
+        this.paramDefGroup = paramDefGroup;
+        this.paramDef = paramDef;
+        this.dialogEnhancementMode = dialogEnhancementMode;
+        this.botTask = botTask;
+    }
+
     @Override
     public void addPages() {
         super.addPages();
-        page = new BotTaskParamDefWizardPage(paramDefGroup, paramDef, dialogEnhancementMode);
+        page = new BotTaskParamDefWizardPage(paramDefGroup, paramDef, dialogEnhancementMode, botTask);
         addPage(page);
     }
 

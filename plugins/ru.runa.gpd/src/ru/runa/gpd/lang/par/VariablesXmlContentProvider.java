@@ -135,6 +135,29 @@ public class VariablesXmlContentProvider extends AuxContentProvider {
         }
     }
 
+    public void readGlobalElements(Element startElement, ProcessDefinition definition) {
+        List<Element> typeElements = startElement.elements(USER_TYPE);
+
+        for (Element typeElement : typeElements) {
+            if ("true".equals(typeElement.attributeValue(GLOBAL))) {
+                continue;
+            }
+            VariableUserType type = new VariableUserType(typeElement.attributeValue(NAME));
+            List<Element> attributeElements = typeElement.elements(VARIABLE);
+            for (Element attributeElement : attributeElements) {
+                Variable variable = parse(attributeElement, definition);
+                type.addAttribute(variable);
+            }
+
+            for (VariableUserType variableUserType : definition.getVariableUserTypes()) {
+                if (variableUserType.getName().equals(type.getName())) {
+                    return;
+                }
+            }
+            definition.addVariableUserType(type);
+        }
+    }
+
     private Variable parse(Element element, ProcessDefinition processDefinition) {
         String variableName = element.attributeValue(NAME);
         String format;
