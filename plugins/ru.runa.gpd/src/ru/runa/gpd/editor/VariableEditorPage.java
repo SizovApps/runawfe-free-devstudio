@@ -177,6 +177,7 @@ public class VariableEditorPage extends EditorPartBase<Variable> {
 
     @Override
     protected void updateUI() {
+
         List<?> variables = (List<?>) tableViewer.getInput();
         List<?> selected = ((IStructuredSelection) tableViewer.getSelection()).toList();
         boolean isWithoutGlobalVars = isWithoutGlobalVars(selected);

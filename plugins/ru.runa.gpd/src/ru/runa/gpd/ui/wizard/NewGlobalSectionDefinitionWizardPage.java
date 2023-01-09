@@ -1,5 +1,7 @@
 package ru.runa.gpd.ui.wizard;
 
+import java.util.List;
+
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
@@ -30,7 +32,6 @@ import ru.runa.gpd.lang.model.ProcessDefinition;
 import ru.runa.gpd.settings.PrefConstants;
 import ru.runa.gpd.ui.custom.FileNameChecker;
 import ru.runa.gpd.util.IOUtils;
-import java.util.List;
 import ru.runa.gpd.util.SwimlaneDisplayMode;
 import ru.runa.gpd.BotCache;
 

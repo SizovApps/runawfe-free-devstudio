@@ -198,7 +198,6 @@ public class ParamDefConfig {
                 DataTableCache.reload();
             }
         }
-
     }
 
     public String getName() {
