@@ -174,7 +174,7 @@ public class BotTaskParamDefWizardPage extends WizardPage {
                         .map(r -> IOUtils.getWithoutExtension(r.getName())).filter(r -> r.equals(botTask.getSelectedDataTableName()))
                         .forEach(types::add);
                 String filterLabel = VariableFormatRegistry.getInstance().getFilterLabel("java.util.List");
-                filterLabel += "(" + botTask.getSelectedDataTableName() + ")";
+                filterLabel += Variable.FORMAT_COMPONENT_TYPE_START + botTask.getSelectedDataTableName() + Variable.FORMAT_COMPONENT_TYPE_END;
                 types.add(filterLabel);
 
             } else {
