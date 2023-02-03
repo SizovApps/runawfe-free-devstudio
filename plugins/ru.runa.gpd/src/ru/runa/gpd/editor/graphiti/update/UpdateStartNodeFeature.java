@@ -8,7 +8,9 @@ import org.eclipse.graphiti.mm.algorithms.Image;
 import org.eclipse.graphiti.mm.pictograms.ContainerShape;
 import org.eclipse.graphiti.mm.pictograms.PictogramElement;
 import org.eclipse.graphiti.services.Graphiti;
+import ru.runa.gpd.lang.model.ProcessDefinition;
 import ru.runa.gpd.lang.model.StartState;
+import ru.runa.gpd.lang.model.SubprocessDefinition;
 import ru.runa.gpd.lang.model.bpmn.StartTextDecoration.StartDefinitionUI;
 
 public class UpdateStartNodeFeature extends UpdateFeatureWithTextDecorator {
@@ -47,6 +49,11 @@ public class UpdateStartNodeFeature extends UpdateFeatureWithTextDecorator {
 
 
     private String getImageId(StartState startState) {
-        return "graph/" + startState.getEventType().getImageName();
+        ProcessDefinition definition = startState.getProcessDefinition();
+        if (definition instanceof SubprocessDefinition && ((SubprocessDefinition) definition).isTriggeredByEvent()) {
+            return "graph/" + startState.getEventType().getNonInterruptingImageName();
+        } else {
+            return "graph/" + startState.getEventType().getImageName();
+        }
     }
 }

@@ -266,7 +266,8 @@ public class ProcessDefinition extends NamedGraphElement implements Describable,
         List<StartState> startStates = getChildren(StartState.class);
         if (startStates.size() == 0) {
             errors.add(ValidationError.createLocalizedError(this, "startState.doesNotExist"));
-        } else if (startStates.stream().filter(StartState::isStartByTimer).count() > 1) {
+        } else if (startStates.stream().filter(StartState::isStartByTimer).count() > 1 &&
+                !(this instanceof SubprocessDefinition && ((SubprocessDefinition)this).isTriggeredByEvent())) {
             errors.add(ValidationError.createLocalizedError(this, "startState.multipleStartStatesWithTimerNotAllowed"));
         }
         for (Node unconnectedNode : findUnconnectedNodes()) {
@@ -676,8 +677,9 @@ public class ProcessDefinition extends NamedGraphElement implements Describable,
             Swimlane swimlaneFromGlobalSection = globalDefinition.getGlobalSwimlaneByName(swimlane.getName());
             if (swimlaneFromGlobalSection == null) {
                 swimlane.setGlobal(false);
-            } else
+            } else {
                 swimlane.updateFromGlobalPartition(swimlaneFromGlobalSection);
+            }
 
         }
         // order of updating is important : we should update usertypes BEFORE usertype's variables
