@@ -72,8 +72,16 @@ public class StartState extends FormNode implements HasTextDecorator, VariableMa
         if (shouldHaveRoutingRules()) {
             validate(errors, definitionFile, () -> this);
         }
-        if (isStartByEvent() && getProcessDefinition() instanceof SubprocessDefinition) {
-            errors.add(ValidationError.createLocalizedError(this, "startState.startByEventIsNotUsableInEmbeddedSubprocess"));
+        if (getProcessDefinition() instanceof SubprocessDefinition) {
+            if (!((SubprocessDefinition) getProcessDefinition()).isTriggeredByEvent()) {
+                if (isStartByEvent()) {
+                    errors.add(ValidationError.createLocalizedError(this, "startState.startByEventIsNotUsableInEmbeddedSubprocess"));
+                }
+            } else {
+                if (!isStartByEvent() && !isStartByTimer()) {
+                    errors.add(ValidationError.createLocalizedError(this, "startState.eventSubprocessStartStateMustContainEvent"));
+                }
+            }
         }
     }
 
@@ -165,6 +173,7 @@ public class StartState extends FormNode implements HasTextDecorator, VariableMa
         return variableMappings;
     }
 
+    @Override
     public void setVariableMappings(List<VariableMapping> variablesList) {
         this.variableMappings.clear();
         this.variableMappings.addAll(variablesList);

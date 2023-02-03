@@ -24,6 +24,7 @@ import ru.runa.gpd.lang.model.EmbeddedSubprocess.Behavior;
 import ru.runa.gpd.lang.model.EndState;
 import ru.runa.gpd.lang.model.EndTokenState;
 import ru.runa.gpd.lang.model.EndTokenSubprocessDefinitionBehavior;
+import ru.runa.gpd.lang.model.EventSubprocess;
 import ru.runa.gpd.lang.model.GraphElement;
 import ru.runa.gpd.lang.model.ISendMessageNode;
 import ru.runa.gpd.lang.model.ITimed;
@@ -177,6 +178,9 @@ public class BpmnSerializer extends ProcessSerializer {
         processProperties.put(VERSION, Application.getVersion().toString());
         if (definition instanceof SubprocessDefinition) {
             processProperties.put(BEHAVIOR, ((SubprocessDefinition) definition).getBehavior().name());
+            if (((SubprocessDefinition) definition).isTriggeredByEvent()) {
+                processProperties.put(TRIGGERED_BY_EVENT, "true");
+            }
         }
         if (definition.isInvalid()) {
             processElement.addAttribute(EXECUTABLE, "false");
@@ -270,6 +274,9 @@ public class BpmnSerializer extends ProcessSerializer {
             if (subprocess.isEmbedded()) {
                 properties.put(EMBEDDED, true);
             }
+            if (subprocess instanceof EventSubprocess) {
+                properties.put(TRIGGERED_BY_EVENT, true);
+            }
             if (subprocess.isTransactional()) {
                 properties.put(TRANSACTIONAL, true);
             }
@@ -314,7 +321,11 @@ public class BpmnSerializer extends ProcessSerializer {
                 }
             }
             if (definition instanceof SubprocessDefinition && ((SubprocessDefinition) definition).getBehavior() == Behavior.GraphPart) {
-                properties.put(BEHAVIOR, endTokenState.getSubprocessDefinitionBehavior().name());
+                if (((SubprocessDefinition) definition).isTriggeredByEvent()) {
+                    properties.put(BEHAVIOR, EndTokenSubprocessDefinitionBehavior.TERMINATE.name());
+                } else {
+                    properties.put(BEHAVIOR, endTokenState.getSubprocessDefinitionBehavior().name());
+                }
             }
             writeExtensionElements(element, properties);
         }
@@ -647,6 +658,8 @@ public class BpmnSerializer extends ProcessSerializer {
             bpmnElementName = "endTokenEvent";
         } else if (properties.containsKey(MULTI_INSTANCE)) {
             bpmnElementName = "multiProcess";
+        } else if (properties.containsKey(TRIGGERED_BY_EVENT)) {
+            bpmnElementName = "eventSubprocess";
         } else if (properties.containsKey(EMBEDDED)) {
             bpmnElementName = "embeddedProcess";
         } else {
@@ -775,6 +788,9 @@ public class BpmnSerializer extends ProcessSerializer {
             String behaviorString = processProperties.get(BEHAVIOR);
             if (behaviorString != null) {
                 ((SubprocessDefinition) definition).setBehavior(Behavior.valueOf(behaviorString));
+            }
+            if (processProperties.containsKey(TRIGGERED_BY_EVENT)) {
+                ((SubprocessDefinition) definition).setTriggeredByEvent(true);
             }
         }
         String swimlaneDisplayModeName = processProperties.get(SHOW_SWIMLANE);
