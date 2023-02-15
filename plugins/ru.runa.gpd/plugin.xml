@@ -60,22 +60,6 @@
         point="org.eclipse.ui.popupMenus">
      <objectContribution
            adaptable="false"
-           id="bpmn.transition.handlers"
-           objectClass="ru.runa.gpd.lang.model.Transition">
-        <filter
-              name="language"
-              value="bpmn">
-        </filter>
-        <action
-              class="ru.runa.gpd.lang.action.RenameTransitionDelegate"
-              id="graph.actions.rename.transition"
-              label="%button.rename"
-              menubarPath="additions"
-              style="push">
-        </action>
-     </objectContribution>
-     <objectContribution
-           adaptable="false"
            id="jpdl.transition.handlers"
            objectClass="ru.runa.gpd.lang.model.Transition">
         <filter
@@ -88,13 +72,6 @@
              label="%label.action.actions"
              menubarPath="additions"
              style="pulldown">
-       </action>
-       <action
-             class="ru.runa.gpd.lang.action.RenameTransitionDelegate"
-             id="graph.actions.rename.transition"
-             label="%button.rename"
-             menubarPath="additions"
-             style="push">
        </action>
     </objectContribution>
     <objectContribution
@@ -109,6 +86,16 @@
                 name="sp1">
           </separator>
        </menu>
+    </objectContribution>
+    <objectContribution
+          adaptable="false"
+          id="namedGraphElement.features"
+          objectClass="ru.runa.gpd.lang.model.NamedGraphElement">
+       <action
+             class="ru.runa.gpd.lang.action.RenameAction"
+             id="renameAction"
+             label="%button.rename">
+       </action>
     </objectContribution>
     <objectContribution
            adaptable="false"
@@ -727,26 +714,6 @@
     </objectContribution>
     <objectContribution
           adaptable="false"
-          id="ru.runa.gpd.rename.node.startstate.action"
-          objectClass="ru.runa.gpd.lang.model.FormNode">
-       <action
-             class="ru.runa.gpd.lang.action.RenameAction"
-             id="Rename"
-             label="%button.rename">
-       </action>
-    </objectContribution>
-    <objectContribution
-          adaptable="false"
-          id="ru.runa.gpd.rename.abstractendtextdecorated.action"
-          objectClass="ru.runa.gpd.lang.model.bpmn.AbstractEndTextDecorated">
-       <action
-             class="ru.runa.gpd.lang.action.RenameAction"
-             id="Rename"
-             label="%button.rename">
-       </action>
-    </objectContribution>
-    <objectContribution
-          adaptable="false"
           id="end.token.configuration"
           objectClass="ru.runa.gpd.lang.model.EndTokenState">
        <action
@@ -966,7 +933,6 @@
       <element
           type="connection"
             model="ru.runa.gpd.lang.model.Transition"
-            outlineTreeEditPart="ru.runa.gpd.editor.outline.TransitionTreeEditPart"
             jpdl="transition"
             bpmn="sequenceFlow"
             icon="transition.png"
@@ -1314,7 +1280,6 @@
             jpdl="variable"
             label="%default.variable.name"
             model="ru.runa.gpd.lang.model.Variable"
-            outlineTreeEditPart="ru.runa.gpd.editor.outline.VariableTreeEditPart"
             type="artifact">
       </element>
       <element
@@ -1323,7 +1288,6 @@
             jpdl="process-definition"
             label="%label.processDefinition"
             model="ru.runa.gpd.lang.model.ProcessDefinition"
-            outlineTreeEditPart="ru.runa.gpd.editor.outline.ProcessDefinitionTreeEditPart"
             type="definition">
          <gef 
             figure="ru.runa.gpd.editor.gef.figure.GridSupportLayer"
@@ -1336,7 +1300,6 @@
             jpdl="process-definition"
             label="%label.globalSectionDefinition"
             model="ru.runa.gpd.lang.model.GlobalSectionDefinition"
-            outlineTreeEditPart="ru.runa.gpd.editor.outline.ProcessDefinitionTreeEditPart"
             type="definition">
          <gef 
             figure="ru.runa.gpd.editor.gef.figure.GridSupportLayer"
@@ -1403,6 +1366,22 @@
                height="10"
                layout="ru.runa.gpd.editor.graphiti.layout.LayoutStateNodeFeature"
                update="ru.runa.gpd.editor.graphiti.update.UpdateStateNodeFeature"
+               width="15">
+         </graphiti>
+      </element>
+      <element
+            bpmn="eventSubprocess"
+            icon="event_subprocess.png"
+            label="%label.element.eventsubprocess"
+            model="ru.runa.gpd.lang.model.EventSubprocess"
+            type="node">
+         <graphiti
+               add="ru.runa.gpd.editor.graphiti.add.AddSubProcessFeature"
+               create="ru.runa.gpd.editor.graphiti.create.CreateEventSubprocessFeature"
+               fixedSize="false"
+               height="10"
+               layout="ru.runa.gpd.editor.graphiti.layout.LayoutSubprocessNodeFeature"
+               update="ru.runa.gpd.editor.graphiti.update.UpdateSubprocessNodeFeature"
                width="15">
          </graphiti>
       </element>

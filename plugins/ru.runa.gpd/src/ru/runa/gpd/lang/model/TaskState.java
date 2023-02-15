@@ -399,4 +399,9 @@ public class TaskState extends FormNode implements ActionContainer, ITimed, Sync
             }
         }
     }
+    
+    @Override
+    protected boolean allowArrivingTransition(Node source, List<Transition> transitions) {
+        return true;
+    }
 }

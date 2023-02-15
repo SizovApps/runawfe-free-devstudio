@@ -19,6 +19,10 @@ public enum StartEventType {
         return "start/catch_" + name() + ".png";
     }
 
+    public String getNonInterruptingImageName() {
+        return "start/catch_" + name() + "_non_interrupting.png";
+    }
+
     public static String[] LABELS;
 
     static {

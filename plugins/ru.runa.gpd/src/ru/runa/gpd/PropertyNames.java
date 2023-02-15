@@ -33,6 +33,7 @@ public interface PropertyNames {
     public static final String PROPERTY_TIMER_ACTION = "timerAction";
     public static final String PROPERTY_IGNORE_SUBSTITUTION_RULES = "ignoreSubstitutionRules";
     public static final String PROPERTY_SUBPROCESS = "subprocess";
+    public static final String PROPERTY_EVENT_SUBPROCESS = "eventSubprocess";
     public static final String PROPERTY_NODE_ASYNC_EXECUTION = "asyncExecution";
     public static final String PROPERTY_NODE_IN_REGULATIONS = "nodeRegulationsProperties";
     public static final String PROPERTY_PRIMARY_KEY = "primaryKey";
@@ -81,6 +82,5 @@ public interface PropertyNames {
     public static final String PROPERTY_TIMER_EVENT_DEFINITION = "timerEventDefinition";
     public static final String PROPERTY_STORE_IN_EXTERNAL_STORAGE = "storeInExternalStorage";
     public static final String PROPERTY_DISABLE_CASCADING_SUSPENSION = "disableCascadingSuspension";
-    public static final String PROPERTY_EDIT_PART_UPDATED = "editPartUpdated";
 
 }
