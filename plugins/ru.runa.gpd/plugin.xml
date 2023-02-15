@@ -1019,7 +1019,6 @@
             label="%default.swimlane.name"
             model="ru.runa.gpd.lang.model.Swimlane"
             type="artifact">
-            treeEditPart="ru.runa.gpd.editor.gef.part.tree.SwimlaneTreeEditPart">
          <graphiti
                add="ru.runa.gpd.editor.graphiti.add.AddSwimlaneFeature"
                create="ru.runa.gpd.editor.graphiti.create.CreateSwimlaneFeature"
@@ -1039,8 +1038,7 @@
             label="%label.element.startState">
          <gef 
             figure="ru.runa.gpd.editor.gef.figure.StartStateFigure"
-            graphicalEditPart="ru.runa.gpd.editor.gef.part.graph.SwimlaneNodeEditPart"
-            treeEditPart="ru.runa.gpd.editor.gef.part.tree.StartStateTreeEditPart">
+            graphicalEditPart="ru.runa.gpd.editor.gef.part.graph.SwimlaneNodeEditPart">
          </gef>
          <graphiti
                add="ru.runa.gpd.editor.graphiti.add.AddStartNodeFeature"
