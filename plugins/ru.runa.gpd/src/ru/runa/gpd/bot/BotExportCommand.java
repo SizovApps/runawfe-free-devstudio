@@ -80,7 +80,6 @@ public class BotExportCommand extends BotSyncCommand {
     }
 
     protected void getGlobalSectionStream(OutputStream out, IFolder botFolder) throws IOException, CoreException {
-        ZipOutputStream zipStream = new ZipOutputStream(out);
         getBotGlobalSectionStream(botFolder, new ZipOutputStream(out));
     }
 
@@ -96,7 +95,7 @@ public class BotExportCommand extends BotSyncCommand {
                     break;
                 }
             }
-            if (!hasGlobalSection){
+            if (!hasGlobalSection) {
                 return;
             }
             List<IFile> resourcesToExport = new ArrayList<IFile>();
@@ -127,8 +126,7 @@ public class BotExportCommand extends BotSyncCommand {
                 }
             }
             return false;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             return false;
         }
     }

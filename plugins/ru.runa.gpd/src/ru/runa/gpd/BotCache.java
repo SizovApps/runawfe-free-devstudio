@@ -119,38 +119,6 @@ public class BotCache {
         }
     }
 
-    private static void cacheBotTaskFromImport(String botStationName, String botName, IFile botTaskFile, List<BotTask> botTasks) {
-        try {
-            InputStreamReader reader = null;
-            if (!botTaskFile.isSynchronized(IResource.DEPTH_ONE)) {
-                botTaskFile.refreshLocal(IResource.DEPTH_ONE, null);
-            }
-            try {
-                reader = new InputStreamReader(botTaskFile.getContents());
-                List<String> lines = CharStreams.readLines(reader);
-                String configurationFileData = "";
-                if (lines.size() > 1) {
-                    String configurationFileName = lines.get(1);
-                    if (!Strings.isNullOrEmpty(configurationFileName)) {
-                        IFile confFile = IOUtils.getAdjacentFile(botTaskFile, configurationFileName);
-                        if (confFile.exists()) {
-                            configurationFileData = IOUtils.readStream(confFile.getContents());
-                        }
-                    }
-                }
-                BotTask botTask = BotTaskUtils.createBotTaskFromImport(botStationName, botName, botTaskFile.getName(), lines.get(0), configurationFileData);
-                botTasks.add(botTask);
-                BOT_TASK_FILES.put(botTask, botTaskFile);
-            } finally {
-                if (reader != null) {
-                    reader.close();
-                }
-            }
-        } catch (Exception e) {
-            throw Throwables.propagate(e);
-        }
-    }
-
     public static synchronized void invalidateBotTask(IFile botTaskFile, BotTask botTask) {
         String botName = botTaskFile.getParent().getName();
         List<BotTask> botTasks = BOT_TASKS.get(botName);
@@ -161,18 +129,6 @@ public class BotCache {
         botTasks.remove(botTask);
         BOT_TASK_FILES.remove(botTask);
         cacheBotTask(botTaskFile.getProject().getName(), botName, botTaskFile, botTasks);
-    }
-
-    public static synchronized void invalidateBotTaskFromImport(IFile botTaskFile, BotTask botTask) {
-        String botName = botTaskFile.getParent().getName();
-        List<BotTask> botTasks = BOT_TASKS.get(botName);
-        if (botTasks == null) {
-            botTasks = Lists.newArrayList();
-            BOT_TASKS.put(botName, botTasks);
-        }
-        botTasks.remove(botTask);
-        BOT_TASK_FILES.remove(botTask);
-        cacheBotTaskFromImport(botTaskFile.getProject().getName(), botName, botTaskFile, botTasks);
     }
 
     public static synchronized void botTaskHasBeenDeleted(IFile botTaskFile, BotTask botTask) {
@@ -203,7 +159,7 @@ public class BotCache {
      * @return set of bot names
      */
     public static synchronized Set<String> getBotNames(String botStationName) {
-        if (!BOT_STATION_BOTS.keySet().contains(botStationName)) {
+        if (!BOT_STATION_BOTS.containsKey(botStationName)) {
             return new HashSet<String>();
         }
         return BOT_STATION_BOTS.get(botStationName);

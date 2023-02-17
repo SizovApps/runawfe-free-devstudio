@@ -494,15 +494,6 @@ public class ProcessDefinition extends NamedGraphElement implements Describable,
         firePropertyChange(PROPERTY_USER_TYPES_CHANGED, null, type);
     }
 
-    public boolean isSameNameUserType(String name) {
-        for (VariableUserType userType : types) {
-            if (name.equals(userType.getName())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public void changeVariableUserTypePosition(VariableUserType type, int position) {
         if (position != -1 && types.remove(type)) {
             types.add(position, type);

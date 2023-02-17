@@ -3,7 +3,6 @@ package ru.runa.gpd.ui.wizard;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -131,6 +130,7 @@ public class BotTaskParamDefWizardPage extends WizardPage {
 
     private void createVariableTypeField(Composite parent) {
         Label label = new Label(parent, SWT.NONE);
+        typeCombo = new Combo(parent, SWT.SINGLE | SWT.READ_ONLY | SWT.BORDER);
         label.setText(Localization.getString("ParamDefWizardPage.page.type"));
         List<String> types = new ArrayList<String>();
         if (botTask != null && botTask.getDelegationClassName().equals(ScriptTask.INTERNAL_STORAGE_HANDLER_CLASS_NAME)) {
@@ -138,22 +138,19 @@ public class BotTaskParamDefWizardPage extends WizardPage {
         } else {
             for (VariableFormatArtifact artifact : VariableFormatRegistry.getInstance().getFilterArtifacts()) {
                 types.add(artifact.getLabel());
+                typeCombo.setData(artifact.getLabel(), artifact.getJavaClassName());
             }
             try {
                 Arrays.stream(DataTableUtils.getDataTableProject().members())
                         .filter(r -> r instanceof IFile && r.getName().endsWith(DataTableUtils.FILE_EXTENSION))
-                        .map(r -> IOUtils.getWithoutExtension(r.getName()))
-                        .forEach(types::add);
+                        .map(r -> IOUtils.getWithoutExtension(r.getName())).forEach(types::add);
             } catch (Exception ignored) {
             }
 
-            ProcessCache.getGlobalProcessDefinitions().stream()
-                    .map(ProcessDefinition::getVariableUserTypes).flatMap(List::stream)
-                    .map(VariableUserType::getName)
-                    .forEach(types::add);
+            ProcessCache.getGlobalProcessDefinitions().stream().map(ProcessDefinition::getVariableUserTypes).flatMap(List::stream)
+                    .map(VariableUserType::getName).forEach(types::add);
         }
 
-        typeCombo = new Combo(parent, SWT.SINGLE | SWT.READ_ONLY | SWT.BORDER);
         typeCombo.setItems(types.toArray(new String[types.size()]));
         typeCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         typeCombo.addSelectionListener(new LoggingSelectionAdapter() {
@@ -188,7 +185,6 @@ public class BotTaskParamDefWizardPage extends WizardPage {
                     return new ArrayList<>();
                 }
                 String tableFileName = IOUtils.getWithoutExtension(tableFile.getName());
-                String tableFileNameExtension = IOUtils.getExtension(tableFile.getName());
                 VariableUserType userType = DataTableCache.getDataTable(tableFileName);
                 for (Variable variable : userType.getAttributes()) {
                     if (!checkNotTableTypeVariable(variable)) {
@@ -272,6 +268,11 @@ public class BotTaskParamDefWizardPage extends WizardPage {
 
     public String getType() {
         return VariableFormatRegistry.getInstance().getFilterJavaClassName(typeCombo.getText());
+    }
+
+    public String getTypeJavaClassName() {
+        Object data = typeCombo.getData(typeCombo.getText());
+        return VariableFormatRegistry.getInstance().getFilterJavaClassName((String) typeCombo.getData(typeCombo.getText()));
     }
 
     public boolean isUseVariable() {

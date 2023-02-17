@@ -1,8 +1,6 @@
 package ru.runa.gpd.util;
 
 import java.io.ByteArrayInputStream;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import ru.runa.gpd.util.VariableUtils;
 import org.dom4j.Document;
@@ -12,20 +10,16 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.ui.ide.IDE;
 import ru.runa.gpd.BotCache;
 import ru.runa.gpd.lang.Language;
-import ru.runa.gpd.Localization;
 import ru.runa.gpd.PluginLogger;
 import ru.runa.gpd.ProcessCache;
-import ru.runa.gpd.editor.ProcessEditorBase;
 import ru.runa.gpd.editor.GlobalSectionEditorBase;
 import ru.runa.gpd.extension.VariableFormatRegistry;
 import ru.runa.gpd.lang.BpmnSerializer;
 import ru.runa.gpd.lang.ProcessSerializer;
 import ru.runa.gpd.lang.model.BotTask;
 import ru.runa.gpd.lang.model.ProcessDefinition;
-import ru.runa.gpd.lang.model.VariableUserType;
 import ru.runa.gpd.util.IOUtils;
 import ru.runa.gpd.util.SwimlaneDisplayMode;
 import com.google.common.collect.Maps;
@@ -125,7 +119,6 @@ public class AutomaticCreationUtils {
         for (Variable variable : processDefinition.getGlobalVariables()) {
             processDefinition.removeGlobalVariable(variable);
         }
-        int countOfAddedParam = 0;
         for (ParamDefGroup group : botTask.getParamDefConfig().getGroups()) {
             for (ParamDef paramDef : group.getParameters()) {
                 String variableName = paramDef.getLabel();
@@ -133,13 +126,10 @@ public class AutomaticCreationUtils {
                     variableName += "_out";
                 }
                 String scriptingName = VariableUtils.generateNameForScripting(processDefinition.getGlobalVariables(), variableName, null);
-                String filterLabel = VariableFormatRegistry.getInstance().getFilterLabel(paramDef.getFormatFilters().get(0));
-                String javaClassName = VariableFormatRegistry.getInstance().getFilterJavaClassName(filterLabel);
-                String artifactName = VariableFormatRegistry.getInstance().getNameFromJavaClassName(javaClassName);
+                String artifactName = VariableFormatRegistry.getInstance().getNameFromJavaClassName(paramDef.getFormatFilters().get(0));
                 Variable variable = new Variable(variableName, scriptingName, artifactName,
                         processDefinition.getVariableUserType(paramDef.getFormatFilters().get(0)));
                 processDefinition.addChild(variable);
-                countOfAddedParam += 1;
             }
         }
         try {

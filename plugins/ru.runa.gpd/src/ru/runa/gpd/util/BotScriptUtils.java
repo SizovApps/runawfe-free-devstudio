@@ -11,6 +11,8 @@ import ru.runa.gpd.extension.DelegableProvider;
 import ru.runa.gpd.extension.HandlerRegistry;
 import ru.runa.gpd.extension.bot.IBotFileSupportProvider;
 import ru.runa.gpd.lang.model.BotTask;
+import ru.runa.gpd.lang.model.VariableUserType;
+import ru.runa.gpd.util.DataTableUtils;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -93,5 +95,25 @@ public class BotScriptUtils {
             }
         }
         return botTasks;
+    }
+
+    public static List<VariableUserType> getVariableUserTypesFromScript(byte[] scriptXml, Map<String, byte[]> files) {
+        List<VariableUserType> variableUserTypes = Lists.newArrayList();
+        Document document = XmlUtil.parseWithXSDValidation(scriptXml, "workflowScript.xsd");
+        List<Element> taskElements = document.getRootElement().elements(ADD_BOT_CONFIGURATION_ELEMENT_NAME);
+        for (Element taskElement : taskElements) {
+            List<Element> botList = taskElement.elements(BOT_CONFIGURATION_ELEMENT_NAME);
+            for (Element botElement : botList) {
+                String name = botElement.attributeValue(NAME_ATTRIBUTE_NAME, "").trim();
+                if (Strings.isNullOrEmpty(name)) {
+                    continue;
+                }
+                String configurationFileName = botElement.attributeValue(CONFIGURATION_STRING_ATTRIBUTE_NAME);
+                byte[] configurationFileData = files.get(configurationFileName);
+                String configuration = configurationFileData != null ? new String(configurationFileData) : "";
+                variableUserTypes.addAll(DataTableUtils.createVariableUserTypes(configuration));
+            }
+        }
+        return variableUserTypes;
     }
 }

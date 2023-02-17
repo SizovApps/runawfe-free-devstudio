@@ -11,7 +11,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import org.dom4j.Document;
@@ -54,6 +53,7 @@ import ru.runa.gpd.ProcessCache;
 import ru.runa.gpd.SubprocessMap;
 import ru.runa.gpd.editor.BotTaskEditor;
 import ru.runa.gpd.editor.DataTableEditor;
+import ru.runa.gpd.editor.GlobalSectionEditorBase;
 import ru.runa.gpd.editor.ProcessEditorBase;
 import ru.runa.gpd.editor.ProcessSaveHistory;
 import ru.runa.gpd.editor.gef.GEFProcessEditor;
@@ -72,7 +72,6 @@ import ru.runa.gpd.lang.model.Subprocess;
 import ru.runa.gpd.lang.model.SubprocessDefinition;
 import ru.runa.gpd.lang.model.TaskState;
 import ru.runa.gpd.lang.model.VariableUserType;
-import ru.runa.gpd.lang.model.GlobalSectionDefinition;
 import ru.runa.gpd.lang.par.ParContentProvider;
 import ru.runa.gpd.ui.custom.Dialogs;
 import ru.runa.gpd.ui.dialog.DataSourceDialog;
@@ -107,12 +106,13 @@ import ru.runa.gpd.ui.wizard.NewFolderWizard;
 import ru.runa.gpd.ui.wizard.NewGlobalSectionDefinitionWizard;
 import ru.runa.gpd.ui.wizard.NewProcessDefinitionWizard;
 import ru.runa.gpd.ui.wizard.NewProcessProjectWizard;
+import ru.runa.gpd.util.AutomaticCreationUtils;
+import ru.runa.gpd.util.DataTableUtils;
+import ru.runa.gpd.util.IOUtils;
 import ru.runa.gpd.globalsection.GlobalSectionUtils;
 import ru.runa.wfe.InternalApplicationException;
 import ru.runa.wfe.datasource.DataSourceStuff;
 import ru.runa.wfe.definition.ProcessDefinitionAccessType;
-import ru.runa.gpd.util.IOUtils;
-import ru.runa.gpd.util.AutomaticCreationUtils;
 
 public class WorkspaceOperations {
 
@@ -336,7 +336,7 @@ public class WorkspaceOperations {
     }
 
     public static void renameProjectFolder(IStructuredSelection selection) {
-    	IProject oldProject = (IProject) selection.getFirstElement();
+        IProject oldProject = (IProject) selection.getFirstElement();
         IPath path = oldProject.getFullPath();
         IFolder oldProjectFolder = oldProject.getFolder(path);
 
@@ -349,7 +349,7 @@ public class WorkspaceOperations {
         for (IFile oldDefinitionFile : IOUtils.getProcessDefinitionFiles(oldProject)) {
             ProcessCache.invalidateProcessDefinition(oldDefinitionFile);
         }
-        
+
         try {
             IProject project = oldProjectFolder.getProject();
             IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
@@ -361,7 +361,7 @@ public class WorkspaceOperations {
                     // We get here at least if e is GraphitiProcessEditor or FormEditor.
                     IFile f = ((IFileEditorInput) e.getEditorInput()).getFile();
                     if (f.getProject() == project && Objects.equal(f.getFullPath().segment(0), project.getName())) {
-                               editorRefsToClose.add(e);
+                        editorRefsToClose.add(e);
                     }
                 }
             }
@@ -379,7 +379,7 @@ public class WorkspaceOperations {
     }
 
     public static void renameFolder(IStructuredSelection selection) {
-    	IFolder oldFolder = (IFolder) selection.getFirstElement();
+        IFolder oldFolder = (IFolder) selection.getFirstElement();
 
         RenameProjectFolderProcessDialog dialog = new RenameProjectFolderProcessDialog(oldFolder);
         dialog.setName(oldFolder.getName());
@@ -625,8 +625,7 @@ public class WorkspaceOperations {
                     WorkspaceOperations.openProcessDefinition(definitionFile);
                 }
             }
-        }
-        else if (element instanceof IFile) {
+        } else if (element instanceof IFile) {
             WorkspaceOperations.openProcessDefinition((IFile) element);
         }
     }
@@ -792,6 +791,7 @@ public class WorkspaceOperations {
             info.append(botTask.getDelegationClassName());
             info.append("\n");
             String configuration = BotTaskUtils.createBotTaskConfiguration(botTask);
+            configuration = DataTableUtils.writeVariableUserTypesConfiguration(configuration, botTask, botTask.getDelegationClassName());
             if (!Strings.isNullOrEmpty(configuration)) {
                 String configurationFileName = botTask.getName() + "." + BotCache.CONFIGURATION_FILE_EXTENSION;
                 IFile configurationFile = ((IFolder) botTaskFile.getParent()).getFile(configurationFileName);
@@ -813,33 +813,6 @@ public class WorkspaceOperations {
         }
     }
 
-    public static void importBotTask(IFile botTaskFile, BotTask botTask) {
-        try {
-            StringBuffer info = new StringBuffer();
-            info.append(botTask.getDelegationClassName());
-            info.append("\n");
-            String configuration = BotTaskUtils.createBotTaskConfiguration(botTask);
-            if (!Strings.isNullOrEmpty(configuration)) {
-                String configurationFileName = botTask.getName() + "." + BotCache.CONFIGURATION_FILE_EXTENSION;
-                IFile configurationFile = ((IFolder) botTaskFile.getParent()).getFile(configurationFileName);
-                ByteArrayInputStream stream = new ByteArrayInputStream(configuration.getBytes(Charsets.UTF_8));
-                IOUtils.createOrUpdateFile(configurationFile, stream);
-                info.append(configurationFileName);
-                stream.close();
-            }
-            if (botTask.getDelegationClassName().equals(ScriptTask.INTERNAL_STORAGE_HANDLER_CLASS_NAME)) {
-                AutomaticCreationUtils.createNewGlobalSectionDefinitionAutomatic(botTask);
-            }
-            info.append("\n");
-            InputStream infoStream = new ByteArrayInputStream(info.toString().getBytes(Charsets.UTF_8));
-            IOUtils.createOrUpdateFile(botTaskFile, infoStream);
-            BotCache.invalidateBotTaskFromImport(botTaskFile, botTask);
-            infoStream.close();
-            saveBotTask(botTaskFile, botTask);
-        } catch (CoreException | IOException e) {
-            throw new InternalApplicationException(e);
-        }
-    }
 
     public static void saveDataTable(IFile file, VariableUserType dataTable) {
         Document document = UserTypeXmlContentProvider.save(file, dataTable);

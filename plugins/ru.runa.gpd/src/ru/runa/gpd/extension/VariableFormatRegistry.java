@@ -166,20 +166,8 @@ public class VariableFormatRegistry extends ArtifactRegistry<VariableFormatArtif
     }
 
     public String getFilterLabel(final String javaClassName) {
-        final String addTableList;
-        final String simpleJavaClassName;
         if (javaClassName.contains(Variable.FORMAT_COMPONENT_TYPE_START)) {
-            addTableList = javaClassName.substring(javaClassName.indexOf(Variable.FORMAT_COMPONENT_TYPE_START));
-            simpleJavaClassName = javaClassName.substring(0, javaClassName.indexOf(Variable.FORMAT_COMPONENT_TYPE_START));
-
-            for (VariableFormatArtifact artifact : filterArtifacts) {
-                if (Objects.equal(simpleJavaClassName, artifact.getJavaClassName())) {
-                    if (!addTableList.equals("") && !simpleJavaClassName.equals("java.lang.Boolean")) {
-                        return artifact.getLabel() + addTableList;
-                    }
-                    return artifact.getLabel();
-                }
-            }
+            return getFormatLabelOfVariableFormatContainer(javaClassName);
         } else {
             for (VariableFormatArtifact artifact : filterArtifacts) {
                 if (Objects.equal(javaClassName, artifact.getJavaClassName())) {
@@ -190,26 +178,44 @@ public class VariableFormatRegistry extends ArtifactRegistry<VariableFormatArtif
         return getVariableName(javaClassName).orElseThrow(() -> new InternalApplicationException("No filter found by type " + javaClassName));
     }
 
-    public String getFilterJavaClassName(final String label) {
-        final String addTableList;
-        final String simpleLabel;
-        if (label.contains(Variable.FORMAT_COMPONENT_TYPE_START)) {
-            addTableList = label.substring(label.indexOf(Variable.FORMAT_COMPONENT_TYPE_START));
-            simpleLabel = label.substring(0, label.indexOf(Variable.FORMAT_COMPONENT_TYPE_START));
+    public String getFormatLabelOfVariableFormatContainer(String javaClassName) {
+        final String innerTypeLabel = javaClassName.substring(javaClassName.indexOf(Variable.FORMAT_COMPONENT_TYPE_START));
+        final String simpleJavaClassName = javaClassName.substring(0, javaClassName.indexOf(Variable.FORMAT_COMPONENT_TYPE_START));
 
-            for (VariableFormatArtifact artifact : filterArtifacts) {
-                if (Objects.equal(simpleLabel, artifact.getLabel()) || artifact.getLabel().contains(simpleLabel)) {
-                    if (!addTableList.equals("")) {
-                        return artifact.getJavaClassName() + addTableList;
-                    }
-                    return artifact.getJavaClassName();
+        for (VariableFormatArtifact artifact : filterArtifacts) {
+            if (Objects.equal(simpleJavaClassName, artifact.getJavaClassName())) {
+                if (!innerTypeLabel.equals("") && !simpleJavaClassName.equals("java.lang.Boolean")) {
+                    return artifact.getLabel() + innerTypeLabel;
                 }
+                return artifact.getLabel();
             }
+        }
+        return getVariableName(javaClassName).orElseThrow(() -> new InternalApplicationException("No filter found by type " + javaClassName));
+    }
+
+    public String getFilterJavaClassName(final String label) {
+        if (label.contains(Variable.FORMAT_COMPONENT_TYPE_START)) {
+            return getFilterJavaClassNameOfVariableFormatContainer(label);
         } else {
             for (VariableFormatArtifact artifact : filterArtifacts) {
                 if (Objects.equal(label, artifact.getLabel()) || artifact.getLabel().contains(label)) {
                     return artifact.getJavaClassName();
                 }
+            }
+        }
+        return getVariableName(label).orElseThrow(() -> new InternalApplicationException("No filter found by label " + label));
+    }
+
+    public String getFilterJavaClassNameOfVariableFormatContainer(final String label) {
+        final String addTableList = label.substring(label.indexOf(Variable.FORMAT_COMPONENT_TYPE_START));
+        final String simpleLabel = label.substring(0, label.indexOf(Variable.FORMAT_COMPONENT_TYPE_START));
+
+        for (VariableFormatArtifact artifact : filterArtifacts) {
+            if (Objects.equal(simpleLabel, artifact.getLabel()) || artifact.getLabel().contains(simpleLabel)) {
+                if (!addTableList.equals("")) {
+                    return artifact.getJavaClassName() + addTableList;
+                }
+                return artifact.getJavaClassName();
             }
         }
         return getVariableName(label).orElseThrow(() -> new InternalApplicationException("No filter found by label " + label));

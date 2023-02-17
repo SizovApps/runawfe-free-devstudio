@@ -1,16 +1,15 @@
 package ru.runa.gpd.bot;
 
+import com.google.common.base.Preconditions;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.List;
-import java.util.HashMap;
 import java.util.regex.Pattern;
-
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -18,24 +17,18 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import ru.runa.gpd.ui.custom.LoggingSelectionAdapter;
-import ru.runa.gpd.ui.custom.Dialogs;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 import ru.runa.gpd.BotCache;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.lang.model.BotTask;
+import ru.runa.gpd.lang.model.VariableUserType;
+import ru.runa.gpd.ui.custom.Dialogs;
 import ru.runa.gpd.util.BotScriptUtils;
+import ru.runa.gpd.util.DataTableUtils;
 import ru.runa.gpd.util.IOUtils;
 import ru.runa.gpd.util.WorkspaceOperations;
-import com.google.common.base.Preconditions;
 
 public class BotImportCommand extends BotSyncCommand {
 
@@ -64,6 +57,13 @@ public class BotImportCommand extends BotSyncCommand {
         Map<String, byte[]> globalSections = new HashMap<>();
         byte[] scriptXml = files.remove("script.xml");
         Preconditions.checkNotNull(scriptXml, "No script.xml");
+
+        List<VariableUserType> variableUserTypes = BotScriptUtils.getVariableUserTypesFromScript(scriptXml, files);
+        for (VariableUserType variableUserType : variableUserTypes) {
+            WorkspaceOperations.saveDataTable(
+                    DataTableUtils.getDataTableProject().getFile(variableUserType.getName() + DataTableUtils.FILE_EXTENSION), variableUserType);
+        }
+
         List<BotTask> botTasks = BotScriptUtils.getBotTasksFromScript(botStationName, botName, scriptXml, files);
 
         IPath path = new Path(botStationName).append("/src/botstation/").append(botName);
@@ -81,13 +81,12 @@ public class BotImportCommand extends BotSyncCommand {
                     Dialogs.information(Localization.getString("ImportBotStationWizardPage.page.removeOldBot"), shell);
                     return;
                 }
-            }
-            else {
+            } else {
                 return;
             }
         }
 
-        for (String fileName: files.keySet()) {
+        for (String fileName : files.keySet()) {
             if (fileName.endsWith(".glb")) {
                 globalSections.put(fileName, files.get(fileName));
                 files.remove(fileName);
@@ -101,7 +100,7 @@ public class BotImportCommand extends BotSyncCommand {
 
         for (BotTask botTask : botTasks) {
             IFile file = folder.getFile(botTask.getName());
-            WorkspaceOperations.importBotTask(file, botTask);
+            WorkspaceOperations.saveBotTask(file, botTask);
 
             // Save embedded files too.
             for (String fileToSave : botTask.getFilesToSave()) {
@@ -126,7 +125,6 @@ public class BotImportCommand extends BotSyncCommand {
     private String cleanBotName(String botName) {
         return botName == null ? null : botName.replaceAll(Pattern.quote(".bot"), "");
     }
-
 
     private void validate() {
         for (String testBotStationName : BotCache.getAllBotStationNames()) {

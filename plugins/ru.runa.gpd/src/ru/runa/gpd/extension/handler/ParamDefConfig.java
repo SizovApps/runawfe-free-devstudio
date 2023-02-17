@@ -26,17 +26,14 @@ import ru.runa.gpd.DataTableCache;
 import ru.runa.gpd.DataTableNature;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.PluginLogger;
-import ru.runa.gpd.ProcessCache;
 import ru.runa.gpd.extension.VariableFormatRegistry;
 import ru.runa.gpd.extension.VariableFormatArtifact;
 import ru.runa.gpd.extension.handler.ParamDef.Presentation;
 import ru.runa.gpd.lang.ValidationError;
 import ru.runa.gpd.lang.model.Delegable;
 import ru.runa.gpd.lang.model.GraphElement;
-import ru.runa.gpd.lang.model.ProcessDefinition;
 import ru.runa.gpd.lang.model.Variable;
 import ru.runa.gpd.lang.model.VariableUserType;
-import ru.runa.gpd.lang.par.VariablesXmlContentProvider;
 import ru.runa.gpd.util.DataTableUtils;
 import ru.runa.gpd.util.IOUtils;
 import ru.runa.gpd.util.UserTypeXmlContentProvider;
@@ -47,17 +44,10 @@ import ru.runa.wfe.InternalApplicationException;
 @SuppressWarnings("unchecked")
 public class ParamDefConfig {
     public static final String NAME_CONFIG = "config";
-    private static final String ROOT_ELEMENT_NAME = "usertype";
-    private static final String NAME = "name";
-    private static final String SCRIPTING_NAME = "scriptingName";
-    private static final String FORMAT = "format";
-    private static final String DEFAULT_VALUE = "defaultValue";
-    private static final String ATTRIBUTE_ELEMENT_NAME = "variable";
-    private static final String USER_TYPE = "usertype";
+    public static final String NAME = "name";
+    public static final String SCRIPTING_NAME = "scriptingName";
+    public static final String FORMAT = "format";
     private static final String USER_TYPE_SECTION = "usertypes";
-    private static final String GLOBAL = "global";
-    private static final String GLOBAL_SECTION = "globals";
-    private static final String TABLE_NAME = "tableName";
     private static final String SELECTED_TABLE = "selectedTable";
     private static final Pattern VARIABLE_REGEXP = Pattern.compile("\\$\\{(.*?[^\\\\])\\}");
     private final String name;
@@ -96,53 +86,7 @@ public class ParamDefConfig {
                     group.getParameters().add(new ParamDef(element));
                 }
                 config.getGroups().add(group);
-            } else if (groupElement.getName() == USER_TYPE_SECTION) {
-                List<Element> usertypesParamElements = groupElement.elements(ROOT_ELEMENT_NAME);
-                for (Element element : usertypesParamElements) {
-                    String nameOfTable = element.attributeValue(NAME);
-                    IProject dtProject = DataTableUtils.getDataTableProject();
-                    try {
-                        if (!dtProject.exists()) {
-                            IProjectDescription description = ResourcesPlugin.getWorkspace().newProjectDescription(dtProject.getName());
-                            description.setNatureIds(new String[] { DataTableNature.NATURE_ID });
-                            dtProject.create(description, null);
-                            dtProject.open(IResource.BACKGROUND_REFRESH, null);
-                            dtProject.refreshLocal(IResource.DEPTH_ONE, null);
-                        }
-                    } catch (CoreException ex) {
-                        throw new InternalApplicationException(ex);
-                    }
-                    IFile dataTableFile = dtProject.getFile(nameOfTable + DataTableUtils.FILE_EXTENSION);
-                    VariableUserType dataTable = new VariableUserType(nameOfTable);
-                    List<Element> variables = element.elements();
-                    for (Element variable : variables) {
-                        String name = variable.attributeValue(NAME);
-                        String scriptingName = variable.attributeValue(SCRIPTING_NAME);
-                        String format = variable.attributeValue(FORMAT);
-                        Variable newVariable = new Variable(name, scriptingName, format, dataTable);
-                        newVariable.setFormat(format);
-                        dataTable.addAttribute(newVariable);
-                    }
-                    Document document = UserTypeXmlContentProvider.save(dataTableFile, dataTable);
-                    try {
-                        IOUtils.createOrUpdateFile(dataTableFile, new ByteArrayInputStream(XmlUtil.writeXml(document)));
-                    } catch (CoreException e) {
-                        throw new InternalApplicationException(e);
-                    }
-                    DataTableCache.reload();
-                    group.getParameters().add(new ParamDef(element));
-                }
-            } else if (groupElement.getName() == GLOBAL_SECTION) {
-                if (groupElement.elements().size() == 0) {
-                    continue;
-                }
-                VariablesXmlContentProvider variablesXmlContentProvider = new VariablesXmlContentProvider();
-                try {
-                    variablesXmlContentProvider.readGlobalElements(groupElement, ProcessCache.getSelectedProcessForImportUserTypesFromBot());
-                } catch (Exception e) {
-                    PluginLogger.logError("Not found any processes in project", e);
-                }
-            } else if (groupElement.getName() == SELECTED_TABLE) {
+           } else if (groupElement.getName() == SELECTED_TABLE) {
                 String nameOfTable = groupElement.attributeValue("tableName");
                 config.selectedTableName = nameOfTable;
             }
@@ -158,7 +102,6 @@ public class ParamDefConfig {
     public static void createTablesForInternalStorageHandler(Element rootElement, String nameOfTable) {
         List<Element> groupElements = rootElement.elements();
         for (Element groupElement : groupElements) {
-            ParamDefGroup group = new ParamDefGroup(groupElement);
             if (groupElement.getName() == "input") {
                 List<Element> inputParamElements = groupElement.elements("param");
                 IProject dtProject = DataTableUtils.getDataTableProject();
@@ -463,7 +406,6 @@ public class ParamDefConfig {
                 paramElement.addAttribute("label", param.getLabel());
                 if (param.getFormatFilters().size() > 0) {
                     paramElement.addAttribute("formatFilter", param.getFormatFilters().get(0));
-                    List<VariableFormatArtifact> artifacts = VariableFormatRegistry.getInstance().getFilterArtifacts();
                     boolean isUserType = true;
                     for (VariableFormatArtifact artifact : VariableFormatRegistry.getInstance().getFilterArtifacts()) {
                         if (artifact.getJavaClassName().equals(param.getFormatFilters().get(0))) {
@@ -479,59 +421,6 @@ public class ParamDefConfig {
                 }
                 if (!param.isUseVariable()) {
                     paramElement.addAttribute("variable", "false");
-                }
-            }
-        }
-        IProject dtProject = DataTableUtils.getDataTableProject();
-        Element usertypes = root.addElement(USER_TYPE_SECTION);
-        Element globals = root.addElement(GLOBAL_SECTION);
-
-        if (!selectedTableName.equals("")) {
-            Element table = root.addElement(SELECTED_TABLE);
-            table.addAttribute(TABLE_NAME, selectedTableName);
-        }
-
-        VariablesXmlContentProvider variablesXmlContentProvider = new VariablesXmlContentProvider();
-        if (!selectedTableName.equals("")) {
-            return;
-        }
-        for (String usedTypeName : usedUserTypesNames) {
-            boolean foundInGlobalSections = false;
-            for (ProcessDefinition processDefinition : ProcessCache.getAllProcessDefinitions()) {
-                for (VariableUserType variableUserType : processDefinition.getVariableUserTypes()) {
-                    if (variableUserType.getName().equals(usedTypeName)) {
-                        Element typeElement = globals.addElement(USER_TYPE);
-                        typeElement.addAttribute(NAME, variableUserType.getName());
-                        if (variableUserType.isStoreInExternalStorage()) {
-                            typeElement.addAttribute(VariableUserType.PROPERTY_STORE_IN_EXTERNAL_STORAGE, Boolean.TRUE.toString());
-                        }
-                        if (variableUserType.isGlobal()) {
-                            typeElement.addAttribute(GLOBAL, "true");
-                        }
-                        for (Variable variable : variableUserType.getAttributes()) {
-                            variablesXmlContentProvider.writeGlobalVariable(typeElement, variable);
-                        }
-                        foundInGlobalSections = true;
-                        break;
-                    }
-                }
-            }
-            if (!foundInGlobalSections) {
-                try {
-                    IFile dataTableFile = dtProject.getFile(usedTypeName + DataTableUtils.FILE_EXTENSION);
-                    Document document = XmlUtil.parseWithoutValidation(dataTableFile.getContents(true));
-                    Element currentUsertype = usertypes.addElement(ROOT_ELEMENT_NAME);
-                    VariableUserType dataTable = UserTypeXmlContentProvider.read(document);
-                    currentUsertype.addAttribute(NAME, usedTypeName);
-                    for (Variable variable : dataTable.getAttributes()) {
-                        Element newUserTypeAttribute = currentUsertype.addElement(ATTRIBUTE_ELEMENT_NAME);
-                        newUserTypeAttribute.addAttribute(NAME, variable.getName());
-                        newUserTypeAttribute.addAttribute(SCRIPTING_NAME, variable.getScriptingName());
-                        newUserTypeAttribute.addAttribute(FORMAT, variable.getFormat());
-                        newUserTypeAttribute.addAttribute(DEFAULT_VALUE, variable.getDefaultValue());
-                    }
-                } catch (Exception e) {
-                    PluginLogger.logErrorWithoutDialog(e.getMessage());
                 }
             }
         }

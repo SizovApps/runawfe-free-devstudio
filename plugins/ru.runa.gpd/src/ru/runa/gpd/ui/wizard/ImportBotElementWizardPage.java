@@ -16,8 +16,6 @@ import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Combo;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -30,13 +28,11 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Text;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.PluginLogger;
-import ru.runa.gpd.ProcessCache;
 import ru.runa.gpd.sync.WfeServerBotImporter;
 import ru.runa.gpd.sync.WfeServerBotStationImporter;
 import ru.runa.gpd.sync.WfeServerConnectorComposite;
 import ru.runa.gpd.sync.WfeServerConnectorDataImporter;
 import ru.runa.gpd.sync.WfeServerConnectorSynchronizationCallback;
-import ru.runa.gpd.ui.custom.LoggingSelectionAdapter;
 import ru.runa.wfe.bot.Bot;
 import ru.runa.wfe.bot.BotStation;
 import ru.runa.wfe.bot.BotTask;
@@ -45,7 +41,6 @@ public abstract class ImportBotElementWizardPage extends ImportWizardPage {
     private Button importFromFileButton;
     private Composite fileSelectionArea;
     private Text selectedElementsText;
-    private Combo typeCombo;
     private Button selectParsButton;
     private Button importFromServerButton;
     private WfeServerConnectorComposite serverConnectorComposite;
@@ -129,19 +124,6 @@ public abstract class ImportBotElementWizardPage extends ImportWizardPage {
             
         });
         createServerDataViewer(importGroup);
-        List<String> allProcesses = new ArrayList<>(ProcessCache.getGlobalProcessDefinitionNames());
-        Label typeComboLabel = new Label(importGroup, SWT.NONE);
-        typeComboLabel.setText(Localization.getString("ImportBotElementWizardPage.page.processesNames"));
-        typeCombo = new Combo(importGroup, SWT.SINGLE | SWT.READ_ONLY | SWT.BORDER);
-        typeCombo.setItems(allProcesses.toArray(new String[allProcesses.size()]));
-        typeCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        typeCombo.setText("Select process");
-        typeCombo.addSelectionListener(new LoggingSelectionAdapter() {
-            @Override
-            protected void onSelection(SelectionEvent e) throws Exception {
-                ProcessCache.setSelectedProcessByName(typeCombo.getText());
-            }
-        });
 
         setControl(pageControl);
         onImportModeChanged();
