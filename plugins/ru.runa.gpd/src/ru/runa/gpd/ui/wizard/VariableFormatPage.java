@@ -29,6 +29,7 @@ import ru.runa.gpd.ui.custom.LoggingSelectionAdapter;
 import ru.runa.gpd.ui.custom.SwtUtils;
 import ru.runa.gpd.util.DataTableUtils;
 import ru.runa.gpd.util.IOUtils;
+import ru.runa.gpd.settings.CommonPreferencePage;
 import ru.runa.wfe.var.format.BigDecimalFormat;
 import ru.runa.wfe.var.format.ListFormat;
 import ru.runa.wfe.var.format.LongFormat;
@@ -174,7 +175,7 @@ public class VariableFormatPage extends DynaContentWizardPage {
                 usedUserTypeNames.add(userType.getName());
             }
         }
-        if (processDefinition != null && processDefinition.getName() != null) {
+        if (CommonPreferencePage.isGlobalObjectsEnabled()) {
             for (ProcessDefinition processDefinition : ProcessCache.getGlobalProcessDefinitions()) {
                 for (VariableUserType userType : processDefinition.getVariableUserTypes()) {
                     if (usedUserTypeNames.contains(userType.getName())) {
@@ -186,24 +187,26 @@ public class VariableFormatPage extends DynaContentWizardPage {
                 }
             }
         }
-        try {
-            for (IResource file : DataTableUtils.getDataTableProject().members()) {
-                if (file instanceof IFile && file.getName().endsWith(DataTableUtils.FILE_EXTENSION)) {
-                    String tableName = IOUtils.getWithoutExtension(file.getName());
-                    if (usedUserTypeNames.contains(tableName)) {
-                        continue;
-                    }
-                    usedUserTypeNames.add(tableName);
+        if (CommonPreferencePage.isInternalStorageFunctionalityEnabled()) {
+            try {
+                for (IResource file : DataTableUtils.getDataTableProject().members()) {
+                    if (file instanceof IFile && file.getName().endsWith(DataTableUtils.FILE_EXTENSION)) {
+                        String tableName = IOUtils.getWithoutExtension(file.getName());
+                        if (usedUserTypeNames.contains(tableName)) {
+                            continue;
+                        }
+                        usedUserTypeNames.add(tableName);
 
-                    if (VariableFormatRegistry.getInstance().getFilterArtifacts().stream()
-                            .filter(artifact -> artifact.getJavaClassName().equals(tableName)).count() == 0) {
-                        VariableFormatArtifact variableFormatArtifact = new VariableFormatArtifact(true, tableName, tableName, tableName);
-                        VariableFormatRegistry.getInstance().add(variableFormatArtifact);
+                        if (VariableFormatRegistry.getInstance().getFilterArtifacts().stream()
+                                .filter(artifact -> artifact.getJavaClassName().equals(tableName)).count() == 0) {
+                            VariableFormatArtifact variableFormatArtifact = new VariableFormatArtifact(true, tableName, tableName, tableName);
+                            VariableFormatRegistry.getInstance().add(variableFormatArtifact);
+                        }
                     }
                 }
+            } catch (Exception e) {
+                PluginLogger.logErrorWithoutDialog(Localization.getString("VariableFormatPage.dataTableProject.error"));
             }
-        } catch (Exception e) {
-            PluginLogger.logErrorWithoutDialog(Localization.getString("VariableFormatPage.dataTableProject.error"));
         }
 
         ArrayList<VariableFormatArtifact> usedArtifacts = new ArrayList<>();

@@ -36,7 +36,7 @@ public class BotTreeContentProvider implements ITreeContentProvider {
             PluginLogger.logError(e.getMessage(), e);
         }
 
-        return new Object[] {};
+        return null;
     }
 
     @Override

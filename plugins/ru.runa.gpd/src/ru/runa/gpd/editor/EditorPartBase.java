@@ -179,6 +179,7 @@ public abstract class EditorPartBase<T> extends EditorPart implements PropertyCh
     protected ProcessDefinition getDefinition() {
         return editor.getDefinition();
     }
+
     protected IFile getDefinitionFile() {
         return editor.getDefinitionFile();
     }

@@ -29,7 +29,6 @@ public class VariableUserTypeParser {
                         String name = parameter.attributeValue(ParamDefConfig.NAME);
                         String scriptingName = parameter.attributeValue(ParamDefConfig.SCRIPTING_NAME);
                         String format = parameter.attributeValue(ParamDefConfig.FORMAT);
-                        // TODO проверить нужен ли variableUserType
                         Variable newVariable = new Variable(name, scriptingName, format, variableUserType);
                         newVariable.setFormat(format);
                         variableUserType.addAttribute(newVariable);
@@ -50,7 +49,7 @@ public class VariableUserTypeParser {
     }
 
     public static void addTableNameForInternalStorage(String dataTableName, Element config) {
-        if (!dataTableName.equals("")) {
+        if (dataTableName != null && !dataTableName.equals("")) {
             Element table = config.addElement(SELECTED_TABLE);
             table.addAttribute(TABLE_NAME, dataTableName);
         }

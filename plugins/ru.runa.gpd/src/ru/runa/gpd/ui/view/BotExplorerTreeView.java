@@ -34,6 +34,7 @@ import ru.runa.gpd.SharedImages;
 import ru.runa.gpd.search.BaseSearchQuery;
 import ru.runa.gpd.search.BotSearchQuery;
 import ru.runa.gpd.search.BotTaskSearchQuery;
+import ru.runa.gpd.lang.par.ParContentProvider;
 import ru.runa.gpd.ui.custom.LoggingDoubleClickAdapter;
 import ru.runa.gpd.ui.wizard.ExportBotStationWizardPage;
 import ru.runa.gpd.ui.wizard.ExportBotTaskWizardPage;
@@ -46,7 +47,7 @@ import ru.runa.gpd.util.WorkspaceOperations;
 
 public class BotExplorerTreeView extends ViewPart implements ISelectionListener {
     private TreeViewer viewer;
-    private static final String PROCESS_FILE_NAME = "processdefinition.xml";
+    private static final String PROCESS_FILE_NAME = ParContentProvider.PROCESS_DEFINITION_FILE_NAME;
 
     @Override
     public void init(IViewSite site) throws PartInitException {

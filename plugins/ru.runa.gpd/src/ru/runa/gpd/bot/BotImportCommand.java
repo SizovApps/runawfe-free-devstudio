@@ -1,6 +1,5 @@
 package ru.runa.gpd.bot;
 
-import com.google.common.base.Preconditions;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -20,6 +20,7 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+
 import ru.runa.gpd.BotCache;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.lang.model.BotTask;
@@ -29,6 +30,8 @@ import ru.runa.gpd.util.BotScriptUtils;
 import ru.runa.gpd.util.DataTableUtils;
 import ru.runa.gpd.util.IOUtils;
 import ru.runa.gpd.util.WorkspaceOperations;
+
+import com.google.common.base.Preconditions;
 
 public class BotImportCommand extends BotSyncCommand {
 

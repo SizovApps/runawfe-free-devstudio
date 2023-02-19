@@ -83,7 +83,6 @@ public class VariableEditorPage extends EditorPartBase<Variable> {
     private Button usageReportButton;
     private Button pasteButton;
     private Button makeLocalButton;
-    private boolean isBlocked;
 
     private static Function<Variable, String> joinVariableNamesFunction = new Function<Variable, String>() {
 
@@ -133,25 +132,23 @@ public class VariableEditorPage extends EditorPartBase<Variable> {
                 new TableColumnDescription("Variable.property.storeType", 200, SWT.LEFT));
 
         Composite buttonsBar = createActionBar(allVariablesComposite);
-        if (!isBlocked) {
-            addButton(buttonsBar, "button.create", new CreateVariableSelectionListener(), false);
-            renameButton = addButton(buttonsBar, "button.rename", new RenameVariableSelectionListener(), true);
-            changeButton = addButton(buttonsBar, "button.change", new ChangeVariableSelectionListener(), true);
-            copyButton = addButton(buttonsBar, "button.copy", new CopyVariableSelectionListener(), true);
-            pasteButton = addButton(buttonsBar, "button.paste", new PasteVariableSelectionListener(), true);
-            searchButton = addButton(buttonsBar, "button.search", new SearchVariableUsageSelectionListener(), true);
-            if (CommonPreferencePage.isGlobalObjectsEnabled()) {
-                importGlobalButton = addButton(buttonsBar, "button.importGlobal", new ImportGlobalVariableSelectionListener(), true);
-                makeLocalButton = addButton(buttonsBar, "button.makeLocal", new MakeLocalVariableListener(), true);
-            }
-            usageReportButton = addButton(buttonsBar, "button.report", new ReportUsageSelectionListener(), true);
-            usageReportButton.setToolTipText(Localization.getString("DesignerVariableEditorPage.report.variablesUsage.tooltip"));
-            moveUpButton = addButton(buttonsBar, "button.up", new MoveVariableSelectionListener(true), true);
-            moveDownButton = addButton(buttonsBar, "button.down", new MoveVariableSelectionListener(false), true);
-            deleteButton = addButton(buttonsBar, "button.delete", new DeleteVariableSelectionListener(), true);
-            moveToTypeAttributeButton = addButton(buttonsBar, "button.move", new MoveToTypeAttributeSelectionListener(), true);
-            updateViewer();
+        addButton(buttonsBar, "button.create", new CreateVariableSelectionListener(), false);
+        renameButton = addButton(buttonsBar, "button.rename", new RenameVariableSelectionListener(), true);
+        changeButton = addButton(buttonsBar, "button.change", new ChangeVariableSelectionListener(), true);
+        copyButton = addButton(buttonsBar, "button.copy", new CopyVariableSelectionListener(), true);
+        pasteButton = addButton(buttonsBar, "button.paste", new PasteVariableSelectionListener(), true);
+        searchButton = addButton(buttonsBar, "button.search", new SearchVariableUsageSelectionListener(), true);
+        if (CommonPreferencePage.isGlobalObjectsEnabled()) {
+            importGlobalButton = addButton(buttonsBar, "button.importGlobal", new ImportGlobalVariableSelectionListener(), true);
+            makeLocalButton = addButton(buttonsBar, "button.makeLocal", new MakeLocalVariableListener(), true);
         }
+        usageReportButton = addButton(buttonsBar, "button.report", new ReportUsageSelectionListener(), true);
+        usageReportButton.setToolTipText(Localization.getString("DesignerVariableEditorPage.report.variablesUsage.tooltip"));
+        moveUpButton = addButton(buttonsBar, "button.up", new MoveVariableSelectionListener(true), true);
+        moveDownButton = addButton(buttonsBar, "button.down", new MoveVariableSelectionListener(false), true);
+        deleteButton = addButton(buttonsBar, "button.delete", new DeleteVariableSelectionListener(), true);
+        moveToTypeAttributeButton = addButton(buttonsBar, "button.move", new MoveToTypeAttributeSelectionListener(), true);
+        updateViewer();
     }
 
     @Override
@@ -183,9 +180,6 @@ public class VariableEditorPage extends EditorPartBase<Variable> {
         boolean isWithoutGlobalVars = isWithoutGlobalVars(selected);
         boolean isGlobalSection = isGlobalSection();
         boolean isUsingGlobals = isUsingGlobals();
-        if (isBlocked) {
-            return;
-        }
         enableAction(searchButton, selected.size() == 1);
         enableAction(changeButton, isWithoutGlobalVars && selected.size() == 1);
         enableAction(moveUpButton, isWithoutGlobalVars && selected.size() == 1 && variables.indexOf(selected.get(0)) > 0);
@@ -207,13 +201,11 @@ public class VariableEditorPage extends EditorPartBase<Variable> {
         return variables.stream().filter(v -> v instanceof Variable).noneMatch(v -> ((Variable) v).isGlobal());
     }
 
-    public void setIsBlocked(boolean isBlocked) {
-        this.isBlocked = isBlocked;
-    }
 
     public void updateViewer() {
-        ProcessDefinition definition = ProcessCache.getProcessDefinition(getDefinitionFile());
-        List<Variable> variables = definition.getVariables(false, false);
+        ProcessDefinition definition = ProcessCache.getProcessDefinition(editor.getDefinitionFile());
+        editor.setDefinition(definition);
+        List<Variable> variables = getDefinition().getVariables(false, false);
         tableViewer.setInput(variables);
         for (Variable variable : variables) {
             variable.addPropertyChangeListener(this);

@@ -4,18 +4,15 @@ import com.google.common.collect.Lists;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URL;
-import java.util.List;
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.ListIterator;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.stream.Stream;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -743,7 +740,6 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
         }
     }
 
-
     private void createConfTableButtons(Composite dynaConfComposite, TableViewer confTableViewer, final String parameterType) {
         Composite buttonArea = new Composite(dynaConfComposite, SWT.NONE);
         buttonArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -760,7 +756,8 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
         addParameterButtonLocal.setEnabled(!isBotDocxHandler && botTask.getType() != BotTaskType.PARAMETERIZED);
         addParameterButtonLocal.addSelectionListener(new LoggingSelectionAdapter() {
             @Override
-            protected void onSelection(SelectionEvent e) throws Exception {;
+            protected void onSelection(SelectionEvent e) throws Exception {
+                ;
                 if (!checkSelectionOfTable()) {
                     return;
                 }
@@ -866,9 +863,7 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
         List<ParamDef> paramDefs = new ArrayList<ParamDef>();
         for (ParamDefGroup group : botTask.getParamDefConfig().getGroups()) {
             if (groupType.equals(group.getName())) {
-                if (group.getParameters().size() != 0) {
-                    paramDefs.addAll(group.getParameters());
-                }
+                paramDefs.addAll(group.getParameters());
             }
         }
         List<String[]> input = new ArrayList<String[]>(paramDefs.size());
@@ -886,7 +881,8 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
     }
 
     private boolean checkSelectionOfTable() {
-        return !botTask.getDelegationClassName().equals(ScriptTask.INTERNAL_STORAGE_HANDLER_CLASS_NAME) || (tablesCombo != null && !tablesCombo.getText().equals(""));
+        return !botTask.getDelegationClassName().equals(ScriptTask.INTERNAL_STORAGE_HANDLER_CLASS_NAME)
+                || (tablesCombo != null && !tablesCombo.getText().equals(""));
     }
 
     private TableViewer getParamTableViewer(String parameterType) {
@@ -913,10 +909,9 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
         try {
             Arrays.stream(DataTableUtils.getDataTableProject().members())
                     .filter(r -> r instanceof IFile && r.getName().endsWith(DataTableUtils.FILE_EXTENSION))
-                    .map(r -> IOUtils.getWithoutExtension(r.getName()))
-                    .forEach(tables::add);
+                    .map(r -> IOUtils.getWithoutExtension(r.getName())).forEach(tables::add);
+        } catch (Exception ignored) {
         }
-        catch (Exception ignored){}
         tablesCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         tablesCombo.setItems(tables.toArray(new String[tables.size()]));
         tablesCombo.setText(Localization.getString("BotTaskEditor.selectTable"));
@@ -949,12 +944,12 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
 
     private void deleteBotParams() {
         for (ParamDefGroup group : botTask.getParamDefConfig().getGroups()) {
-                while (group.getParameters().size() > 0) {
-                    ParamDef paramDef = group.getParameters().get(0);
-                    group.getParameters().remove(paramDef);
-                    setTableInput(group.getName());
-                    setDirty(true);
-                }
+            while (group.getParameters().size() > 0) {
+                ParamDef paramDef = group.getParameters().get(0);
+                group.getParameters().remove(paramDef);
+                setTableInput(group.getName());
+                setDirty(true);
+            }
         }
     }
 

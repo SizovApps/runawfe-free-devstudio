@@ -5,7 +5,6 @@ import java.util.List;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -21,6 +20,7 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
+
 import ru.runa.gpd.Activator;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.PluginLogger;
@@ -33,7 +33,6 @@ import ru.runa.gpd.settings.PrefConstants;
 import ru.runa.gpd.ui.custom.FileNameChecker;
 import ru.runa.gpd.util.IOUtils;
 import ru.runa.gpd.util.SwimlaneDisplayMode;
-import ru.runa.gpd.BotCache;
 
 public class NewGlobalSectionDefinitionWizardPage extends WizardPage {
     private Combo projectCombo;
@@ -89,9 +88,6 @@ public class NewGlobalSectionDefinitionWizardPage extends WizardPage {
                 }
                 if (!folderContainGlobalSection) {
                     projectCombo.add(IOUtils.getProcessContainerName(container));
-                }
-                for (String botName : BotCache.getAllBotNames()) {
-                    projectCombo.add(botName);
                 }
             } catch (CoreException e) {
                 PluginLogger.logError(e);
@@ -241,30 +237,8 @@ public class NewGlobalSectionDefinitionWizardPage extends WizardPage {
 
     public IFolder getProcessFolderByCreate() {
         String projectName = projectCombo.getItem(projectCombo.getSelectionIndex());
-        IContainer container = null;
-        if (processContainers.stream().filter(p -> String.join("/", p.getFullPath().segments()).equals(projectName)).count() != 0) {
-            container = processContainers.stream().filter(p -> String.join("/", p.getFullPath().segments()).equals(projectName)).findFirst()
-                    .get();
-        }
-        else {
-            try {
-            for (IProject botStationProject : IOUtils.getAllBotStationProjects()) {
-                IContainer botStationFolder = botStationProject.getFolder("src/botstation");
-                for (IResource botResource : botStationFolder.members()) {
-                    if (botResource instanceof IFolder) {
-                        if (botResource.getName().equals(projectName)) {
-                            container = (IFolder) botResource;
-                            break;
-                        }
-                    }
-                }
-            }
-            }
-            catch (CoreException e) {
-                PluginLogger.logError(e);
-            }
-        }
-
+        IContainer container = processContainers.stream().filter(p -> String.join("/", p.getFullPath().segments()).equals(projectName)).findFirst()
+                .get();
         if (parentProcessDefinition != null) {
             return (IFolder) container;
         } else {

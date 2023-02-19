@@ -16,6 +16,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.extension.VariableFormatRegistry;
+import ru.runa.gpd.lang.model.GlobalSectionDefinition;
 import ru.runa.gpd.lang.model.ProcessDefinition;
 import ru.runa.gpd.lang.model.VariableUserType;
 import ru.runa.gpd.settings.CommonPreferencePage;
@@ -70,7 +71,7 @@ public class VariableUserTypeDialog extends Dialog {
             @Override
             protected void onTextChanged(ModifyEvent e) throws Exception {
                 name = nameField.getText();
-                if (processDefinition.getName().contains(".")) {
+                if (processDefinition instanceof GlobalSectionDefinition) {
                     String processName = processDefinition.getName();
                     processName = processName.substring(1);
                     name += "(" + processName + ")";

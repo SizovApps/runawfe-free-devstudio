@@ -89,7 +89,7 @@ public class VariableUserType extends EventSupport implements VariableContainer,
     }
 
     public void addAttribute(Variable variable) {
-        if (isSameNameVariable(variable.getScriptingName())) {
+        if (hasAttribute(variable.getScriptingName())) {
             return;
         }
         attributes.add(variable);
@@ -97,7 +97,7 @@ public class VariableUserType extends EventSupport implements VariableContainer,
         firePropertyChange(PROPERTY_CHILDREN_CHANGED, null, variable);
     }
 
-    private boolean isSameNameVariable(String name) {
+    private boolean hasAttribute(String name) {
         for (Variable variable : attributes) {
             if (name.equals(variable.getScriptingName())) {
                 return true;

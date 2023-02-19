@@ -7,7 +7,6 @@ import java.util.Map;
 import org.dom4j.Document;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.gef.EditPart;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -26,7 +25,6 @@ import ru.runa.gpd.lang.Language;
 import ru.runa.gpd.lang.ProcessSerializer;
 import ru.runa.gpd.lang.model.ProcessDefinition;
 import ru.runa.gpd.lang.par.ParContentProvider;
-import ru.runa.gpd.ui.custom.Dialogs;
 import ru.runa.gpd.util.IOUtils;
 import ru.runa.gpd.util.SwimlaneDisplayMode;
 import ru.runa.gpd.util.WorkspaceOperations;
@@ -137,8 +135,8 @@ public class NewGlobalSectionDefinitionWizard extends Wizard implements INewWiza
             try {
                 monitor.beginTask(Localization.getString("NewProcessDefinitionWizard.monitor.title"), 4);
                 int subprocessIndex = 1;
-                definitionFile = parentProcessDefinitionFolder.getFile(ParContentProvider.SUBPROCESS_DEFINITION_PREFIX + "1."
-                        + ParContentProvider.PROCESS_DEFINITION_FILE_NAME);
+                definitionFile = parentProcessDefinitionFolder
+                        .getFile(ParContentProvider.SUBPROCESS_DEFINITION_PREFIX + "1." + ParContentProvider.PROCESS_DEFINITION_FILE_NAME);
                 while (definitionFile.exists()) {
                     subprocessIndex++;
                     definitionFile = parentProcessDefinitionFolder.getFile(ParContentProvider.SUBPROCESS_DEFINITION_PREFIX + subprocessIndex + "."
@@ -150,8 +148,8 @@ public class NewGlobalSectionDefinitionWizard extends Wizard implements INewWiza
                 properties.put(BpmnSerializer.SHOW_SWIMLANE, SwimlaneDisplayMode.none.name());
                 properties.put(ProcessSerializer.ID, ParContentProvider.SUBPROCESS_DEFINITION_PREFIX + subprocessIndex);
                 properties.put(ProcessSerializer.ACCESS_TYPE, accessType.name());
-                Document document = parentProcessDefinition.getLanguage().getSerializer()
-                        .getInitialProcessDefinitionDocument(processName, properties);
+                Document document = parentProcessDefinition.getLanguage().getSerializer().getInitialProcessDefinitionDocument(processName,
+                        properties);
                 byte[] bytes = XmlUtil.writeXml(document);
                 definitionFile.create(new ByteArrayInputStream(bytes), true, null);
                 monitor.worked(1);

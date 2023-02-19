@@ -64,7 +64,6 @@ import ru.runa.gpd.extension.HandlerRegistry;
 import ru.runa.gpd.extension.bot.IBotFileSupportProvider;
 import ru.runa.gpd.lang.Language;
 import ru.runa.gpd.lang.ProcessSerializer;
-import ru.runa.gpd.lang.model.bpmn.ScriptTask;
 import ru.runa.gpd.lang.model.BotTask;
 import ru.runa.gpd.lang.model.BotTaskType;
 import ru.runa.gpd.lang.model.ProcessDefinition;
@@ -72,6 +71,7 @@ import ru.runa.gpd.lang.model.Subprocess;
 import ru.runa.gpd.lang.model.SubprocessDefinition;
 import ru.runa.gpd.lang.model.TaskState;
 import ru.runa.gpd.lang.model.VariableUserType;
+import ru.runa.gpd.lang.model.bpmn.ScriptTask;
 import ru.runa.gpd.lang.par.ParContentProvider;
 import ru.runa.gpd.ui.custom.Dialogs;
 import ru.runa.gpd.ui.dialog.DataSourceDialog;
@@ -106,9 +106,6 @@ import ru.runa.gpd.ui.wizard.NewFolderWizard;
 import ru.runa.gpd.ui.wizard.NewGlobalSectionDefinitionWizard;
 import ru.runa.gpd.ui.wizard.NewProcessDefinitionWizard;
 import ru.runa.gpd.ui.wizard.NewProcessProjectWizard;
-import ru.runa.gpd.util.AutomaticCreationUtils;
-import ru.runa.gpd.util.DataTableUtils;
-import ru.runa.gpd.util.IOUtils;
 import ru.runa.gpd.globalsection.GlobalSectionUtils;
 import ru.runa.wfe.InternalApplicationException;
 import ru.runa.wfe.datasource.DataSourceStuff;
@@ -625,8 +622,6 @@ public class WorkspaceOperations {
                     WorkspaceOperations.openProcessDefinition(definitionFile);
                 }
             }
-        } else if (element instanceof IFile) {
-            WorkspaceOperations.openProcessDefinition((IFile) element);
         }
     }
 
@@ -812,7 +807,6 @@ public class WorkspaceOperations {
             throw new InternalApplicationException(e);
         }
     }
-
 
     public static void saveDataTable(IFile file, VariableUserType dataTable) {
         Document document = UserTypeXmlContentProvider.save(file, dataTable);

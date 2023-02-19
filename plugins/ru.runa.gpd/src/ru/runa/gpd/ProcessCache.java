@@ -39,27 +39,7 @@ public class ProcessCache {
             PluginLogger.logError(e);
         }
     }
-
-    private static ProcessDefinition selectedProcessForImportUserTypesFromBot;
-
-    public static ProcessDefinition getSelectedProcessForImportUserTypesFromBot() {
-        if (selectedProcessForImportUserTypesFromBot == null) {
-            if (ProcessCache.getGlobalProcessDefinitions().size() != 0) {
-                for (ProcessDefinition processDefinition : ProcessCache.getAllProcessDefinitions()) {
-                    selectedProcessForImportUserTypesFromBot = processDefinition;
-                    break;
-                }
-            }
-        }
-        return selectedProcessForImportUserTypesFromBot;
-    }
-
-    public static void setSelectedProcessByName(String processDefinitionName) {
-        selectedProcessForImportUserTypesFromBot = CACHE_BY_NAME.get(processDefinitionName);
-    }
-
-
-
+    
     private static void findSubProcessFiles(IContainer container, List<IFile> result) throws CoreException {
         for (IResource resource : container.members()) {
             if (resource.getName().endsWith(ParContentProvider.PROCESS_DEFINITION_FILE_NAME)
@@ -126,10 +106,6 @@ public class ProcessCache {
         List<String> list = new ArrayList<String>(CACHE_BY_NAME.keySet());
         Collections.sort(list);
         return list;
-    }
-
-    public static synchronized List<String> getGlobalProcessDefinitionNames() {
-        return getGlobalProcessDefinitions().stream().map(ProcessDefinition::getName).sorted().collect(Collectors.toList());
     }
 
     public static synchronized Map<IFile, ProcessDefinition> getAllProcessDefinitionsMap() {

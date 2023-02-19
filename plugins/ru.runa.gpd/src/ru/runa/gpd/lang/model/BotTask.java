@@ -26,7 +26,6 @@ import ru.runa.gpd.extension.handler.XmlBasedConstructorProvider;
 import ru.runa.gpd.lang.model.Variable;
 import ru.runa.gpd.lang.model.ProcessDefinition;
 import ru.runa.gpd.ui.view.ValidationErrorsView;
-import ru.runa.gpd.util.IOUtils;
 import ru.runa.gpd.util.XmlUtil;
 
 public class BotTask implements Delegable, Comparable<BotTask> {

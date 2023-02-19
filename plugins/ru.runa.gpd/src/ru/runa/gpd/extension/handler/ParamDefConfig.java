@@ -2,7 +2,6 @@ package ru.runa.gpd.extension.handler;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
-import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -16,30 +15,14 @@ import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 import org.dom4j.io.OutputFormat;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IProjectDescription;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.CoreException;
-import ru.runa.gpd.DataTableCache;
-import ru.runa.gpd.DataTableNature;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.PluginLogger;
-import ru.runa.gpd.extension.VariableFormatRegistry;
-import ru.runa.gpd.extension.VariableFormatArtifact;
 import ru.runa.gpd.extension.handler.ParamDef.Presentation;
 import ru.runa.gpd.lang.ValidationError;
 import ru.runa.gpd.lang.model.Delegable;
 import ru.runa.gpd.lang.model.GraphElement;
-import ru.runa.gpd.lang.model.Variable;
-import ru.runa.gpd.lang.model.VariableUserType;
-import ru.runa.gpd.util.DataTableUtils;
-import ru.runa.gpd.util.IOUtils;
-import ru.runa.gpd.util.UserTypeXmlContentProvider;
 import ru.runa.gpd.util.VariableUtils;
 import ru.runa.gpd.util.XmlUtil;
-import ru.runa.wfe.InternalApplicationException;
 
 @SuppressWarnings("unchecked")
 public class ParamDefConfig {
@@ -47,7 +30,6 @@ public class ParamDefConfig {
     public static final String NAME = "name";
     public static final String SCRIPTING_NAME = "scriptingName";
     public static final String FORMAT = "format";
-    private static final String USER_TYPE_SECTION = "usertypes";
     private static final String SELECTED_TABLE = "selectedTable";
     private static final Pattern VARIABLE_REGEXP = Pattern.compile("\\$\\{(.*?[^\\\\])\\}");
     private final String name;
@@ -86,61 +68,12 @@ public class ParamDefConfig {
                     group.getParameters().add(new ParamDef(element));
                 }
                 config.getGroups().add(group);
-           } else if (groupElement.getName() == SELECTED_TABLE) {
+            } else if (groupElement.getName() == SELECTED_TABLE) {
                 String nameOfTable = groupElement.attributeValue("tableName");
                 config.selectedTableName = nameOfTable;
             }
         }
         return config;
-    }
-
-    public static void createTablesForInternalStorageHandler(Document document, String nameOfTable) {
-        Element rootElement = document.getRootElement();
-        createTablesForInternalStorageHandler(rootElement, nameOfTable);
-    }
-
-    public static void createTablesForInternalStorageHandler(Element rootElement, String nameOfTable) {
-        List<Element> groupElements = rootElement.elements();
-        for (Element groupElement : groupElements) {
-            if (groupElement.getName() == "input") {
-                List<Element> inputParamElements = groupElement.elements("param");
-                IProject dtProject = DataTableUtils.getDataTableProject();
-                try {
-                    if (!dtProject.exists()) {
-                        IProjectDescription description = ResourcesPlugin.getWorkspace().newProjectDescription(dtProject.getName());
-                        description.setNatureIds(new String[] { DataTableNature.NATURE_ID });
-                        dtProject.create(description, null);
-                        dtProject.open(IResource.BACKGROUND_REFRESH, null);
-                        dtProject.refreshLocal(IResource.DEPTH_ONE, null);
-                    }
-                } catch (CoreException ex) {
-                    throw new InternalApplicationException(ex);
-                }
-
-                IFile dataTableFile = dtProject.getFile(nameOfTable + DataTableUtils.FILE_EXTENSION);
-                VariableUserType dataTable = new VariableUserType(nameOfTable);
-
-                for (Element variable : inputParamElements) {
-                    String name = variable.attributeValue(NAME);
-                    String scriptingName = variable.attributeValue("label");
-                    ru.runa.gpd.extension.VariableFormatRegistry variableFormatRegistry = new VariableFormatRegistry();
-                    String format = variable.attributeValue("formatFilter");
-                    String correctFormat = variableFormatRegistry.getFilterLabel(format);
-                    Variable newVariable = new Variable(name, scriptingName, correctFormat, dataTable);
-                    newVariable.setFormat(correctFormat);
-                    dataTable.addAttribute(newVariable);
-                }
-
-                Document document = UserTypeXmlContentProvider.save(dataTableFile, dataTable);
-                try {
-                    IOUtils.createOrUpdateFile(dataTableFile, new ByteArrayInputStream(XmlUtil.writeXml(document)));
-                } catch (CoreException e) {
-                    throw new InternalApplicationException(e);
-                }
-
-                DataTableCache.reload();
-            }
-        }
     }
 
     public String getName() {
@@ -394,11 +327,7 @@ public class ParamDefConfig {
     }
 
     public void writeXMLFromRoot(Element root, String selectedTableName) {
-        List<String> usedUserTypesNames = new ArrayList<String>();
         for (ParamDefGroup group : getGroups()) {
-            if (USER_TYPE_SECTION.equals(group.getName())) {
-                continue;
-            }
             Element groupParamElement = root.addElement(group.getName());
             for (ParamDef param : group.getParameters()) {
                 Element paramElement = groupParamElement.addElement("param");
@@ -406,15 +335,6 @@ public class ParamDefConfig {
                 paramElement.addAttribute("label", param.getLabel());
                 if (param.getFormatFilters().size() > 0) {
                     paramElement.addAttribute("formatFilter", param.getFormatFilters().get(0));
-                    boolean isUserType = true;
-                    for (VariableFormatArtifact artifact : VariableFormatRegistry.getInstance().getFilterArtifacts()) {
-                        if (artifact.getJavaClassName().equals(param.getFormatFilters().get(0))) {
-                            isUserType = false;
-                        }
-                    }
-                    if (!usedUserTypesNames.contains(param.getFormatFilters().get(0)) && isUserType) {
-                        usedUserTypesNames.add(param.getFormatFilters().get(0));
-                    }
                 }
                 if (param.isOptional()) {
                     paramElement.addAttribute("optional", "true");

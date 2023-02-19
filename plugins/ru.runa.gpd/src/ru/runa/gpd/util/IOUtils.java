@@ -196,7 +196,6 @@ public class IOUtils {
     }
 
     public static void createOrUpdateFile(IFile file, InputStream stream) throws CoreException {
-
         if (file.exists()) {
             file.setContents(stream, true, false, null);
         } else {

@@ -19,6 +19,7 @@ import ru.runa.gpd.extension.VariableFormatRegistry;
 import ru.runa.gpd.lang.BpmnSerializer;
 import ru.runa.gpd.lang.ProcessSerializer;
 import ru.runa.gpd.lang.model.BotTask;
+import ru.runa.gpd.lang.model.GlobalSectionDefinition;
 import ru.runa.gpd.lang.model.ProcessDefinition;
 import ru.runa.gpd.util.IOUtils;
 import ru.runa.gpd.util.SwimlaneDisplayMode;
@@ -63,9 +64,6 @@ public class AutomaticCreationUtils {
             setGlobalVariables(definitionFile, botTask);
             try {
                 GlobalSectionEditorBase processEditorBase = WorkspaceOperations.openGlobalSectionDefinition(definitionFile);
-                if (processEditorBase != null) {
-                    processEditorBase.setIsFromBot(true);
-                }
                 if (processEditorBase != null && processEditorBase.getVariableEditorPage() != null) {
                     processEditorBase.getVariableEditorPage().updateViewer();
                 }
@@ -115,9 +113,9 @@ public class AutomaticCreationUtils {
     }
 
     private static void setGlobalVariables(IFile processFile, BotTask botTask) {
-        ProcessDefinition processDefinition = ProcessCache.getProcessDefinition(processFile);
+        GlobalSectionDefinition processDefinition = (GlobalSectionDefinition) ProcessCache.getProcessDefinition(processFile);
         for (Variable variable : processDefinition.getGlobalVariables()) {
-            processDefinition.removeGlobalVariable(variable);
+            processDefinition.removeGlobalVariableInAllProcesses(variable, processDefinition.getFile().getParent());
         }
         for (ParamDefGroup group : botTask.getParamDefConfig().getGroups()) {
             for (ParamDef paramDef : group.getParameters()) {

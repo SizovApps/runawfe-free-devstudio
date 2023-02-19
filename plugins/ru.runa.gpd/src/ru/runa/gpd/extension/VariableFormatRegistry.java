@@ -167,7 +167,7 @@ public class VariableFormatRegistry extends ArtifactRegistry<VariableFormatArtif
 
     public String getFilterLabel(final String javaClassName) {
         if (javaClassName.contains(Variable.FORMAT_COMPONENT_TYPE_START)) {
-            return getFormatLabelOfVariableFormatContainer(javaClassName);
+            return getFilterLabelOfVariableFormatContainer(javaClassName);
         } else {
             for (VariableFormatArtifact artifact : filterArtifacts) {
                 if (Objects.equal(javaClassName, artifact.getJavaClassName())) {
@@ -178,7 +178,12 @@ public class VariableFormatRegistry extends ArtifactRegistry<VariableFormatArtif
         return getVariableName(javaClassName).orElseThrow(() -> new InternalApplicationException("No filter found by type " + javaClassName));
     }
 
-    public String getFormatLabelOfVariableFormatContainer(String javaClassName) {
+    /**
+     * Use for convert variable format container types
+     * @param javaClassName
+     * @return filterLabel
+     */
+    public String getFilterLabelOfVariableFormatContainer(String javaClassName) {
         final String innerTypeLabel = javaClassName.substring(javaClassName.indexOf(Variable.FORMAT_COMPONENT_TYPE_START));
         final String simpleJavaClassName = javaClassName.substring(0, javaClassName.indexOf(Variable.FORMAT_COMPONENT_TYPE_START));
 
@@ -206,6 +211,12 @@ public class VariableFormatRegistry extends ArtifactRegistry<VariableFormatArtif
         return getVariableName(label).orElseThrow(() -> new InternalApplicationException("No filter found by label " + label));
     }
 
+
+    /**
+     * Use for convert variable format container types
+     * @param label
+     * @return javaClassName
+     */
     public String getFilterJavaClassNameOfVariableFormatContainer(final String label) {
         final String addTableList = label.substring(label.indexOf(Variable.FORMAT_COMPONENT_TYPE_START));
         final String simpleLabel = label.substring(0, label.indexOf(Variable.FORMAT_COMPONENT_TYPE_START));
@@ -221,6 +232,11 @@ public class VariableFormatRegistry extends ArtifactRegistry<VariableFormatArtif
         return getVariableName(label).orElseThrow(() -> new InternalApplicationException("No filter found by label " + label));
     }
 
+    /**
+     * Use for convert variable format container javaClassName to parameter name
+     * @param javaClassName
+     * @return parameterName
+     */
     public String getNameFromJavaClassName(final String javaClassName) {
         String innerTypeJavaClassName;
         final String simpleJavaClassName;
@@ -250,6 +266,11 @@ public class VariableFormatRegistry extends ArtifactRegistry<VariableFormatArtif
         }
     }
 
+    /**
+     * Use for simple types convert javaClassName to parameter name
+     * @param javaClassName
+     * @return parameterName
+     */
     private String getNameFromJavaClassNameSimpleTypes(final String javaClassName) {
         List<String> blockedJavaClassNames = new ArrayList<>(Arrays.asList("ru.runa.wfe.var.format.HiddenFormat", "ru.runa.wfe.var.format.TextFormat",
                 "ru.runa.wfe.var.format.FormattedTextFormat", "ru.runa.wfe.var.format.ProcessIdFormat"));

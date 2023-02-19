@@ -66,7 +66,6 @@ public abstract class GlobalSectionEditorBase extends ProcessEditorBase {
     protected SwimlaneEditorPage swimlanePage;
     protected VariableEditorPage variablePage;
     protected VariableTypeEditorPage variableTypeEditorPage;
-    private boolean isFromBot;
 
     @Override
     public void init(IEditorSite site, IEditorInput input) throws PartInitException {
@@ -145,14 +144,7 @@ public abstract class GlobalSectionEditorBase extends ProcessEditorBase {
         }
     }
 
-    public void setIsFromBot(boolean isFromBot) {
-        this.isFromBot = isFromBot;
-        if (isFromBot) {
-            variablePage.setIsBlocked(isFromBot);
-        }
-    }
-
-    public VariableEditorPage getVariableEditorPage(){
+    public VariableEditorPage getVariableEditorPage() {
         return variablePage;
     }
 }

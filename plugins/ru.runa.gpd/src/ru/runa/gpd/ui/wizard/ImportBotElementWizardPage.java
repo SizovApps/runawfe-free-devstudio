@@ -124,7 +124,6 @@ public abstract class ImportBotElementWizardPage extends ImportWizardPage {
             
         });
         createServerDataViewer(importGroup);
-
         setControl(pageControl);
         onImportModeChanged();
     }

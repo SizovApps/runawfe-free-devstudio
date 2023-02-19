@@ -270,11 +270,6 @@ public class BotTaskParamDefWizardPage extends WizardPage {
         return VariableFormatRegistry.getInstance().getFilterJavaClassName(typeCombo.getText());
     }
 
-    public String getTypeJavaClassName() {
-        Object data = typeCombo.getData(typeCombo.getText());
-        return VariableFormatRegistry.getInstance().getFilterJavaClassName((String) typeCombo.getData(typeCombo.getText()));
-    }
-
     public boolean isUseVariable() {
         if (null != dialogEnhancementMode && dialogEnhancementMode.checkBotDocxTemplateEnhancementMode()) {
             return true;

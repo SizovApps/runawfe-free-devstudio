@@ -26,6 +26,7 @@ import ru.runa.gpd.lang.model.Delegable;
 import ru.runa.gpd.lang.model.BotTask;
 import ru.runa.gpd.lang.model.BotTaskLink;
 import ru.runa.gpd.lang.model.ProcessDefinition;
+import ru.runa.gpd.lang.model.Variable;
 import ru.runa.gpd.ui.custom.InsertVariableTextMenuDetectListener;
 import ru.runa.gpd.ui.custom.SwtUtils;
 import ru.runa.gpd.ui.custom.TypedUserInputCombo;
@@ -212,8 +213,8 @@ public class ParamDefComposite extends Composite {
                 ProcessDefinition processDefinition = ProcessCache.getProcessDefinition(botTask.getGlobalSectionDefinitionFile());
                 String[] formatFiltersAsArray = paramDef.getFormatFiltersAsArray();
                 for (int i = 0; i < formatFiltersAsArray.length; i++) {
-                    if (formatFiltersAsArray[i].contains("(")) {
-                        formatFiltersAsArray[i] = formatFiltersAsArray[i].substring(0, formatFiltersAsArray[i].indexOf("("));
+                    if (formatFiltersAsArray[i].contains(Variable.FORMAT_COMPONENT_TYPE_START)) {
+                        formatFiltersAsArray[i] = formatFiltersAsArray[i].substring(0, formatFiltersAsArray[i].indexOf(Variable.FORMAT_COMPONENT_TYPE_START));
                     }
                 }
                 variableNames.addAll(processDefinition.getVariableNames(true, formatFiltersAsArray));
