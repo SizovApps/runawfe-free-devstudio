@@ -2,7 +2,6 @@ package ru.runa.gpd.util;
 
 import java.io.ByteArrayInputStream;
 import java.util.Map;
-import ru.runa.gpd.util.VariableUtils;
 import org.dom4j.Document;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -21,17 +20,14 @@ import ru.runa.gpd.lang.ProcessSerializer;
 import ru.runa.gpd.lang.model.BotTask;
 import ru.runa.gpd.lang.model.GlobalSectionDefinition;
 import ru.runa.gpd.lang.model.ProcessDefinition;
-import ru.runa.gpd.util.IOUtils;
-import ru.runa.gpd.util.SwimlaneDisplayMode;
 import com.google.common.collect.Maps;
-import ru.runa.gpd.util.WorkspaceOperations;
 import ru.runa.gpd.lang.model.Variable;
 import ru.runa.gpd.extension.handler.ParamDef;
 import ru.runa.gpd.extension.handler.ParamDefGroup;
 
 public class AutomaticCreationUtils {
 
-    public static ProcessDefinition createNewGlobalSectionDefinitionAutomatic(BotTask botTask) {
+    public static ProcessDefinition createNewGlobalSectionDefinition(BotTask botTask) {
         if (!BotCache.isBotTaskFile(botTask)) {
             return null;
         }

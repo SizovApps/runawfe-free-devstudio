@@ -757,7 +757,6 @@ public class BotTaskEditor extends EditorPart implements ISelectionListener, IRe
         addParameterButtonLocal.addSelectionListener(new LoggingSelectionAdapter() {
             @Override
             protected void onSelection(SelectionEvent e) throws Exception {
-                ;
                 if (!checkSelectionOfTable()) {
                     return;
                 }

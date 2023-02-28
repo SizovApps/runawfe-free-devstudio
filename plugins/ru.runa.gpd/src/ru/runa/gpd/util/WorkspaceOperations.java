@@ -800,7 +800,7 @@ public class WorkspaceOperations {
             IOUtils.createOrUpdateFile(botTaskFile, infoStream);
             BotCache.invalidateBotTask(botTaskFile, botTask);
             if (botTask.getDelegationClassName().equals(ScriptTask.INTERNAL_STORAGE_HANDLER_CLASS_NAME)) {
-                AutomaticCreationUtils.createNewGlobalSectionDefinitionAutomatic(botTask);
+                AutomaticCreationUtils.createNewGlobalSectionDefinition(botTask);
             }
             infoStream.close();
         } catch (CoreException | IOException e) {

@@ -16,6 +16,7 @@ import ru.runa.gpd.lang.par.ParContentProvider;
 import ru.runa.gpd.util.IOUtils;
 
 public class GlobalSectionDefinition extends ProcessDefinition {
+    public static final String FILE_EXTENSION = ".glb";
 
     public GlobalSectionDefinition(IFile file) throws CoreException {
         super(file);

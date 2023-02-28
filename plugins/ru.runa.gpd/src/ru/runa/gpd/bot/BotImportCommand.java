@@ -24,6 +24,7 @@ import org.eclipse.swt.widgets.Shell;
 import ru.runa.gpd.BotCache;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.lang.model.BotTask;
+import ru.runa.gpd.lang.model.GlobalSectionDefinition;
 import ru.runa.gpd.lang.model.VariableUserType;
 import ru.runa.gpd.ui.custom.Dialogs;
 import ru.runa.gpd.util.BotScriptUtils;
@@ -90,7 +91,7 @@ public class BotImportCommand extends BotSyncCommand {
         }
 
         for (String fileName : files.keySet()) {
-            if (fileName.endsWith(".glb")) {
+            if (fileName.endsWith(GlobalSectionDefinition.FILE_EXTENSION)) {
                 globalSections.put(fileName, files.get(fileName));
                 files.remove(fileName);
             }

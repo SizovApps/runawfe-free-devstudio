@@ -240,7 +240,7 @@ public class ExportGlbWizardPage extends WizardArchiveFileResourceExportPage1 {
                             && !Dialogs.confirm(Localization.getString("ExportParWizardPage.confirm.export.invalid.process", definition.getName()))) {
                         continue;
                     }
-                    String outputFileName = getDestinationValue() + definition.getName() + ".glb";
+                    String outputFileName = getDestinationValue() + definition.getName() + GlobalSectionDefinition.FILE_EXTENSION;
                     new ParExportOperation(resourcesToExport, new FileOutputStream(outputFileName)).run(null);
                     if (ProcessSaveHistory.isActive()) {
                         Map<String, File> savepoints = ProcessSaveHistory.getSavepoints(processFolder);

@@ -23,6 +23,7 @@ import com.google.common.base.Throwables;
 import ru.runa.gpd.BotCache;
 import ru.runa.gpd.PluginLogger;
 import ru.runa.gpd.lang.model.BotTask;
+import ru.runa.gpd.lang.model.GlobalSectionDefinition;
 import ru.runa.gpd.ui.wizard.ExportGlbWizardPage;
 import ru.runa.gpd.util.BotScriptUtils;
 import ru.runa.gpd.util.BotTaskUtils;
@@ -70,7 +71,7 @@ public class BotExportCommand extends BotSyncCommand {
         writeEmbeddedFiles(botFolder, zipStream);
 
         if (hasGlobalSection(botFolder)) {
-            zipStream.putNextEntry(new ZipEntry(botFolder.getName() + ".glb"));
+            zipStream.putNextEntry(new ZipEntry(botFolder.getName() + GlobalSectionDefinition.FILE_EXTENSION));
             ByteArrayOutputStream globalStream = new ByteArrayOutputStream();
             getGlobalSectionStream(globalStream, botFolder);
             globalStream.close();
