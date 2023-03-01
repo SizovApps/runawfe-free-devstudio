@@ -212,10 +212,6 @@ public abstract class ProcessEditorBase extends MultiPageEditorPart
         return super.getAdapter(adapter);
     }
 
-    public void setDefinition(ProcessDefinition definition) {
-        this.definition = definition;
-    }
-
     public IFigure getRootFigure() {
         return (IFigure) graphPage.getAdapter(IFigure.class);
     }

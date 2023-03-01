@@ -204,8 +204,7 @@ public class VariableEditorPage extends EditorPartBase<Variable> {
 
     public void updateViewer() {
         ProcessDefinition definition = ProcessCache.getProcessDefinition(editor.getDefinitionFile());
-        editor.setDefinition(definition);
-        List<Variable> variables = getDefinition().getVariables(false, false);
+        List<Variable> variables = definition.getVariables(false, false);
         tableViewer.setInput(variables);
         for (Variable variable : variables) {
             variable.addPropertyChangeListener(this);

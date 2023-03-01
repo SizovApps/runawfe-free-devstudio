@@ -43,7 +43,7 @@ public class VariableFormatPage extends DynaContentWizardPage {
     private VariableUserType userType;
     private String[] componentClassNames;
     private final ProcessDefinition processDefinition;
-    private VariableUserType usingUserType;
+    private VariableUserType parentUserType;
     private final boolean editFormat;
 
     private final boolean isStoreInExternalStorage;
@@ -86,7 +86,7 @@ public class VariableFormatPage extends DynaContentWizardPage {
         }
         this.editFormat = editFormat;
         if (variableContainer instanceof VariableUserType) {
-            this.usingUserType = (VariableUserType) variableContainer;
+            this.parentUserType = (VariableUserType) variableContainer;
         }
     }
 
@@ -164,8 +164,8 @@ public class VariableFormatPage extends DynaContentWizardPage {
         final Combo combo = new Combo(composite, SWT.BORDER | SWT.READ_ONLY);
 
         List<String> usedUserTypeNames = new ArrayList<>();
-        if (usingUserType != null) {
-            usedUserTypeNames.add(usingUserType.getName());
+        if (parentUserType != null) {
+            usedUserTypeNames.add(parentUserType.getName());
         }
         for (VariableUserType userType : processDefinition.getVariableUserTypes()) {
             if (usedUserTypeNames.contains(userType.getName())) {
@@ -225,8 +225,8 @@ public class VariableFormatPage extends DynaContentWizardPage {
                 combo.add(artifact.getLabel());
             }
         }
-        if (usingUserType != null) {
-            usedUserTypeNames.stream().filter(userType -> !userType.equals(usingUserType.getName())).forEach(combo::add);
+        if (parentUserType != null) {
+            usedUserTypeNames.stream().filter(userType -> !userType.equals(parentUserType.getName())).forEach(combo::add);
         } else {
             usedUserTypeNames.stream().forEach(combo::add);
         }

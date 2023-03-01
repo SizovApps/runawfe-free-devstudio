@@ -89,7 +89,7 @@ public class VariableUserType extends EventSupport implements VariableContainer,
     }
 
     public void addAttribute(Variable variable) {
-        if (hasAttribute(variable.getScriptingName())) {
+        if (hasAttribute(variable.getName())) {
             return;
         }
         attributes.add(variable);
@@ -99,7 +99,7 @@ public class VariableUserType extends EventSupport implements VariableContainer,
 
     private boolean hasAttribute(String name) {
         for (Variable variable : attributes) {
-            if (name.equals(variable.getScriptingName())) {
+            if (name.equals(variable.getName())) {
                 return true;
             }
         }
