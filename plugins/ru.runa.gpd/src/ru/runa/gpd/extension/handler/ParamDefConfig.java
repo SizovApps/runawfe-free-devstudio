@@ -63,8 +63,7 @@ public class ParamDefConfig {
         for (Element groupElement : groupElements) {
             ParamDefGroup group = new ParamDefGroup(groupElement);
             if (groupElement.getName() == SELECTED_TABLE) {
-                String nameOfTable = groupElement.attributeValue("tableName");
-                config.selectedTableName = nameOfTable;
+                config.selectedTableName = groupElement.attributeValue("tableName");
             }
             List<Element> inputParamElements = groupElement.elements("param");
             for (Element element : inputParamElements) {
