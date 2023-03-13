@@ -62,16 +62,15 @@ public class ParamDefConfig {
         List<Element> groupElements = rootElement.elements();
         for (Element groupElement : groupElements) {
             ParamDefGroup group = new ParamDefGroup(groupElement);
-            if (groupElement.getName() == "input" || groupElement.getName() == "output") {
-                List<Element> inputParamElements = groupElement.elements("param");
-                for (Element element : inputParamElements) {
-                    group.getParameters().add(new ParamDef(element));
-                }
-                config.getGroups().add(group);
-            } else if (groupElement.getName() == SELECTED_TABLE) {
+            if (groupElement.getName() == SELECTED_TABLE) {
                 String nameOfTable = groupElement.attributeValue("tableName");
                 config.selectedTableName = nameOfTable;
             }
+            List<Element> inputParamElements = groupElement.elements("param");
+            for (Element element : inputParamElements) {
+                group.getParameters().add(new ParamDef(element));
+            }
+            config.getGroups().add(group);
         }
         return config;
     }
