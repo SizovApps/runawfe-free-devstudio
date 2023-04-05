@@ -158,6 +158,7 @@ public class DeleteElementFeature extends DefaultDeleteFeature implements Custom
     }
 
     @Override
+
     public void postUndo(IContext context) {
         if (element == null) {
             return;

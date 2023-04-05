@@ -22,6 +22,7 @@ public class Variable extends NamedGraphElement implements Describable {
     public static final String FORMAT_COMPONENT_TYPE_START = "(";
     public static final String FORMAT_COMPONENT_TYPE_END = ")";
     public static final String FORMAT_COMPONENT_TYPE_CONCAT = ", ";
+    private static final String ID_NAME = "id";
     private String scriptingName;
     private String format;
     private boolean publicVisibility;
@@ -313,6 +314,9 @@ public class Variable extends NamedGraphElement implements Describable {
         super.validate(errors, definitionFile);
         Map<String, String> undeclaredTypesMap = new TreeMap<String, String>();
         checkVariableType(this, getVariables(true, true), undeclaredTypesMap);
+        if (getName().equals(ID_NAME)) {
+            errors.add(ValidationError.createLocalizedError(this, "variable.invalidIdName"));
+        }
         undeclaredTypesMap.entrySet().stream()
                 .forEach(entry -> errors.add(ValidationError.createLocalizedError(this, "unknown.variableType", entry.getValue(), entry.getKey())));
     }
@@ -363,5 +367,23 @@ public class Variable extends NamedGraphElement implements Describable {
         this.setDefaultValue(variableFromGlobalSection.getDefaultValue());
         this.setPublicVisibility(variableFromGlobalSection.isPublicVisibility());
         this.setStoreType(variableFromGlobalSection.getStoreType());
+    }
+
+    public Variable getCopyForGlobalPartition() {
+        Variable variable = new Variable();
+        if (this.getUserType() != null) {
+            variable.setUserType(this.getUserType());
+
+        }
+        variable.setFormat(this.getFormat());
+        variable.setDefaultValue(this.getDefaultValue());
+        variable.setPublicVisibility(this.isPublicVisibility());
+        variable.setStoreType(this.getStoreType());
+        String name = this.getName();
+        if (name.startsWith(IOUtils.GLOBAL_OBJECT_PREFIX)) {
+            name = name.substring(IOUtils.GLOBAL_OBJECT_PREFIX.length());
+        }
+        variable.setName(name);
+        return variable;
     }
 }
