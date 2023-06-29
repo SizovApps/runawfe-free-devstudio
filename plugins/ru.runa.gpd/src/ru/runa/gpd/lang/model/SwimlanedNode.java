@@ -50,6 +50,9 @@ public abstract class SwimlanedNode extends Node implements PropertyChangeListen
 
     public void setSwimlane(Swimlane swimlane) {
         Swimlane old = this.swimlane;
+        if (Objects.equal(swimlane, old)) {
+            return;
+        }
         if (old != null) {
             old.removePropertyChangeListener(this);
         }
@@ -107,9 +110,7 @@ public abstract class SwimlanedNode extends Node implements PropertyChangeListen
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         String propertyName = evt.getPropertyName();
-        if (PROPERTY_NAME.equals(propertyName) && evt.getSource() instanceof Swimlane) {
-            setSwimlane((Swimlane) evt.getSource());
-        } else if (NODE_REMOVED.equals(propertyName) && Objects.equal(evt.getOldValue(), getSwimlane())) {
+        if (NODE_REMOVED.equals(propertyName) && Objects.equal(evt.getOldValue(), getSwimlane())) {
             setSwimlane(null);
         }
     }

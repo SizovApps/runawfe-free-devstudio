@@ -156,7 +156,7 @@ public class IOUtils {
 
     public static IFile getAdjacentFile(IFile file, String fileName) {
         if (file == null) {
-            return null;
+            throw new IllegalArgumentException("file is null");
         }
         return getFile((IFolder) file.getParent(), fileName);
     }
