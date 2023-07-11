@@ -46,8 +46,7 @@ public class ExportDataTableWizardPage extends ExportWizardPage {
     private Button exportToProcessButton;
 
     private static final Set<String> FORBIDDEN_VARIABLE_FORMATS = ImmutableSet.of("ru.runa.wfe.var.format.HiddenFormat",
-            "ru.runa.wfe.var.format.ListFormat",
-            "ru.runa.wfe.var.format.MapFormat", "ru.runa.wfe.var.format.FileFormat", "usertype");
+            "ru.runa.wfe.var.format.MapFormat", "usertype");
 
     protected ExportDataTableWizardPage(IStructuredSelection selection) {
         super(ExportDataTableWizardPage.class);

@@ -3,10 +3,13 @@ package ru.runa.gpd.lang.model;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import org.eclipse.core.resources.IFile;
@@ -52,7 +55,7 @@ public class ProcessDefinition extends NamedGraphElement implements Describable,
     protected final List<VariableUserType> types = Lists.newArrayList();
     protected final IFile file;
     protected boolean usingGlobalVars;
-
+    protected final Set<PropertyChangeListener> delegatedListeners = new HashSet<>();
     protected final ArrayList<VersionInfo> versionInfoList = new ArrayList<>();
 
     public ProcessDefinition(IFile file) {
@@ -65,6 +68,14 @@ public class ProcessDefinition extends NamedGraphElement implements Describable,
 
     public ProcessDefinitionAccessType getAccessType() {
         return accessType;
+    }
+
+    public void addDelegatedListener(PropertyChangeListener delegatedListener) {
+        this.delegatedListeners.add(delegatedListener);
+    }
+
+    public void removeDelegatedListener(PropertyChangeListener delegatedListener) {
+        this.delegatedListeners.remove(delegatedListener);
     }
 
     @Override
@@ -167,7 +178,6 @@ public class ProcessDefinition extends NamedGraphElement implements Describable,
         this.showActions = showActions;
         if (stateChanged) {
             firePropertyChange(PROPERTY_SHOW_ACTIONS, !this.showActions, this.showActions);
-            setDirty();
         }
     }
 
@@ -180,7 +190,6 @@ public class ProcessDefinition extends NamedGraphElement implements Describable,
         if (stateChanged) {
             this.showGrid = showGrid;
             firePropertyChange(PROPERTY_SHOW_GRID, !this.showGrid, this.showGrid);
-            setDirty();
         }
     }
 
@@ -193,7 +202,6 @@ public class ProcessDefinition extends NamedGraphElement implements Describable,
         if (stateChanged) {
             this.usingGlobalVars = usingGlobalVars;
             firePropertyChange(PROPERTY_USE_GLOBALS, !this.usingGlobalVars, this.usingGlobalVars);
-            setDirty();
         }
     }
 
@@ -646,15 +654,14 @@ public class ProcessDefinition extends NamedGraphElement implements Describable,
     }
 
     public void addGlobalVariable(Variable variable) {
-        VariableUserType type = variable.getUserType();
-        if (type != null) {
-            addGlobalType(type);
+        if (variable.isComplex()) {
+            addGlobalType(variable.getUserType());
         }
         String variableFormat = variable.getFormatClassName();
         if (ListFormat.class.getName().equals(variableFormat)) {
             String typeName = variable.getFormat();
-            int leng = typeName.length();
-            typeName = typeName.substring(IOUtils.GLOBAL_OBJECT_PREFIX.length() + 1, leng - 1).substring((variableFormat.length()));
+            int length = typeName.length();
+            typeName = typeName.substring(IOUtils.GLOBAL_OBJECT_PREFIX.length() + 1, length - 1).substring((variableFormat.length()));
             VariableUserType userType = ProcessCache.getGlobalProcessDefinition(this).getVariableUserType(typeName);
             if (userType != null) {
                 userType.setName(IOUtils.GLOBAL_OBJECT_PREFIX + typeName);

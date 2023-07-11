@@ -76,8 +76,8 @@ public class VariableSearchVisitor {
     public VariableSearchVisitor(VariableSearchQuery query, Set<VariableSearchTarget> searchTargets) {
         this.query = query;
         this.status = new MultiStatus(NewSearchUI.PLUGIN_ID, IStatus.OK, SearchMessages.TextSearchEngine_statusMessage, null);
-        regexScriptVariableWithCheckAfterDot = "[\"'{(,\\s=]%s(\"|'|}|\\)|,|;|\\s|=|(.(?!"
-                + getSearchedVariablesScriptingNames(query.getVariable()) + ")))";
+        this.regexScriptVariableWithCheckAfterDot = "(^|!|[\"'{(,\\s=])%s(\"|'|}|\\)|,|;|\\s|=|(\\.(?!"
+                + getSearchedVariablesScriptingNames(query.getVariable()) + "))|$)";
         this.scriptMatcherByVariable = Pattern.compile(String.format(regexScriptVariableWithCheckAfterDot, Pattern.quote(query.getSearchText())))
                 .matcher("");
         this.scriptMatcherByScriptingVariable = Pattern
@@ -97,7 +97,7 @@ public class VariableSearchVisitor {
         }
         progressMonitor = monitor == null ? new NullProgressMonitor() : monitor;
         numberOfScannedElements = 0;
-        Job monitorUpdateJob = new Job(SearchMessages.TextSearchVisitor_progress_updating_job) {
+        Job monitorUpdateJob = new Job("Searching") {
             private int lastNumberOfScannedElements = 0;
 
             @Override

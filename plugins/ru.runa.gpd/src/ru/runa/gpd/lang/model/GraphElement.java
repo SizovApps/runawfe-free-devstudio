@@ -4,6 +4,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,7 +24,6 @@ import org.eclipse.ui.views.properties.TextPropertyDescriptor;
 import ru.runa.gpd.Localization;
 import ru.runa.gpd.PluginLogger;
 import ru.runa.gpd.PropertyNames;
-import ru.runa.gpd.editor.GEFConstants;
 import ru.runa.gpd.extension.DelegableProvider;
 import ru.runa.gpd.extension.HandlerRegistry;
 import ru.runa.gpd.lang.Language;
@@ -50,7 +50,6 @@ import ru.runa.gpd.util.VariableUtils;
 @SuppressWarnings("unchecked")
 public abstract class GraphElement extends EventSupport
         implements IPropertySource, PropertyNames, IActionFilter, VariableContainer, ProcessDefinitionAware {
-    private PropertyChangeListener delegatedListener;
     private GraphElement parent;
     private GraphElement uiParentContainer;
     private final List<GraphElement> children = new ArrayList<GraphElement>();
@@ -88,26 +87,6 @@ public abstract class GraphElement extends EventSupport
             return Objects.equal(value, String.valueOf(CommonPreferencePage.isRegulationsMenuItemsEnabled()));
         }
         return false;
-    }
-
-    public void setDelegatedListener(PropertyChangeListener delegatedListener) {
-        this.delegatedListener = delegatedListener;
-        if (delegatedListener != null) {
-            addPropertyChangeListener(delegatedListener);
-            for (GraphElement child : getChildren(GraphElement.class)) {
-                child.setDelegatedListener(delegatedListener);
-            }
-        }
-    }
-
-    public void unsetDelegatedListener(PropertyChangeListener delegatedListener) {
-        if (delegatedListener != null) {
-            removePropertyChangeListener(delegatedListener);
-            for (GraphElement child : getChildren(GraphElement.class)) {
-                child.unsetDelegatedListener(delegatedListener);
-            }
-        }
-        this.delegatedListener = null;
     }
 
     public Rectangle getConstraint() {
@@ -217,9 +196,6 @@ public abstract class GraphElement extends EventSupport
         children.remove(child);
         firePropertyChange(NODE_REMOVED, child, null);
         firePropertyChange(PROPERTY_CHILDREN_CHANGED, child, null);
-        if (child.delegatedListener != null) {
-            child.removePropertyChangeListener(child.delegatedListener);
-        }
         if (child instanceof Node) {
             ((Node) child).updateRegulationsPropertiesOnDelete();
         }
@@ -238,7 +214,6 @@ public abstract class GraphElement extends EventSupport
     public void addChild(GraphElement child, int index) {
         children.add(index, child);
         child.setParent(this);
-        child.setDelegatedListener(delegatedListener);
         if (child.getId() == null && !Variable.class.equals(child.getClass())) {
             child.setId(getProcessDefinition().getNextNodeId());
         }
@@ -371,11 +346,15 @@ public abstract class GraphElement extends EventSupport
     }
 
     @Override
-    public void firePropertyChange(String propName, Object old, Object newValue) {
-        super.firePropertyChange(propName, old, newValue);
-        if (!PROPERTY_DIRTY.equals(propName)) {
-            if (!Objects.equal(old, newValue)) {
-                setDirty();
+    protected void firePropertyChange(PropertyChangeEvent event) {
+        super.firePropertyChange(event);
+        if (!PROPERTY_DIRTY.equals(event.getPropertyName())) {
+            setDirty();
+        }
+        ProcessDefinition processDefinition = getProcessDefinition();
+        if (processDefinition != null) {
+            for (PropertyChangeListener delegatedListener : processDefinition.delegatedListeners) {
+                delegatedListener.propertyChange(event);
             }
         }
     }
@@ -486,15 +465,8 @@ public abstract class GraphElement extends EventSupport
                 action.makeCopy(copy);
             }
         }
-        Rectangle old = getConstraint();
-        // a little shift for making visible copy on same diagram
-        if (old != null) {
-            Rectangle rect = old.getCopy();
-            rect.setX(rect.x() + GEFConstants.GRID_SIZE);
-            rect.setY(rect.y() + GEFConstants.GRID_SIZE);
-            copy.setConstraint(rect);
-        } else {
-            copy.setConstraint(null);
+        if (constraint != null) {
+            copy.setConstraint(constraint.getCopy());
         }
         fillCopyCustomFields(copy);
         parent.addChild(copy);

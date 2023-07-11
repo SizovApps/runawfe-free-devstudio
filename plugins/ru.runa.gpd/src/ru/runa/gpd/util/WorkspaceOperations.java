@@ -606,10 +606,10 @@ public class WorkspaceOperations {
             if (editorPart instanceof ProcessEditorBase) {
                 return (ProcessEditorBase) editorPart;
             }
+            throw new IllegalArgumentException("editorPart is not instanceof ProcessEditorBase: " + editorPart);
         } catch (PartInitException e) {
-            PluginLogger.logError("Unable open diagram", e);
+            throw new RuntimeException("Unable open diagram", e);
         }
-        return null;
     }
 
     public static void openProcessDefinitionFromBot(Object element) {
@@ -639,10 +639,10 @@ public class WorkspaceOperations {
             if (editorPart instanceof GlobalSectionEditorBase) {
                 return (GlobalSectionEditorBase) editorPart;
             }
+            throw new IllegalArgumentException("editorPart is not instanceof ProcessEditorBase: " + editorPart);
         } catch (PartInitException e) {
-            PluginLogger.logError("Unable open diagram", e);
+            throw new RuntimeException("Unable open diagram", e);
         }
-        return null;
     }
 
     /**

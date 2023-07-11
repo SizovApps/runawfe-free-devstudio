@@ -25,7 +25,7 @@ public class VariableConsumer implements VariableProvider {
     }
 
     @Override
-    public Long getProcessDefinitionVersionId() {
+    public Long getProcessDefinitionId() {
         // TODO Auto-generated method stub
         return null;
     }
